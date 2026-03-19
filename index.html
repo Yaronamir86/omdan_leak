@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>דשבורד מערכת איתור נזילות</title><link rel="stylesheet" href="shared.css"></head>
+<body>
+<nav class="topnav">
+  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="pricing.html">💠 מסלולים</a><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
+</nav>
+<main class="container">
+  <div class="page-head"><div><div class="page-title">דשבורד מערכת איתור נזילות</div><div class="page-sub">מרכז ניהול ראשי בסגנון OMDAN: דוחות, לקוחות, billing, legal ו־activity log.</div></div></div>
+  <div class="pill-nav"><a href="index.html" class="active">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html">מנוי</a></div>
+  
+<div class="grid grid-4">
+  <div class="kpi"><div class="kpi-label">סה״כ דוחות</div><div class="kpi-value" id="kpiReports">0</div><div class="kpi-sub">כולל טיוטות ודוחות שנשלחו</div></div>
+  <div class="kpi"><div class="kpi-label">לקוחות</div><div class="kpi-value" id="kpiCustomers">0</div><div class="kpi-sub">רשומות לקוח פעילות</div></div>
+  <div class="kpi"><div class="kpi-label">דוחות החודש</div><div class="kpi-value" id="kpiMonth">0</div><div class="kpi-sub">הפקות PDF החודש</div></div>
+  <div class="kpi"><div class="kpi-label">תכנית מנוי</div><div class="kpi-value" id="kpiPlan" style="font-size:24px">trial</div><div class="kpi-sub" id="kpiPlanSub">מוגבל ל־5 דוחות</div></div>
+</div>
+<div class="grid grid-2" style="margin-top:16px">
+  <div class="card"><div class="card-header"><div class="card-title">דוחות אחרונים</div><a class="btn btn-ghost btn-sm" href="form.html">+ דוח חדש</a></div><div class="card-body table-wrap" id="latestReportsWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Activity Log</div><span class="badge">OMDAN-like</span></div><div class="card-body" id="activityWrap"></div></div>
+</div>
+<div class="grid grid-3" style="margin-top:16px">
+  <div class="card"><div class="card-header"><div class="card-title">סטטוסי דוחות</div></div><div class="card-body" id="statusWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">לקוחות אחרונים</div><a class="btn btn-ghost btn-sm" href="customers.html">לרשימה מלאה</a></div><div class="card-body" id="latestCustomersWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">ארכיטקטורה שהושלמה</div></div><div class="card-body"><div style="display:grid;gap:10px"><div class="badge ok">Dashboard</div><div class="badge ok">Reports Entity</div><div class="badge ok">Customers Entity</div><div class="badge ok">Billing Area</div><div class="badge ok">Settings Area</div><div class="badge ok">Legal Center</div><div class="badge ok">Activity Log</div></div></div></div>
+</div>
+
+  
+<div class="footer-legal">
+  <a href="legal/index.html">מסמכים משפטיים</a>
+  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
+  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
+  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
+  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+</div>
+
+</main>
+<script src="shared.js"></script>
+<script>
+const reports=getReports(), customers=getCustomers(), billing=getBilling();
+document.getElementById('kpiReports').textContent=reports.length;
+document.getElementById('kpiCustomers').textContent=customers.length;
+document.getElementById('kpiMonth').textContent=billing.reportsThisMonth||0;
+document.getElementById('kpiPlan').textContent=billing.plan||'trial';
+document.getElementById('kpiPlanSub').textContent=billing.plan==='trial' ? `מוגבל ל־${billing.reportsLimit||5} דוחות` : `סטטוס: ${billing.status||'active'}`;
+(function(){const el=document.getElementById('latestReportsWrap'); if(!reports.length){el.innerHTML='<div class="empty">אין עדיין דוחות. התחל מיצירת דוח חדש.</div>'; return;} el.innerHTML='<table class="table"><thead><tr><th>מספר</th><th>לקוח</th><th>סטטוס</th><th>עודכן</th><th>פעולה</th></tr></thead><tbody>'+reports.slice(0,8).map(r=>`<tr><td>${escapeHtml(r.reportNo||'')}</td><td>${escapeHtml(r.clientName||'—')}</td><td>${statusBadge(r.status||'draft')}</td><td>${fmtDate(r.updatedAt)}</td><td><a class="btn btn-ghost btn-sm" href="form.html?id=${encodeURIComponent(r.id)}">פתח</a></td></tr>`).join('')+'</tbody></table>'})();
+(function(){const counts={draft:0,ready:0,sent:0,archived:0}; reports.forEach(r=>counts[r.status||'draft']=(counts[r.status||'draft']||0)+1); document.getElementById('statusWrap').innerHTML=`<div style="display:grid;gap:10px"><div>טיוטות: <strong>${counts.draft}</strong></div><div>מוכנים: <strong>${counts.ready}</strong></div><div>נשלחו: <strong>${counts.sent}</strong></div><div>בארכיון: <strong>${counts.archived}</strong></div></div>`})();
+(function(){const el=document.getElementById('latestCustomersWrap'); if(!customers.length){el.innerHTML='<div class="empty">אין עדיין לקוחות שמורים.</div>'; return;} el.innerHTML='<div style="display:grid;gap:12px">'+customers.slice(0,6).map(c=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:900">${escapeHtml(c.clientName||'ללא שם')}</div><div style="font-size:13px;color:var(--c-text3)">${escapeHtml(c.phone||'ללא טלפון')}</div><div style="font-size:13px;color:var(--c-text3)">${escapeHtml((c.city||'')+' '+(c.address||''))}</div></div>`).join('')+'</div>'})();
+(function(){const acts=getActivity(), el=document.getElementById('activityWrap'); if(!acts.length){el.innerHTML='<div class="empty">עדיין אין פעילות מתועדת.</div>'; return;} el.innerHTML='<div style="display:grid;gap:10px">'+acts.slice(0,8).map(a=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800">${escapeHtml(a.message)}</div><div style="font-size:12px;color:var(--c-text3)">${fmtDateTime(a.at)} · ${escapeHtml(a.type)}</div></div>`).join('')+'</div>'})();
+</script>
+</body></html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>הגדרות מערכת</title><link rel="stylesheet" href="shared.css"></head>
+<body>
+<nav class="topnav">
+  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="index.html">🏠 חזרה לדשבורד</a></div>
+</nav>
+<main class="container">
+  <div class="page-head"><div><div class="page-title">הגדרות מערכת</div><div class="page-sub">מסך הגדרות תפעוליות התואם את מבנה ההגדרות של OMDAN ומזין את הדוחות החדשים.</div></div></div>
+  <div class="pill-nav"><a href="index.html">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html">לקוחות</a><a href="settings.html" class="active">הגדרות</a><a href="account-billing.html">מנוי</a></div>
+  
+<div class="grid grid-2">
+  <div class="card"><div class="card-header"><div class="card-title">פרטי מערכת</div></div><div class="card-body"><div class="form-grid"><div class="form-group"><label>שם עסק</label><input id="companyName"></div><div class="form-group"><label>כותרת משנה</label><input id="companySubtitle"></div><div class="form-group"><label>בודק ברירת מחדל</label><input id="inspectorDefault"></div><div class="form-group full"><label>Disclaimer קבוע לדוחות</label><textarea id="disclaimer"></textarea></div></div><div class="toolbar" style="margin-top:16px"><button class="btn btn-primary" id="saveSettingsBtn">שמור הגדרות</button></div></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">ארכיטקטורת מערכת</div></div><div class="card-body"><div style="display:grid;gap:12px"><div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)">Index = Dashboard ראשי</div><div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)">Form = מנוע הדוחות הקיים עם שכבת entities</div><div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)">Customers = רשומות לקוח והיסטוריה</div><div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)">Billing = מסלולים, מכסות וחיובים</div><div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)">Legal = תנאים, פרטיות, DPA, disclaimer</div></div></div></div>
+</div>
+
+  
+<div class="footer-legal">
+  <a href="legal/index.html">מסמכים משפטיים</a>
+  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
+  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
+  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
+  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+</div>
+
+</main>
+<script src="shared.js"></script>
+<script>
+const s=getSettings(); ['companyName','companySubtitle','inspectorDefault','disclaimer'].forEach(id=>document.getElementById(id).value=s[id]||'');
+document.getElementById('saveSettingsBtn').addEventListener('click',()=>{saveSettings({companyName:document.getElementById('companyName').value,companySubtitle:document.getElementById('companySubtitle').value,inspectorDefault:document.getElementById('inspectorDefault').value,disclaimer:document.getElementById('disclaimer').value});logActivity('settings.save','הגדרות המערכת נשמרו');showToast('ההגדרות נשמרו')});
+</script>
+</body></html>
