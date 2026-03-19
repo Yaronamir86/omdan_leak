@@ -1,37 +1,77 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ניהול מנוי</title><link rel="stylesheet" href="shared.css"></head>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מנוי וחיוב | OMDAN Leak</title><link rel="stylesheet" href="shared.css">
+</head>
 <body>
 <nav class="topnav">
-  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
-  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="pricing.html">מסלולים</a></div>
+  <div class="brand"><div class="brand-icon">💳</div><div><div class="brand-name">OMDAN Leak</div><div class="brand-sub">מרכז מנוי, מכסות ובקרת חיוב</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="pricing.html">מסלולים</a><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
 </nav>
 <main class="container">
-  <div class="page-head"><div><div class="page-title">ניהול מנוי</div><div class="page-sub">אזור billing בסגנון OMDAN עם plan state, פעולות והיסטוריה.</div></div></div>
+  <div class="page-head"><div><div class="page-title">מנוי וחיוב</div><div class="page-sub">מסך מנוי מלא בקו של OMDAN: סטטוס, מכסה, מחזור שימוש, אירועי חיוב, שליטה ידנית והרשאות עבודה.</div></div></div>
   <div class="pill-nav"><a href="index.html">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html" class="active">מנוי</a></div>
-  
-<div class="grid grid-2">
-  <div class="card"><div class="card-header"><div class="card-title">מצב מנוי</div><a class="btn btn-ghost btn-sm" href="pricing.html">שנה מסלול</a></div><div class="card-body" id="billingState"></div></div>
-  <div class="card"><div class="card-header"><div class="card-title">פעולות</div></div><div class="card-body"><div class="toolbar"><button class="btn btn-primary" id="activatePro">הפעל Pro Leak</button><button class="btn btn-ghost" id="backToTrial">חזרה ל־Trial</button><button class="btn btn-danger" id="cancelAtEnd">בטל בסוף תקופה</button></div></div></div>
-</div>
-<div class="card" style="margin-top:16px"><div class="card-header"><div class="card-title">היסטוריית חיובים</div></div><div class="card-body" id="billingHistory"></div></div>
 
-  
-<div class="footer-legal">
-  <a href="legal/index.html">מסמכים משפטיים</a>
-  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
-  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
-  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
-  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
-</div>
+  <div class="grid grid-4">
+    <div class="kpi"><div class="kpi-label">סטטוס מנוי</div><div class="kpi-value" id="kpiStatus" style="font-size:24px">trial</div><div class="kpi-sub" id="kpiStatusSub">מוגבל לשימוש ניסיון</div></div>
+    <div class="kpi"><div class="kpi-label">מסלול נוכחי</div><div class="kpi-value" id="kpiPlan" style="font-size:24px">trial</div><div class="kpi-sub" id="kpiPlanSub">מכסה חודשית פעילה</div></div>
+    <div class="kpi"><div class="kpi-label">דוחות החודש</div><div class="kpi-value" id="kpiReportsMonth">0</div><div class="kpi-sub" id="kpiReportsSub">נוצלו מתוך המכסה</div></div>
+    <div class="kpi"><div class="kpi-label">אחוז ניצול</div><div class="kpi-value" id="kpiUtilization">0%</div><div class="kpi-sub">מול המכסה הפעילה</div></div>
+  </div>
 
+  <div class="grid grid-3" style="margin-top:16px">
+    <div class="card" style="grid-column:span 2">
+      <div class="card-header"><div class="card-title">מרכז שליטה</div><div class="toolbar"><button class="btn btn-ghost btn-sm" id="resetMonthBtn">איפוס חודש</button><button class="btn btn-primary btn-sm" id="saveBillingBtn">שמור מנוי</button></div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><label>מסלול</label><select id="plan"><option value="trial">Trial</option><option value="starter">Starter</option><option value="pro">Pro</option><option value="unlimited">Unlimited</option></select></div>
+          <div class="form-group"><label>סטטוס</label><select id="status"><option value="trial">trial</option><option value="active">active</option><option value="past_due">past_due</option><option value="paused">paused</option><option value="canceled">canceled</option></select></div>
+          <div class="form-group"><label>מכסה חודשית</label><input id="reportsLimit" type="number" min="0" step="1" placeholder="0 = ללא הגבלה"></div>
+          <div class="form-group"><label>דוחות החודש</label><input id="reportsThisMonth" type="number" min="0" step="1"></div>
+          <div class="form-group"><label>תאריך חידוש</label><input id="renewalDate" type="date"></div>
+          <div class="form-group"><label>אמצעי סליקה</label><input id="paymentProvider" placeholder="CardCom / Stripe / ידני"></div>
+          <div class="form-group"><label>מס׳ מנוי / מזהה חיצוני</label><input id="subscriptionId" placeholder="subscription_xxx"></div>
+          <div class="form-group"><label>אימייל חיוב</label><input id="billingEmail" type="email" placeholder="billing@example.com"></div>
+          <div class="form-group full"><label>הערות תפעול / בילינג</label><textarea id="billingNotes" placeholder="תנאים מסחריים, סטטוס לקוח, החלטות ידניות, בדיקות webhook ועוד"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">תקציר מצב</div><span class="badge" id="billingHealthBadge">בקרה</span></div><div class="card-body" id="billingSummaryWrap"></div></div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">פעולות מהירות</div></div>
+      <div class="card-body">
+        <div class="toolbar" style="margin-bottom:16px"><button class="btn btn-ghost" id="setTrialBtn">העבר ל־Trial</button><button class="btn btn-ghost" id="setProBtn">העבר ל־Pro</button><button class="btn btn-gold" id="setUnlimitedBtn">העבר ל־Unlimited</button><button class="btn btn-danger" id="pauseBillingBtn">השהה מנוי</button></div>
+        <div style="display:grid;gap:12px"><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:900;margin-bottom:6px">כלל עבודה</div><div style="color:var(--c-text2)">ב־Trial ניתן להגביל בדוחות, ב־Active לשמור מחזור שימוש, וב־Unlimited לבטל תלות במכסה.</div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:900;margin-bottom:6px">Webhook readiness</div><div style="color:var(--c-text2)">המסך מוכן לעבודה ידנית גם לפני חיבור CardCom/Stripe. כל שינוי נשמר באותו מודל billing מקומי.</div></div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">יומן חיוב</div><button class="btn btn-ghost btn-sm" id="logBillingSnapshotBtn">תעד snapshot</button></div><div class="card-body" id="billingLogWrap"><div class="empty">עדיין אין פעילות חיוב מתועדת.</div></div></div>
+  </div>
+
+  <div class="footer-legal"><a href="legal/index.html">מסמכים משפטיים</a><a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a><a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a><a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a><a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a></div>
 </main>
 <script src="shared.js"></script>
 <script>
-function renderBilling(){const b=getBilling();document.getElementById('billingState').innerHTML=`<div style="display:grid;gap:10px"><div>תכנית: <strong>${escapeHtml(b.plan||'trial')}</strong></div><div>סטטוס: <strong>${escapeHtml(b.status||'trial')}</strong></div><div>מחזור: <strong>${escapeHtml(b.cycle||'monthly')}</strong></div><div>מגבלת דוחות: <strong>${escapeHtml(String(b.reportsLimit||5))}</strong></div><div>דוחות החודש: <strong>${escapeHtml(String(b.reportsThisMonth||0))}</strong></div><div>סיום ניסיון / תקופה: <strong>${fmtDate(b.trialEnd||b.subscriptionEnd)}</strong></div><div>ביטול בסוף תקופה: <strong>${b.cancelAtEnd?'כן':'לא'}</strong></div></div>`; const acts=getActivity().filter(a=>a.type.startsWith('billing')); document.getElementById('billingHistory').innerHTML=acts.length?'<div style="display:grid;gap:10px">'+acts.slice(0,12).map(a=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800">${escapeHtml(a.message)}</div><div style="font-size:12px;color:var(--c-text3)">${fmtDateTime(a.at)}</div></div>`).join('')+'</div>':'<div class="empty">עדיין אין אירועי חיוב.</div>'}
-document.getElementById('activatePro').addEventListener('click',()=>{saveBilling({plan:'pro',status:'active',cycle:'monthly',reportsLimit:999,subscriptionEnd:addDaysISO(new Date(),30),cancelAtEnd:false});logActivity('billing.change','המסלול שודרג ל־Pro Leak');renderBilling();showToast('מסלול Pro הופעל')});
-document.getElementById('backToTrial').addEventListener('click',()=>{saveBilling({plan:'trial',status:'trial',cycle:'monthly',reportsLimit:5,trialEnd:addDaysISO(new Date(),14),cancelAtEnd:false});logActivity('billing.change','המסלול חזר ל־Trial');renderBilling();showToast('חזרת למסלול ניסיון')});
-document.getElementById('cancelAtEnd').addEventListener('click',()=>{const b=getBilling();saveBilling({cancelAtEnd:!b.cancelAtEnd});logActivity('billing.cancel',b.cancelAtEnd?'בוטל דגל cancelAtEnd':'סומן ביטול בסוף תקופה');renderBilling();showToast('עודכן סטטוס ביטול')});
-renderBilling();
-</script>
-</body></html>
+const fields={plan:document.getElementById('plan'),status:document.getElementById('status'),reportsLimit:document.getElementById('reportsLimit'),reportsThisMonth:document.getElementById('reportsThisMonth'),renewalDate:document.getElementById('renewalDate'),paymentProvider:document.getElementById('paymentProvider'),subscriptionId:document.getElementById('subscriptionId'),billingEmail:document.getElementById('billingEmail'),billingNotes:document.getElementById('billingNotes')};
+let billing=((b)=>({plan:b?.plan||'trial',status:b?.status||'trial',reportsLimit:Number(b?.reportsLimit??5),reportsThisMonth:Number(b?.reportsThisMonth??0),renewalDate:b?.renewalDate||'',paymentProvider:b?.paymentProvider||'',subscriptionId:b?.subscriptionId||'',billingEmail:b?.billingEmail||'',billingNotes:b?.billingNotes||''}))(getBilling());
+function planDefaultLimit(plan){if(plan==='trial')return 5;if(plan==='starter')return 20;if(plan==='pro')return 100;return 0;}
+function collect(){return {plan:fields.plan.value,status:fields.status.value,reportsLimit:Number(fields.reportsLimit.value||0),reportsThisMonth:Number(fields.reportsThisMonth.value||0),renewalDate:fields.renewalDate.value,paymentProvider:fields.paymentProvider.value.trim(),subscriptionId:fields.subscriptionId.value.trim(),billingEmail:fields.billingEmail.value.trim(),billingNotes:fields.billingNotes.value.trim()};}
+function hydrate(){Object.keys(fields).forEach(k=>fields[k].value=billing[k]??'');render();}
+function utilization(limit,used){if(!limit)return 0;return Math.min(999,Math.round((used/Math.max(limit,1))*100));}
+function renderLog(){const acts=(getActivity()||[]).filter(a=>String(a.type||'').startsWith('billing.'));const wrap=document.getElementById('billingLogWrap');wrap.innerHTML=!acts.length?'<div class="empty">עדיין אין פעילות חיוב מתועדת.</div>':'<div style="display:grid;gap:10px">'+acts.slice(0,10).map(a=>`<div style="padding:12px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800">${escapeHtml(a.message||'אירוע חיוב')}</div><div style="font-size:12px;color:var(--c-text3)">${fmtDateTime(a.at)} · ${escapeHtml(a.type||'')}</div></div>`).join('')+'</div>';}
+function render(){const data=collect();const pct=data.reportsLimit?utilization(data.reportsLimit,data.reportsThisMonth):0;document.getElementById('kpiStatus').textContent=data.status;document.getElementById('kpiStatusSub').textContent=data.status==='active'?'מנוי פעיל ומוכן לשימוש':data.status==='trial'?'מצב ניסיון / טרום חיוב':'נדרש מעקב תפעולי';document.getElementById('kpiPlan').textContent=data.plan;document.getElementById('kpiPlanSub').textContent=data.reportsLimit?`מכסה: ${data.reportsLimit} דוחות`:'ללא מגבלת דוחות';document.getElementById('kpiReportsMonth').textContent=data.reportsThisMonth;document.getElementById('kpiReportsSub').textContent=data.reportsLimit?`מתוך ${data.reportsLimit}`:'ללא מגבלה';document.getElementById('kpiUtilization').textContent=data.reportsLimit?pct+'%':'∞';document.getElementById('billingSummaryWrap').innerHTML=`<div style="display:grid;gap:12px"><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">מסלול / סטטוס</div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge ${data.status==='active'?'ok':data.status==='trial'?'warn':''}">${escapeHtml(data.plan)}</span><span class="badge">${escapeHtml(data.status)}</span></div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">צריכת דוחות</div><div style="font-size:24px;font-weight:900">${data.reportsLimit?`${data.reportsThisMonth} / ${data.reportsLimit}`:`${data.reportsThisMonth} / ללא הגבלה`}</div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">חידוש / ספק סליקה</div><div style="color:var(--c-text2)">${escapeHtml(data.renewalDate||'לא הוגדר')}</div><div style="color:var(--c-text3)">${escapeHtml(data.paymentProvider||'טרם הוגדר')}</div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">הערות</div><div style="color:var(--c-text2)">${escapeHtml(data.billingNotes||'אין הערות תפעול')}</div></div></div>`;const badge=document.getElementById('billingHealthBadge');badge.textContent=data.status==='active'?'תקין':data.status==='trial'?'ניסיון':'מעקב';badge.className='badge '+(data.status==='active'?'ok':data.status==='trial'?'warn':'');renderLog();}
+function saveState(message){billing=collect();saveBilling(billing);logActivity('billing.update',message||`עודכן סטטוס מנוי: ${billing.plan}/${billing.status}`,billing);render();showToast('נתוני המנוי נשמרו');}
+document.getElementById('saveBillingBtn').addEventListener('click',()=>saveState('נשמרו נתוני מנוי ידניים'));
+document.getElementById('resetMonthBtn').addEventListener('click',()=>{fields.reportsThisMonth.value=0;if(!fields.renewalDate.value)fields.renewalDate.value=new Date().toISOString().slice(0,10);saveState('בוצע איפוס חודשי למכסת הדוחות');});
+document.getElementById('logBillingSnapshotBtn').addEventListener('click',()=>{const data=collect();logActivity('billing.snapshot',`תועד snapshot לחיוב: ${data.plan}/${data.status}`,data);renderLog();showToast('תועד snapshot ביומן');});
+document.getElementById('setTrialBtn').addEventListener('click',()=>{fields.plan.value='trial';fields.status.value='trial';fields.reportsLimit.value=planDefaultLimit('trial');render();});
+document.getElementById('setProBtn').addEventListener('click',()=>{fields.plan.value='pro';fields.status.value='active';fields.reportsLimit.value=planDefaultLimit('pro');render();});
+document.getElementById('setUnlimitedBtn').addEventListener('click',()=>{fields.plan.value='unlimited';fields.status.value='active';fields.reportsLimit.value=0;render();});
+document.getElementById('pauseBillingBtn').addEventListener('click',()=>{fields.status.value='paused';render();});
+fields.plan.addEventListener('change',()=>{if(!fields.reportsLimit.value||Number(fields.reportsLimit.value)===planDefaultLimit(billing.plan))fields.reportsLimit.value=planDefaultLimit(fields.plan.value);render();});
+Object.values(fields).forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render);});
+hydrate();
+</script></body></html>

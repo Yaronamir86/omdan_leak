@@ -1,35 +1,79 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>לקוחות</title><link rel="stylesheet" href="shared.css"></head>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>לקוחות | OMDAN Leak</title><link rel="stylesheet" href="shared.css">
+</head>
 <body>
 <nav class="topnav">
-  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
-  <div class="nav-actions"><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
+  <div class="brand"><div class="brand-icon">🔎</div><div><div class="brand-name">OMDAN Leak</div><div class="brand-sub">לקוחות, היסטוריית דוחות וניהול שוטף</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="index.html">דשבורד</a><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
 </nav>
 <main class="container">
-  <div class="page-head"><div><div class="page-title">לקוחות</div><div class="page-sub">ישות לקוח נפרדת עם היסטוריית דוחות וקישור חזרה לדוח האחרון.</div></div></div>
+  <div class="page-head"><div><div class="page-title">לקוחות</div><div class="page-sub">ניהול לקוחות מלא באותו קו של OMDAN: חיפוש, יצירת לקוח, היסטוריית דוחות, סטטוסים ופעולות מהירות.</div></div></div>
   <div class="pill-nav"><a href="index.html">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html" class="active">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html">מנוי</a></div>
-  
-<div class="card">
-  <div class="card-header"><div class="card-title">רשימת לקוחות</div><div class="toolbar"><input id="q" placeholder="חיפוש לפי שם / טלפון" style="min-width:240px"><button class="btn btn-ghost btn-sm" id="btnExportCustomers">ייצוא JSON</button></div></div>
-  <div class="card-body table-wrap" id="customersWrap"></div>
-</div>
 
-  
-<div class="footer-legal">
-  <a href="legal/index.html">מסמכים משפטיים</a>
-  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
-  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
-  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
-  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
-</div>
+  <div class="grid grid-4">
+    <div class="kpi"><div class="kpi-label">סה״כ לקוחות</div><div class="kpi-value" id="kpiCustomers">0</div><div class="kpi-sub">רשומות פעילות במערכת</div></div>
+    <div class="kpi"><div class="kpi-label">לקוחות עם דוחות</div><div class="kpi-value" id="kpiWithReports">0</div><div class="kpi-sub">לקוחות עם פעילות מתועדת</div></div>
+    <div class="kpi"><div class="kpi-label">עודכנו ב־30 יום</div><div class="kpi-value" id="kpiRecent">0</div><div class="kpi-sub">לקוחות עם פעילות אחרונה</div></div>
+    <div class="kpi"><div class="kpi-label">כיסוי מאגר</div><div class="kpi-value" id="kpiCoverage">0%</div><div class="kpi-sub">אחוז לקוחות עם טלפון וכתובת</div></div>
+  </div>
 
+  <div class="grid grid-3" style="margin-top:16px">
+    <div class="card" style="grid-column:span 2">
+      <div class="card-header"><div class="card-title">מאגר לקוחות</div><div class="toolbar"><button class="btn btn-ghost btn-sm" id="exportCustomersBtn">ייצוא JSON</button><button class="btn btn-primary btn-sm" id="newCustomerBtn">+ לקוח חדש</button></div></div>
+      <div class="card-body">
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-group"><label>חיפוש מהיר</label><input id="searchInput" placeholder="שם לקוח, טלפון, עיר או כתובת"></div>
+          <div class="form-group"><label>סינון לפי פעילות</label><select id="activityFilter"><option value="all">הכל</option><option value="withReports">עם דוחות</option><option value="withoutReports">ללא דוחות</option><option value="recent">עודכנו לאחרונה</option></select></div>
+        </div>
+        <div class="table-wrap" id="customersTableWrap"></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">לקוח פעיל</div><span class="badge" id="selectedCustomerBadge">ללא בחירה</span></div><div class="card-body" id="customerSummaryWrap"><div class="empty">בחר לקוח מהרשימה כדי לראות תקציר, דוחות אחרונים ופעולות.</div></div></div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">פרטי לקוח</div><span class="badge" id="editorModeBadge">לקוח חדש</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><label>שם הלקוח</label><input id="clientName" placeholder="שם מלא"></div>
+          <div class="form-group"><label>טלפון</label><input id="phone" type="tel" placeholder="05X-XXXXXXX"></div>
+          <div class="form-group"><label>יישוב</label><input id="city" placeholder="עיר / יישוב"></div>
+          <div class="form-group"><label>כתובת</label><input id="address" placeholder="רחוב ומספר"></div>
+          <div class="form-group"><label>מס׳ דירה / קומה</label><input id="apartment" placeholder="דירה / קומה"></div>
+          <div class="form-group"><label>איש קשר משני</label><input id="contactPerson" placeholder="שם נציג / בן משפחה"></div>
+          <div class="form-group full"><label>הערות קבועות ללקוח</label><textarea id="customerNotes" placeholder="פרטים חשובים לעבודה שוטפת, גישה לנכס, שעות מועדפות ועוד"></textarea></div>
+        </div>
+        <div class="toolbar" style="margin-top:16px"><button class="btn btn-primary" id="saveCustomerBtn">שמור לקוח</button><button class="btn btn-ghost" id="resetCustomerBtn">נקה טופס</button><button class="btn btn-danger" id="deleteCustomerBtn" disabled>מחק לקוח</button></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">היסטוריית דוחות</div><a class="btn btn-ghost btn-sm" href="form.html">פתח טופס</a></div><div class="card-body" id="customerReportsWrap"><div class="empty">בחר לקוח כדי לראות היסטוריית דוחות, סטטוסים וקישורי פתיחה.</div></div></div>
+  </div>
+
+  <div class="footer-legal"><a href="legal/index.html">מסמכים משפטיים</a><a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a><a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a><a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a><a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a></div>
 </main>
 <script src="shared.js"></script>
 <script>
-const q=document.getElementById('q');
-function renderCustomers(){const base=getCustomers(), term=(q.value||'').trim(); const items=base.filter(c=>!term||[c.clientName,c.phone,c.city,c.address].join(' ').includes(term)); const el=document.getElementById('customersWrap'); if(!items.length){el.innerHTML='<div class="empty">לא נמצאו לקוחות.</div>'; return;} el.innerHTML='<table class="table"><thead><tr><th>שם</th><th>טלפון</th><th>מיקום</th><th>דוחות</th><th>עדכון אחרון</th><th>פעולה</th></tr></thead><tbody>'+items.map(c=>{const report=getReports().find(r=>r.id===c.lastReportId); return `<tr><td>${escapeHtml(c.clientName||'')}</td><td>${escapeHtml(c.phone||'')}</td><td>${escapeHtml((c.city||'')+' '+(c.address||''))}</td><td>${c.reportsCount||0}</td><td>${fmtDate(c.lastUpdatedAt||c.createdAt)}</td><td>${report?`<a class="btn btn-ghost btn-sm" href="form.html?id=${encodeURIComponent(report.id)}">פתח דוח אחרון</a>`:'—'}</td></tr>`}).join('')+'</tbody></table>'}
-q.addEventListener('input',renderCustomers); renderCustomers();
-document.getElementById('btnExportCustomers').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(getCustomers(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='amir-leak-customers.json';a.click();URL.revokeObjectURL(a.href);showToast('קובץ הלקוחות יוצא')});
-</script>
-</body></html>
+const els={searchInput:document.getElementById('searchInput'),activityFilter:document.getElementById('activityFilter'),customersTableWrap:document.getElementById('customersTableWrap'),customerSummaryWrap:document.getElementById('customerSummaryWrap'),customerReportsWrap:document.getElementById('customerReportsWrap'),selectedCustomerBadge:document.getElementById('selectedCustomerBadge'),editorModeBadge:document.getElementById('editorModeBadge'),saveCustomerBtn:document.getElementById('saveCustomerBtn'),resetCustomerBtn:document.getElementById('resetCustomerBtn'),deleteCustomerBtn:document.getElementById('deleteCustomerBtn'),newCustomerBtn:document.getElementById('newCustomerBtn'),exportCustomersBtn:document.getElementById('exportCustomersBtn'),clientName:document.getElementById('clientName'),phone:document.getElementById('phone'),city:document.getElementById('city'),address:document.getElementById('address'),apartment:document.getElementById('apartment'),contactPerson:document.getElementById('contactPerson'),customerNotes:document.getElementById('customerNotes')};
+let customers=(Array.isArray(getCustomers())?getCustomers():[]).map(c=>({...c,id:c.id||('c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)),contactPerson:c.contactPerson||'',customerNotes:c.customerNotes||c.notes||'',createdAt:c.createdAt||new Date().toISOString(),updatedAt:c.updatedAt||c.createdAt||new Date().toISOString()}));
+let reports=Array.isArray(getReports())?getReports():[];
+let selectedId=null;
+function getCustomerReports(customer){if(!customer)return[];return reports.filter(r=>((r.clientName||'').trim()===(customer.clientName||'').trim())||(customer.phone&&(r.phone||'').trim()===(customer.phone||'').trim())).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));}
+function fmtShort(date){try{return fmtDate(date)}catch(e){return date||'—';}}
+function saveAll(){saveCustomers(customers);}
+function filterCustomers(){const term=(els.searchInput.value||'').trim().toLowerCase();const activity=els.activityFilter.value;return customers.filter(c=>{const hay=[c.clientName,c.phone,c.city,c.address,c.apartment,c.contactPerson,c.customerNotes].join(' ').toLowerCase();const hasReports=getCustomerReports(c).length>0;const recent=Date.now()-new Date(c.updatedAt||c.createdAt||0).getTime()<=1000*60*60*24*30;if(term&&!hay.includes(term))return false;if(activity==='withReports'&&!hasReports)return false;if(activity==='withoutReports'&&hasReports)return false;if(activity==='recent'&&!recent)return false;return true;}).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));}
+function renderKpis(){const withReports=customers.filter(c=>getCustomerReports(c).length>0).length;const recent=customers.filter(c=>Date.now()-new Date(c.updatedAt||c.createdAt||0).getTime()<=1000*60*60*24*30).length;const complete=customers.filter(c=>c.phone&&c.address).length;document.getElementById('kpiCustomers').textContent=customers.length;document.getElementById('kpiWithReports').textContent=withReports;document.getElementById('kpiRecent').textContent=recent;document.getElementById('kpiCoverage').textContent=customers.length?Math.round((complete/customers.length)*100)+'%':'0%';}
+function renderTable(){const data=filterCustomers();if(!data.length){els.customersTableWrap.innerHTML='<div class="empty">אין תוצאות להצגה. צור לקוח חדש או שנה את הסינון.</div>';return;}els.customersTableWrap.innerHTML='<table class="table"><thead><tr><th>לקוח</th><th>טלפון</th><th>מיקום</th><th>דוחות</th><th>עודכן</th><th>פעולות</th></tr></thead><tbody>'+data.map(c=>{const count=getCustomerReports(c).length;return `<tr><td><strong>${escapeHtml(c.clientName||'ללא שם')}</strong><div style="font-size:12px;color:var(--c-text3)">${escapeHtml(c.contactPerson||'')}</div></td><td>${escapeHtml(c.phone||'—')}</td><td>${escapeHtml([c.city,c.address].filter(Boolean).join(' · ')||'—')}</td><td>${count?`<span class="badge ok">${count}</span>`:'<span class="badge">0</span>'}</td><td>${fmtShort(c.updatedAt||c.createdAt)}</td><td><div class="toolbar"><button class="btn btn-ghost btn-sm" onclick="selectCustomer('${c.id}')">פתח</button><a class="btn btn-ghost btn-sm" href="form.html?customer=${encodeURIComponent(c.id)}">דוח חדש</a></div></td></tr>`}).join('')+'</tbody></table>';}
+function renderSelected(){const customer=customers.find(c=>c.id===selectedId);if(!customer){els.selectedCustomerBadge.textContent='ללא בחירה';els.customerSummaryWrap.innerHTML='<div class="empty">בחר לקוח מהרשימה כדי לראות תקציר, דוחות אחרונים ופעולות.</div>';els.customerReportsWrap.innerHTML='<div class="empty">בחר לקוח כדי לראות היסטוריית דוחות, סטטוסים וקישורי פתיחה.</div>';els.editorModeBadge.textContent='לקוח חדש';els.deleteCustomerBtn.disabled=true;return;}const customerReports=getCustomerReports(customer);const latest=customerReports[0];els.selectedCustomerBadge.textContent=customer.clientName||'לקוח';els.customerSummaryWrap.innerHTML=`<div style="display:grid;gap:12px"><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:900;font-size:18px">${escapeHtml(customer.clientName||'ללא שם')}</div><div style="color:var(--c-text3)">${escapeHtml(customer.phone||'ללא טלפון')}</div><div style="color:var(--c-text3)">${escapeHtml([customer.city,customer.address,customer.apartment].filter(Boolean).join(' · ')||'ללא כתובת')}</div></div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">סה״כ דוחות</div><div style="font-size:28px;font-weight:900">${customerReports.length}</div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div class="kpi-label">עדכון אחרון</div><div style="font-size:16px;font-weight:800">${fmtShort(customer.updatedAt||customer.createdAt)}</div></div></div><div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800;margin-bottom:8px">הערות לקוח</div><div style="color:var(--c-text2)">${escapeHtml(customer.customerNotes||'אין הערות קבועות')}</div></div>${latest?`<div style="padding:14px;border:1px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800;margin-bottom:8px">דוח אחרון</div><div>${escapeHtml(latest.reportNo||'ללא מספר')}</div><div style="color:var(--c-text3)">${fmtShort(latest.updatedAt)} · ${escapeHtml(latest.status||'draft')}</div></div>`:''}</div>`;els.customerReportsWrap.innerHTML=!customerReports.length?'<div class="empty">ללקוח הזה עדיין אין דוחות במערכת.</div>':'<table class="table"><thead><tr><th>מספר דוח</th><th>סטטוס</th><th>תאריך</th><th>פעולה</th></tr></thead><tbody>'+customerReports.slice(0,10).map(r=>`<tr><td>${escapeHtml(r.reportNo||'—')}</td><td>${statusBadge(r.status||'draft')}</td><td>${fmtShort(r.updatedAt||r.createdAt)}</td><td><a class="btn btn-ghost btn-sm" href="form.html?id=${encodeURIComponent(r.id)}">פתח דוח</a></td></tr>`).join('')+'</tbody></table>';els.editorModeBadge.textContent='עריכת לקוח';els.deleteCustomerBtn.disabled=false;}
+function populate(customer){const c=customer||{};els.clientName.value=c.clientName||'';els.phone.value=c.phone||'';els.city.value=c.city||'';els.address.value=c.address||'';els.apartment.value=c.apartment||'';els.contactPerson.value=c.contactPerson||'';els.customerNotes.value=c.customerNotes||'';}
+function resetEditor(){selectedId=null;populate(null);renderSelected();renderTable();}
+function buildCustomer(){return {clientName:els.clientName.value.trim(),phone:els.phone.value.trim(),city:els.city.value.trim(),address:els.address.value.trim(),apartment:els.apartment.value.trim(),contactPerson:els.contactPerson.value.trim(),customerNotes:els.customerNotes.value.trim()};}
+window.selectCustomer=function(id){selectedId=id;const customer=customers.find(c=>c.id===id);populate(customer);renderSelected();renderTable();window.scrollTo({top:document.querySelector('.grid.grid-2').offsetTop-100,behavior:'smooth'});}
+els.saveCustomerBtn.addEventListener('click',()=>{const payload=buildCustomer();if(!payload.clientName){showToast('יש להזין לפחות שם לקוח',true);return;}const now=new Date().toISOString();if(selectedId){customers=customers.map(c=>c.id===selectedId?{...c,...payload,updatedAt:now}:c);logActivity('customer.update',`עודכן לקוח: ${payload.clientName}`,{customerId:selectedId});showToast('הלקוח עודכן בהצלחה');}else{const item={id:'c_'+Date.now(),...payload,createdAt:now,updatedAt:now};customers.unshift(item);selectedId=item.id;logActivity('customer.create',`נוצר לקוח חדש: ${payload.clientName}`,{customerId:item.id});showToast('הלקוח נשמר בהצלחה');}saveAll();renderKpis();renderTable();renderSelected();});
+els.deleteCustomerBtn.addEventListener('click',()=>{if(!selectedId)return;const customer=customers.find(c=>c.id===selectedId);if(!customer||!confirm(`למחוק את הלקוח "${customer.clientName}"?`))return;customers=customers.filter(c=>c.id!==selectedId);saveAll();logActivity('customer.delete',`נמחק לקוח: ${customer.clientName}`,{customerId:selectedId});selectedId=null;populate(null);renderKpis();renderTable();renderSelected();showToast('הלקוח נמחק');});
+els.resetCustomerBtn.addEventListener('click',resetEditor);els.newCustomerBtn.addEventListener('click',resetEditor);els.exportCustomersBtn.addEventListener('click',()=>{const blob=new Blob([JSON.stringify(customers,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='omdan-leak-customers.json';a.click();URL.revokeObjectURL(a.href);showToast('ייצוא הלקוחות הושלם');});els.searchInput.addEventListener('input',renderTable);els.activityFilter.addEventListener('change',renderTable);
+renderKpis();renderTable();renderSelected();
+</script></body></html>
