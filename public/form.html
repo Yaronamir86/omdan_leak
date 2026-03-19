@@ -1,697 +1,292 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/><title>דוח איתור נזילות | ארכיטקטורת OMDAN</title><style>
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
-
-:root {
-  --c-bg:        #07090c;
-  --c-surface:   #0e1318;
-  --c-surface2:  #151d26;
-  --c-border:    #4a5a6a;
-  --c-border2:   #2e3d4d;
-  --c-blue:      #3d9ef5;
-  --c-blue-light:#6fb8ff;
-  --c-blue-glow: rgba(61,158,245,0.22);
-  --c-red:       #ff4d4d;
-  --c-gold:      #ffc233;
-  --c-text:      #ffffff;
-  --c-text2:     #c8d8e8;
-  --c-text3:     #8aa0b4;
-  --c-success:   #52e87a;
-  --c-warn:      #ffc233;
-  --radius:      14px;
-  --radius-sm:   10px;
-  --shadow:      0 8px 32px rgba(0,0,0,0.6);
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMDAN Leak | דוח חדש</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+#topbar{
+  position:sticky;top:0;z-index:100;background:rgba(15,23,42,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
+  padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Heebo', Arial, sans-serif;
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-size: 21px;
-  line-height: 1.7;
-  min-height: 100vh;
+.tb-left,.tb-right{display:flex;align-items:center;gap:10px}
+.tb-name{font-size:15px;font-weight:900}
+.tb-mode{padding:3px 10px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.32);font-size:10px;font-weight:800;color:var(--accent)}
+.tb-icon-btn{
+  width:34px;height:34px;border-radius:8px;background:transparent;border:1px solid var(--border2);color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s
 }
-
-/* ── TOP NAV ── */
-.topnav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(7,9,12,0.97);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--c-border);
-  padding: 0 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 64px; gap: 12px;
+.tb-icon-btn:hover{background:var(--surface2);color:var(--text)}
+.progress-wrap{display:flex;align-items:center;gap:8px}
+.progress-bar{width:82px;height:4px;background:var(--surface2);border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);width:0%;transition:width .3s ease}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{
+  width:230px;background:rgba(15,23,42,.85);border-left:1px solid var(--border);padding:10px 8px;
+  flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto
 }
-
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-
-.brand-icon {
-  width: 48px; height: 48px;
-  background: linear-gradient(135deg, var(--c-blue), var(--c-red));
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; flex-shrink: 0;
+.nav-item{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all .18s;border-right:3px solid transparent
 }
-
-.brand-name {
-  font-size: 19px; font-weight: 900; color: var(--c-text);
-  line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.nav-item:hover{background:var(--surface2)}
+.nav-item.active{background:rgba(245,158,11,.08);border-right-color:var(--accent)}
+.nav-item .ni{font-size:16px}
+.nav-item .nt{font-size:12px;font-weight:800}
+.nav-item.active .nt{color:var(--accent)}
+#mainForm{flex:1;padding:24px 32px 96px;overflow:auto;min-width:0}
+.card-nav{display:flex;justify-content:space-between;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+@media(max-width:768px){
+  #sidebar{display:none}
+  #mainForm{padding:16px 14px 92px}
+  #topbar{padding:0 12px}
 }
-.brand-sub { font-size: 13px; color: var(--c-text3); white-space: nowrap; }
-
-.nav-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-/* ── BUTTONS ── */
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 20px; border: none; border-radius: var(--radius-sm);
-  font-family: inherit; font-size: 18px; font-weight: 700;
-  cursor: pointer; transition: all 0.15s ease;
-  white-space: nowrap; text-decoration: none; min-height: 54px;
-}
-.btn-primary { background: linear-gradient(135deg,var(--c-gold),#d97706); color: #111; box-shadow:0 3px 12px rgba(245,158,11,.3); }
-.btn-primary:hover { transform: translateY(-1px); box-shadow:0 5px 20px rgba(245,158,11,.45); }
-.btn-ghost { background: transparent; color: var(--c-text2); border: 2px solid var(--c-border); }
-.btn-ghost:hover { background: var(--c-surface2); color: var(--c-text); }
-.btn-sm { padding: 10px 16px; font-size: 16px; min-height: 48px; }
-.btn-icon { padding: 12px; gap: 0; }
-
-/* ── LAYOUT ── */
-.container { max-width: 900px; margin: 0 auto; padding: 20px 16px 70px; }
-
-/* ── CARDS ── */
-.card {
-  background: var(--c-surface);
-  border: 2px solid var(--c-border);
-  border-radius: var(--radius);
-  overflow: hidden; margin-bottom: 18px;
-}
-.card-header {
-  display: flex; align-items: center; gap: 14px;
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--c-border2);
-  cursor: pointer; user-select: none;
-}
-.card-header-icon {
-  width: 44px; height: 44px; border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; flex-shrink: 0;
-}
-.icon-blue  { background: rgba(61,158,245,0.15); }
-.icon-red   { background: rgba(255,77,77,0.13); }
-.icon-gold  { background: rgba(255,194,51,0.13); }
-.icon-green { background: rgba(82,232,122,0.13); }
-
-.card-title { font-size: 20px; font-weight: 900; color: var(--c-text); flex: 1; }
-.card-badge {
-  font-size: 15px; font-weight: 700;
-  padding: 5px 12px; border-radius: 20px;
-  background: var(--c-surface2); color: var(--c-text2);
-  border: 2px solid var(--c-border);
-}
-.card-toggle { color: var(--c-text2); transition: transform 0.2s; font-size: 20px; }
-.card.collapsed .card-toggle { transform: rotate(-90deg); }
-.card-body { padding: 24px; }
-.card.collapsed .card-body { display: none; }
-
-/* ── FORM ── */
-.form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; }
-@media (max-width:640px) { .form-grid { grid-template-columns: 1fr; } }
-.form-group { display: flex; flex-direction: column; gap: 8px; }
-.form-group.full { grid-column: 1 / -1; }
-
-label { font-size: 15px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.04em; }
-
-input, select, textarea {
-  width: 100%; background: var(--c-bg);
-  border: 2px solid var(--c-border);
-  border-radius: var(--radius-sm);
-  color: var(--c-text); font-family: inherit;
-  font-size: 20px; padding: 14px 16px;
-  transition: border-color 0.15s; outline: none;
-  -webkit-appearance: none; appearance: none;
-  min-height: 58px;
-}
-input::placeholder { color: var(--c-text3); }
-input:focus, select:focus, textarea:focus {
-  border-color: var(--c-blue);
-  box-shadow: 0 0 0 4px var(--c-blue-glow);
-}
-textarea { min-height: 130px; resize: vertical; line-height: 1.7; }
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d8e8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: left 14px center; padding-left: 40px;
-}
-
-/* ── TESTS ── */
-.tests-list { display: flex; flex-direction: column; gap: 12px; }
-.test-row {
-  display: flex; align-items: center; gap: 14px;
-  padding: 18px 20px; background: var(--c-bg);
-  border: 2px solid var(--c-border2); border-radius: var(--radius-sm);
-  transition: border-color 0.15s;
-}
-.test-row:hover { border-color: var(--c-border); }
-.test-name { flex: 1; font-size: 19px; font-weight: 700; color: var(--c-text); }
-.test-select {
-  width: auto; min-width: 195px;
-  padding: 12px 40px 12px 14px;
-  font-size: 17px; font-weight: 700;
-  background-color: var(--c-surface2);
-  border-color: var(--c-border); color: var(--c-text2); min-height: 54px;
-}
-.test-select.ok   { border-color: var(--c-success); color: var(--c-success); background: rgba(82,232,122,0.08); }
-.test-select.warn { border-color: var(--c-red);     color: var(--c-red);     background: rgba(255,77,77,0.10); }
-
-/* ── IMAGE CATEGORIES ── */
-.cat-section { margin-bottom: 30px; }
-.cat-section:last-child { margin-bottom: 0; }
-.cat-title {
-  font-size: 18px; font-weight: 900; color: var(--c-text);
-  text-transform: uppercase; letter-spacing: 0.04em;
-  margin-bottom: 12px;
-  display: flex; align-items: center; gap: 10px;
-}
-.cat-upload-area { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.upload-btn {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 16px 22px; border-radius: var(--radius-sm);
-  font-family: inherit; font-size: 18px; font-weight: 800;
-  cursor: pointer; transition: all 0.15s; border: none;
-  flex: 1; min-width: 140px; justify-content: center; min-height: 62px;
-}
-.upload-btn-camera  { background: linear-gradient(135deg, var(--c-red), #c00); color: #fff; }
-.upload-btn-camera:hover  { filter: brightness(1.12); }
-.upload-btn-gallery { background: var(--c-surface2); color: var(--c-text); border: 2px solid var(--c-border); }
-.upload-btn-gallery:hover { background: var(--c-border2); }
-
-input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-
-.img-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(210px,1fr)); gap: 14px; }
-@media (max-width:480px) { .img-grid { grid-template-columns: repeat(2,1fr); gap: 10px; } }
-
-.img-card { background: var(--c-bg); border: 2px solid var(--c-border2); border-radius: var(--radius-sm); overflow: hidden; transition: border-color 0.15s; }
-.img-card:hover { border-color: var(--c-blue); }
-.img-card img { width: 100%; height: 155px; object-fit: cover; display: block; }
-.img-card-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-
-.img-caption {
-  width: 100%; background: var(--c-surface); border: 2px solid var(--c-border2);
-  border-radius: 8px; color: var(--c-text); font-family: inherit;
-  font-size: 16px; padding: 8px 10px; min-height: 62px; resize: none; outline: none;
-}
-.img-caption:focus { border-color: var(--c-blue); box-shadow: 0 0 0 3px var(--c-blue-glow); }
-
-.img-del {
-  padding: 10px; width: 100%;
-  background: rgba(255,77,77,0.12); border: 2px solid rgba(255,77,77,0.4);
-  border-radius: 8px; color: var(--c-red); font-size: 16px; font-weight: 800;
-  cursor: pointer; font-family: inherit; min-height: 48px;
-}
-.img-del:hover { background: rgba(255,77,77,0.24); border-color: var(--c-red); }
-
-.empty-state {
-  padding: 20px; text-align: center; color: var(--c-text3); font-size: 17px;
-  background: var(--c-bg); border: 2px dashed var(--c-border2); border-radius: var(--radius-sm);
-}
-
-/* ── MODAL ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
-  z-index: 999; display: flex; align-items: center; justify-content: center; padding: 12px;
-}
-.modal-overlay.hidden { display: none; }
-.modal {
-  width: 100%; max-width: 960px; height: min(90vh,860px);
-  background: var(--c-surface); border: 2px solid var(--c-border);
-  border-radius: var(--radius); overflow: hidden;
-  display: flex; flex-direction: column; box-shadow: var(--shadow);
-}
-.modal-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 16px 20px; background: var(--c-surface2);
-  border-bottom: 1px solid var(--c-border); flex-shrink: 0;
-}
-.modal-head h3 { font-size: 18px; font-weight: 900; }
-.modal-actions { display: flex; gap: 8px; }
-.modal-frame { flex: 1; border: none; background: #fff; width: 100%; }
-
-/* ── PROGRESS ── */
-.progress-bar { position: sticky; top: 76px; z-index: 50; height: 4px; background: var(--c-border); overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--c-blue), var(--c-red)); transition: width 0.3s ease; width: 0%; }
-
-/* ── STEPS ── */
-.steps { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.steps::-webkit-scrollbar { display: none; }
-.step {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 18px; background: var(--c-surface2);
-  border: 2px solid var(--c-border2); border-radius: 24px;
-  font-size: 16px; font-weight: 700; color: var(--c-text2);
-  cursor: pointer; white-space: nowrap; transition: all 0.15s;
-  flex-shrink: 0; min-height: 48px;
-}
-.step:hover { border-color: var(--c-border); color: var(--c-text); }
-.step.active { background: var(--c-blue-glow); border-color: var(--c-blue); color: var(--c-blue-light); }
-.step-num {
-  width: 22px; height: 22px; border-radius: 50%; background: var(--c-border);
-  display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
-}
-.step.active .step-num { background: var(--c-blue); color: #fff; }
-
-.count-badge { background: var(--c-blue); color: #fff; font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 12px; min-width: 22px; text-align: center; }
-
-/* ── FAB ── */
-.fab {
-  position: fixed; bottom: 22px; left: 22px;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--c-blue); color: #fff; border: none; font-size: 24px;
-  cursor: pointer; display: none; align-items: center; justify-content: center;
-  box-shadow: var(--shadow); z-index: 200; transition: transform 0.2s;
-}
-.fab:hover { transform: translateY(-3px); }
-.fab.visible { display: flex; }
-
-/* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 22px; right: 22px; left: 22px;
-  max-width: 400px; margin: 0 auto;
-  background: var(--c-surface2); border: 2px solid var(--c-border);
-  border-radius: var(--radius); padding: 14px 20px;
-  font-size: 17px; font-weight: 700; color: var(--c-text);
-  z-index: 1000; transform: translateY(80px); opacity: 0;
-  transition: all 0.25s ease; display: flex; align-items: center; gap: 12px;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast-icon { font-size: 22px; flex-shrink: 0; }
-
-/* ── MOBILE ── */
-@media (max-width:480px) {
-  .topnav { padding: 0 12px; }
-  .container { padding: 14px 10px 60px; }
-  .card-body { padding: 16px; }
-  .test-row { flex-wrap: wrap; }
-  .test-select { width: 100%; min-width: 0; }
-  .nav-actions .btn-ghost:first-child { display: none; }
-  .brand-sub { display: none; }
-}
-
-@keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0   rgba(61,158,245,0.5); }
-  70%  { box-shadow: 0 0 0 10px rgba(61,158,245,0); }
-  100% { box-shadow: 0 0 0 0   rgba(61,158,245,0); }
-}
-.pulse { animation: pulse-ring 2s ease infinite; }
-</style></head>
+</style>
+</head>
 <body>
-
-
-<nav class="topnav">
-  <div class="brand">
-    <div class="brand-icon">🔍</div>
-    <div>
-      <div class="brand-name">OMDAN Leak</div>
-      <div class="brand-sub">מערכת איתור נזילות ודוחות מקצועיים</div>
+<div id="topbar">
+  <div class="tb-left">
+    <a href="index.html" class="tb-icon-btn" title="חזרה">←</a>
+    <div style="line-height:1.25">
+      <div class="tb-name">OMDAN Leak</div>
+      <div style="font-size:10px;color:var(--muted)">יצירת דוח מקצועי</div>
     </div>
+    <div class="tb-mode">דוח חדש</div>
   </div>
-  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="index.html">🏠 דשבורד</a><a class="btn btn-ghost btn-sm" href="customers.html">👥 לקוחות</a><button class="btn btn-ghost btn-sm" id="btnSaveDraft">💾 שמור טיוטה</button><button class="btn btn-ghost btn-sm" id="btnPreview">תצוגה מקדימה</button><button class="btn btn-primary btn-sm pulse" id="btnReport">📄 הפק דו״ח</button></div>
-</nav>
-
-<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-
-<main class="container">
-
-  
-<div class="card" id="sec-meta">
-  <div class="card-header" onclick="toggleCard(this)">
-    <div class="card-header-icon icon-blue">🧭</div>
-    <div class="card-title">מטא־דוח וארכיטקטורת תיק</div>
-    <div class="card-badge" id="metaBadge">draft</div>
-    <div class="card-toggle">▾</div>
-  </div>
-  <div class="card-body">
-    <div class="form-grid">
-      <div class="form-group"><label>מספר דוח</label><input id="reportNo" placeholder="נוצר אוטומטית" readonly/></div>
-      <div class="form-group"><label>סטטוס דוח</label><select id="reportStatus"><option value="draft">טיוטה</option><option value="ready">מוכן לבדיקה</option><option value="sent">נשלח</option><option value="archived">בארכיון</option></select></div>
-      <div class="form-group"><label>לקוח קיים</label><select id="customerSelect"><option value="">בחר לקוח שמור…</option></select></div>
-      <div class="form-group"><label>תבנית דוח</label><select id="templateVersion"><option value="v1">OMDAN Leak v1</option><option value="v2">OMDAN Leak v2</option></select></div>
-      <div class="form-group full"><label>תגיות פנימיות</label><input id="internalTags" placeholder="לדוגמה: דחוף, ביטוח, רטיבות קיר דרומי"/></div>
+  <div class="tb-right">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div style="font-size:11px;font-weight:800;color:var(--accent)" id="progressTxt">0%</div>
     </div>
+    <button class="tb-icon-btn" id="saveDraftBtn" title="שמור">💾</button>
+    <button class="tb-icon-btn" id="previewBtn" title="תצוגה מקדימה">🖨️</button>
   </div>
 </div>
 
-<div class="steps">
-    <div class="step active" data-target="sec-client"><span class="step-num">1</span> פרטי לקוח</div>
-    <div class="step" data-target="sec-tests"><span class="step-num">2</span> בדיקות</div>
-    <div class="step" data-target="sec-images"><span class="step-num">3</span> תמונות</div>
-    <div class="step" data-target="sec-findings"><span class="step-num">4</span> ממצאים</div>
-    <div class="step" data-target="sec-tools"><span class="step-num">5</span> הכלים שלי</div>
-  </div>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="nav-item active" data-target="secMeta"><span class="ni">🧾</span><div class="nt">מטא דוח</div></div>
+    <div class="nav-item" data-target="secClient"><span class="ni">👤</span><div class="nt">פרטי לקוח</div></div>
+    <div class="nav-item" data-target="secTests"><span class="ni">🧪</span><div class="nt">בדיקות</div></div>
+    <div class="nav-item" data-target="secFindings"><span class="ni">📌</span><div class="nt">ממצאים</div></div>
+    <div class="nav-item" data-target="secTools"><span class="ni">🧰</span><div class="nt">הכלים שלי</div></div>
+    <div class="nav-item" data-target="secRecs"><span class="ni">✅</span><div class="nt">המלצות</div></div>
+    <div class="nav-item" data-target="secPhotos"><span class="ni">🖼️</span><div class="nt">תמונות</div></div>
+  </aside>
 
-  <!-- 1. CLIENT -->
-  <div class="card" id="sec-client">
-    <div class="card-header" onclick="toggleCard(this)">
-      <div class="card-header-icon icon-blue">👤</div>
-      <div class="card-title">פרטי לקוח</div>
-      <div class="card-badge" id="clientBadge">ממתין</div>
-      <div class="card-toggle">▾</div>
+  <main id="mainForm">
+    <div class="page-title-wrap">
+      <h1 class="page-title">דוח <span>חדש</span></h1>
+      <p class="page-subtitle">מבנה עבודה זהה לקו של OMDAN, עם שבלונות עריכות, ארבע תמונות פתיחה והרחבה דינמית.</p>
     </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group"><label>שם הלקוח</label><input id="clientName" placeholder="לכבוד: שם מלא" autocomplete="name"/></div>
-        <div class="form-group"><label>טלפון</label><input id="phone" type="tel" placeholder="05X-XXXXXXX" inputmode="tel"/></div>
-        <div class="form-group"><label>יישוב</label><input id="city" placeholder="עיר / יישוב"/></div>
-        <div class="form-group"><label>כתובת</label><input id="address" placeholder="רחוב ומספר בית"/></div>
-        <div class="form-group"><label>מספר דירה / קומה</label><input id="apartment" placeholder="דירה X, קומה Y"/></div>
-        <div class="form-group"><label>תאריך הבדיקה</label><input id="inspectDate" type="date"/></div>
-        <div class="form-group"><label>שם הבודק</label><input id="inspector" placeholder="שם הבודק/ת"/></div>
-        <div class="form-group"><label>נוכחים בעת הבדיקה</label><input id="present" placeholder="בעל הנכס, שוכר..."/></div>
+
+    <section class="section-card" id="secMeta">
+      <div class="section-card-header"><div class="section-card-title">🧾 מטא דוח</div><span class="badge warn" id="statusBadge">draft</span></div>
+      <div class="section-card-body">
+        <div class="form-grid">
+          <div class="field"><label>מספר דוח</label><input id="reportNo"></div>
+          <div class="field"><label>סוג דוח</label><select id="reportType"><option>נזילה</option><option>תרמית</option><option>לחות</option></select></div>
+          <div class="field"><label>תאריך בדיקה</label><input type="date" id="inspectionDate"></div>
+          <div class="field"><label>סטטוס</label><select id="status"><option value="draft">draft</option><option value="ready">ready</option><option value="sent">sent</option></select></div>
+          <div class="field full"><label>פתיח קבוע / פתיח לעריכה</label><textarea id="openingText"></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secClient">
+      <div class="section-card-header"><div class="section-card-title">👤 פרטי לקוח</div></div>
+      <div class="section-card-body">
+        <div class="form-grid">
+          <div class="field"><label>שם לקוח</label><input id="clientName"></div>
+          <div class="field"><label>טלפון</label><input id="clientPhone"></div>
+          <div class="field"><label>עיר</label><input id="city"></div>
+          <div class="field"><label>כתובת</label><input id="address"></div>
+          <div class="field"><label>דוא"ל</label><input id="clientEmail"></div>
+          <div class="field"><label>בודק</label><input id="inspectorName"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secTests">
+      <div class="section-card-header"><div class="section-card-title">🧪 בדיקות שבוצעו</div></div>
+      <div class="section-card-body">
+        <div class="form-grid-3">
+          <label class="badge"><input type="checkbox" class="testCheck" value="מצלמה תרמית" style="margin-left:8px">מצלמה תרמית</label>
+          <label class="badge"><input type="checkbox" class="testCheck" value="מד לחות" style="margin-left:8px">מד לחות</label>
+          <label class="badge"><input type="checkbox" class="testCheck" value="לחץ קו" style="margin-left:8px">לחץ קו</label>
+          <label class="badge"><input type="checkbox" class="testCheck" value="סריקה ויזואלית" style="margin-left:8px">סריקה ויזואלית</label>
+          <label class="badge"><input type="checkbox" class="testCheck" value="איתור קו" style="margin-left:8px">איתור קו</label>
+          <label class="badge"><input type="checkbox" class="testCheck" value="בדיקת הצפה" style="margin-left:8px">בדיקת הצפה</label>
+        </div>
+        <div class="field mt-24"><label>הערות בדיקה</label><textarea id="testsNotes"></textarea></div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secFindings">
+      <div class="section-card-header"><div class="section-card-title">📌 ממצאים</div></div>
+      <div class="section-card-body">
+        <div class="field"><label>ממצאים</label><textarea id="findingsText"></textarea></div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secTools">
+      <div class="section-card-header"><div class="section-card-title">🧰 הכלים שלי</div></div>
+      <div class="section-card-body">
+        <div class="field"><label>רשימת כלים</label><textarea id="myToolsText"></textarea></div>
+        <div class="note mt-16">הסעיף נטען מההגדרות אך נשאר פתוח לעריכה מלאה בכל דוח.</div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secRecs">
+      <div class="section-card-header"><div class="section-card-title">✅ המלצות</div></div>
+      <div class="section-card-body">
+        <div class="field"><label>המלצות</label><textarea id="recommendationsText"></textarea></div>
+      </div>
+    </section>
+
+    <section class="section-card" id="secPhotos">
+      <div class="section-card-header">
+        <div class="section-card-title">🖼️ תמונות</div>
+        <button class="btn btn-ghost btn-sm" type="button" id="addPhotoBtn">+ הוסף תמונה</button>
+      </div>
+      <div class="section-card-body">
+        <div class="note mb-16">הדוח נפתח עם 4 תמונות בלבד כדי למנוע עומס. ניתן להוסיף תמונות נוספות לפי הצורך.</div>
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+    </section>
+
+    <div class="card-nav">
+      <a href="index.html" class="btn btn-ghost">חזרה</a>
+      <div class="inline-actions">
+        <button class="btn btn-ghost" type="button" id="saveDraftBtnBottom">שמור טיוטה</button>
+        <button class="btn btn-primary" type="button" id="previewBtnBottom">תצוגה מקדימה</button>
       </div>
     </div>
-  </div>
-
-  <!-- 2. TESTS -->
-  <div class="card" id="sec-tests">
-    <div class="card-header" onclick="toggleCard(this)">
-      <div class="card-header-icon icon-gold">🔬</div>
-      <div class="card-title">בדיקות שבוצעו</div>
-      <div class="card-badge" id="testsBadge">0 / 7</div>
-      <div class="card-toggle">▾</div>
-    </div>
-    <div class="card-body">
-      <div class="tests-list">
-        <div class="test-row"><div class="test-name">בדיקת לחץ</div><select id="pressure" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצעה - נמצאה תקינה">✓ תקינה</option><option value="בוצעה - נמצא חריג">⚠ נמצא חריג</option></select></div>
-        <div class="test-row"><div class="test-name">בדיקת לחות</div><select id="moisture" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצעה - נמצאה תקינה">✓ תקינה</option><option value="בוצעה - נמצא חריג">⚠ נמצא חריג</option></select></div>
-        <div class="test-row"><div class="test-name">בדיקת הצפה</div><select id="flood" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצעה - נמצאה תקינה">✓ תקינה</option><option value="בוצעה - נמצא חריג">⚠ נמצא חריג</option></select></div>
-        <div class="test-row"><div class="test-name">צילום טמוגרפי</div><select id="thermal" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצע - נמצא תקין">✓ תקין</option><option value="בוצע - נמצא חריג">⚠ נמצא חריג</option></select></div>
-        <div class="test-row"><div class="test-name">צילום פנים צנרת</div><select id="pipe" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצע - ללא ממצאים חריגים">✓ ללא חריגים</option><option value="בוצע - נמצא חריג">⚠ נמצא חריג</option></select></div>
-        <div class="test-row"><div class="test-name">בדיקת כשלי איטום</div><select id="sealing" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצעה - לא נמצאו כשלים">✓ לא נמצאו כשלים</option><option value="בוצעה - נמצאו כשלים">⚠ נמצאו כשלים</option></select></div>
-        <div class="test-row"><div class="test-name">בדיקה באמצעות גז</div><select id="gas" class="test-select" onchange="updateTestUI(this)"><option value="לא בוצע">לא בוצע</option><option value="בוצעה - נמצאה תקינה">✓ תקינה</option><option value="בוצעה - נמצא חריג">⚠ נמצא חריג</option></select></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. IMAGES -->
-  <div class="card" id="sec-images">
-    <div class="card-header" onclick="toggleCard(this)">
-      <div class="card-header-icon icon-green">🖼</div>
-      <div class="card-title">תמונות לפי קטגוריה</div>
-      <div class="card-badge" id="imgBadge">0 תמונות</div>
-      <div class="card-toggle">▾</div>
-    </div>
-    <div class="card-body" id="catsWrap"></div>
-  </div>
-
-  <!-- 4. FINDINGS -->
-  <div class="card" id="sec-findings">
-    <div class="card-header" onclick="toggleCard(this)">
-      <div class="card-header-icon icon-red">📝</div>
-      <div class="card-title">ממצאים חופשיים</div>
-      <div class="card-toggle">▾</div>
-    </div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>הערות ופירוט ממצאים נוספים</label>
-        <textarea id="manualFindings" placeholder="תאר את הממצאים שלא נכללו בטבלת הבדיקות..."></textarea>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- 5. TOOLS -->
-  <div class="card" id="sec-tools">
-    <div class="card-header" onclick="toggleCard(this)">
-      <div class="card-header-icon icon-blue">🧰</div>
-      <div class="card-title">הכלים שלי</div>
-      <div class="card-toggle">▾</div>
-    </div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>ציוד, מצלמות, מכשור וכלי עבודה</label>
-        <textarea id="myTools" placeholder="לדוגמה: מצלמה טרמית, מד לחות, ציוד לחץ, גז tracer, סיב אופטי, ציוד בדיקת הצפה..."></textarea>
-      </div>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
-    <button class="btn btn-ghost" id="btnClear2">🗑 נקה הכל</button>
-    <button class="btn btn-ghost" id="btnPreview2">👁 תצוגה מקדימה</button>
-    <button class="btn btn-primary" id="btnReport2">📄 הפק דו״ח PDF</button>
-  </div>
-
-</main>
-<div class="footer-legal">
-  <a href="legal/index.html">מסמכים משפטיים</a>
-  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
-  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
-  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
-  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+  </main>
 </div>
-
-
-<div id="previewModal" class="modal-overlay hidden">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <h3>👁 תצוגה מקדימה לדו״ח</h3>
-      <div class="modal-actions">
-        <button class="btn btn-primary btn-sm" id="btnPrint">🖨 הדפס / PDF</button>
-        <button class="btn btn-ghost btn-sm" id="btnCloseModal">✕ סגור</button>
-      </div>
-    </div>
-    <iframe id="previewFrame" class="modal-frame" title="תצוגה מקדימה"></iframe>
-  </div>
-</div>
-
-<button class="fab" id="fabTop" title="חזור לראש">↑</button>
-
-<div class="toast" id="toast">
-  <span class="toast-icon" id="toastIcon">✅</span>
-  <span id="toastMsg">הדו״ח נוצר בהצלחה</span>
-</div>
-
 
 <script src="shared.js"></script>
 <script>
+const SETTINGS = window.getSettings ? getSettings() : JSON.parse(localStorage.getItem('omdanLeakSettings')||'{}');
+const REPORTS_KEY = 'omdanLeakReports';
+const loadReports = () => window.getReports ? getReports() : JSON.parse(localStorage.getItem(REPORTS_KEY)||'[]');
+const saveReports = reports => window.saveReports ? saveReports(reports) : localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+const showToastSafe = msg => window.showToast ? showToast(msg) : alert(msg);
 
-const CATS = [
-  { key:'damage',       title:'נזקי רטיבות',            icon:'💧' },
-  { key:'thermalImgs',  title:'צילומים טמוגרפיים',      icon:'🌡' },
-  { key:'pressureImgs', title:'בדיקות לחץ',             icon:'📊' },
-  { key:'pipeImgs',     title:'צילום פנים צנרת',         icon:'🔩' },
-];
+const qs = new URLSearchParams(location.search);
+const editId = qs.get('id');
+let reports = loadReports();
+let current = reports.find(r=>String(r.id)===String(editId)) || {
+  id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+  reportNo: 'LF-' + new Date().toISOString().slice(0,19).replace(/[-:T]/g,''),
+  status:'draft',
+  reportType:'נזילה',
+  inspectionDate:new Date().toISOString().slice(0,10),
+  openingText: SETTINGS.openingTemplate || '',
+  findingsText: SETTINGS.findingsTemplate || '',
+  recommendationsText: SETTINGS.recommendationsTemplate || '',
+  myToolsText: SETTINGS.myTools || '',
+  inspectorName: SETTINGS.inspectorDefault || ''
+};
 
-const state = { images: Object.fromEntries(CATS.map(c => [c.key, []])) };
+const fields = ['reportNo','reportType','inspectionDate','status','openingText','clientName','clientPhone','city','address','clientEmail','inspectorName','testsNotes','findingsText','myToolsText','recommendationsText'];
+fields.forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.value=current[id] || '';
+});
+document.getElementById('statusBadge').textContent = current.status || 'draft';
 
-function uid() { return Math.random().toString(16).slice(2) + Date.now().toString(16); }
-function todayISO() { const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
-document.getElementById('inspectDate').value = todayISO();
-
-function toggleCard(h) { h.closest('.card').classList.toggle('collapsed'); }
-
-document.querySelectorAll('.step').forEach(s => s.addEventListener('click', () => {
-  const el = document.getElementById(s.dataset.target);
-  if (el) { el.classList.remove('collapsed'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
-  document.querySelectorAll('.step').forEach(x => x.classList.remove('active'));
-  s.classList.add('active');
-}));
-
-function updateTestUI(sel) {
-  sel.classList.remove('ok','warn');
-  const v = sel.value;
-  if (v !== 'לא בוצע') sel.classList.add(v.includes('חריג')||v.includes('כשלים') ? 'warn' : 'ok');
-  updateBadges();
-}
-
-function countTests()  { return ['pressure','moisture','flood','thermal','pipe','sealing','gas'].filter(id => document.getElementById(id)?.value !== 'לא בוצע').length; }
-function countImages() { return CATS.reduce((n,c) => n + state.images[c.key].length, 0); }
-function countClient() { return ['clientName','phone','city','address','apartment','inspector'].filter(id => document.getElementById(id)?.value?.trim()).length; }
-
-function updateBadges() {
-  const tests=countTests(), imgs=countImages(), cl=countClient();
-  document.getElementById('testsBadge').textContent = tests + ' / 7';
-  document.getElementById('imgBadge').textContent   = imgs + ' תמונות';
-  const cb = document.getElementById('clientBadge');
-  if (cl>=4) { cb.textContent='✓ מלא'; cb.style.borderColor='var(--c-success)'; cb.style.color='var(--c-success)'; }
-  else       { cb.textContent=cl+' / 6'; cb.style.borderColor=''; cb.style.color=''; }
-  document.getElementById('progressFill').style.width = Math.round((tests/7)*40+(cl/6)*30+Math.min(imgs/3,1)*30)+'%';
-}
-
-['clientName','phone','city','address','apartment','inspector'].forEach(id => document.getElementById(id)?.addEventListener('input', updateBadges));
-
-const catsWrap = document.getElementById('catsWrap');
-catsWrap.innerHTML = CATS.map(c => `
-  <div class="cat-section">
-    <div class="cat-title"><span>${c.icon}</span> ${c.title}<span class="count-badge" id="cnt_${c.key}">0</span></div>
-    <div class="cat-upload-area">
-      <button type="button" class="upload-btn upload-btn-camera" data-camera-btn="${c.key}">📷 צלם</button>
-      <button type="button" class="upload-btn upload-btn-gallery" data-gallery-btn="${c.key}">🖼 גלריה</button>
-      <input type="file" accept="image/*" capture="environment" multiple data-uploader="${c.key}" data-mode="camera"/>
-      <input type="file" accept="image/*" multiple data-uploader="${c.key}" data-mode="gallery"/>
+function photoCard(idx, item={}){
+  const url = item.url || '';
+  const caption = item.caption || '';
+  return `<div class="photo-card" data-index="${idx}">
+    <div class="photo-preview">${url ? `<img src="${url}">` : 'אין תמונה'}</div>
+    <div class="stack-12">
+      <input type="file" accept="image/*" class="photoInput">
+      <input type="text" class="photoCaption" placeholder="תיאור תמונה" value="${caption.replace(/"/g,'&quot;')}">
+      <button class="btn btn-ghost btn-sm removePhotoBtn" type="button">הסר</button>
     </div>
-    <div class="img-grid" id="preview_${c.key}"></div>
-  </div>
-  ${c!==CATS[CATS.length-1]?'<div style="height:1px;background:var(--c-border2);margin-bottom:24px;"></div>':''}
-`).join('');
-
-document.querySelectorAll('[data-camera-btn]').forEach(btn =>
-  btn.addEventListener('click', () => document.querySelector(`input[data-uploader="${btn.dataset.cameraBtn}"][data-mode="camera"]`)?.click())
-);
-document.querySelectorAll('[data-gallery-btn]').forEach(btn =>
-  btn.addEventListener('click', () => document.querySelector(`input[data-uploader="${btn.dataset.galleryBtn}"][data-mode="gallery"]`)?.click())
-);
-
-document.querySelectorAll('input[data-uploader]').forEach(inp => {
-  inp.addEventListener('change', async () => {
-    const key=inp.dataset.uploader, files=Array.from(inp.files||[]);
-    if (!files.length) return;
-    for (const f of files) state.images[key].push({id:uid(), src:await fileToDataUrl(f), caption:''});
-    inp.value=''; renderCat(key); updateBadges();
-    showToast('📷 '+files.length+' תמונה(ות) נוספה בהצלחה');
+  </div>`;
+}
+function ensurePhotos(){
+  current.photos = current.photos || [];
+  while(current.photos.length < 4) current.photos.push({url:'', caption:''});
+}
+function renderPhotos(){
+  ensurePhotos();
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = current.photos.map((p,i)=>photoCard(i,p)).join('');
+  grid.querySelectorAll('.photoInput').forEach((input, i)=>{
+    input.addEventListener('change',()=>{
+      const file = input.files?.[0];
+      if(!file) return;
+      const fr = new FileReader();
+      fr.onload = () => { current.photos[i].url = fr.result; renderPhotos(); updateProgress(); };
+      fr.readAsDataURL(file);
+    });
+  });
+  grid.querySelectorAll('.photoCaption').forEach((input, i)=>{
+    input.addEventListener('input',()=>{ current.photos[i].caption = input.value; updateProgress(); });
+  });
+  grid.querySelectorAll('.removePhotoBtn').forEach((btn, i)=>{
+    btn.addEventListener('click',()=>{ current.photos.splice(i,1); if(current.photos.length<4) current.photos.push({url:'',caption:''}); renderPhotos(); updateProgress(); });
+  });
+}
+function collect(){
+  fields.forEach(id=> current[id] = document.getElementById(id)?.value || '');
+  current.tests = [...document.querySelectorAll('.testCheck:checked')].map(i=>i.value);
+  current.updatedAt = new Date().toISOString();
+  current.createdAt = current.createdAt || current.updatedAt;
+}
+function saveDraft(){
+  collect();
+  const idx = reports.findIndex(r=>String(r.id)===String(current.id));
+  if(idx>=0) reports[idx]=current; else reports.unshift(current);
+  saveReports(reports);
+  document.getElementById('statusBadge').textContent = current.status || 'draft';
+  showToastSafe('הטיוטה נשמרה');
+}
+function updateProgress(){
+  collect();
+  const checks = [
+    current.reportNo, current.clientName, current.address, current.findingsText,
+    current.recommendationsText, (current.photos||[]).filter(p=>p.url).length>0
+  ];
+  const done = checks.filter(Boolean).length;
+  const pct = Math.round(done / checks.length * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressTxt').textContent = pct + '%';
+}
+function preview(){
+  collect();
+  const photos = (current.photos||[]).filter(p=>p.url).map(p=>`<figure style="margin:0"><img src="${p.url}" style="width:100%;border-radius:12px;border:1px solid #ddd"><figcaption style="margin-top:8px;font-size:12px;color:#555">${p.caption||''}</figcaption></figure>`).join('');
+  const html = `<!doctype html><html dir="rtl" lang="he"><head><meta charset="utf-8"><title>${current.reportNo}</title><style>body{font-family:Heebo,Arial,sans-serif;max-width:860px;margin:0 auto;padding:40px;line-height:1.8}h1,h2{margin:0 0 14px}section{margin:26px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.box{padding:14px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.photos{display:grid;grid-template-columns:1fr 1fr;gap:16px}</style></head><body>
+  <h1>${current.reportNo}</h1><div>${current.reportType} · ${current.inspectionDate} · ${current.status}</div>
+  <section><h2>פתיח</h2><div>${(current.openingText||'').replace(/\n/g,'<br>')}</div></section>
+  <section class="grid"><div class="box"><strong>לקוח</strong><br>${current.clientName||''}<br>${current.clientPhone||''}</div><div class="box"><strong>כתובת</strong><br>${current.city||''} ${current.address||''}<br>${current.clientEmail||''}</div></section>
+  <section><h2>בדיקות</h2><div>${(current.tests||[]).join(', ') || '—'}</div><div style="margin-top:8px">${(current.testsNotes||'').replace(/\n/g,'<br>')}</div></section>
+  <section><h2>ממצאים</h2><div>${(current.findingsText||'').replace(/\n/g,'<br>')}</div></section>
+  <section><h2>הכלים שלי</h2><div>${(current.myToolsText||'').replace(/\n/g,'<br>')}</div></section>
+  <section><h2>המלצות</h2><div>${(current.recommendationsText||'').replace(/\n/g,'<br>')}</div></section>
+  <section><h2>תמונות</h2><div class="photos">${photos || 'אין תמונות'}</div></section>
+  <section><h2>חתימה</h2><div>${(SETTINGS.signatureTemplate||'').replace(/\n/g,'<br>')}</div></section>
+  </body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(html); w.document.close();
+}
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.target).scrollIntoView({behavior:'smooth', block:'start'});
   });
 });
-
-function fileToDataUrl(f) {
-  return new Promise((res,rej) => { const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(f); });
-}
-
-function renderCat(key) {
-  const wrap=document.getElementById('preview_'+key), arr=state.images[key], cnt=document.getElementById('cnt_'+key);
-  if (cnt) cnt.textContent=arr.length;
-  if (!arr.length) { wrap.innerHTML='<div class="empty-state">אין תמונות בקטגוריה זו</div>'; return; }
-  wrap.innerHTML='';
-  for (const item of arr) {
-    const card=document.createElement('div'); card.className='img-card';
-    card.innerHTML=`<img src="${item.src}" alt="תמונה"><div class="img-card-body"><textarea class="img-caption" placeholder="תיאור התמונה...">${escapeHtml(item.caption||'')}</textarea><button class="img-del">🗑 מחק</button></div>`;
-    const ta=card.querySelector('textarea');
-    ta.addEventListener('input', () => { const f=state.images[key].find(x=>x.id===item.id); if(f) f.caption=ta.value; });
-    card.querySelector('button').addEventListener('click', () => { state.images[key]=state.images[key].filter(x=>x.id!==item.id); renderCat(key); updateBadges(); });
-    wrap.appendChild(card);
-  }
-}
-
-CATS.forEach(c => renderCat(c.key));
-updateBadges();
-
-function escapeHtml(s) {
-  return (s??'').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
-}
-
-function collect() {
-  return ['clientName','phone','city','address','apartment','inspectDate','inspector','present','pressure','moisture','flood','thermal','pipe','sealing','gas','manualFindings','myTools']
-    .reduce((o,id) => { o[id]=document.getElementById(id)?.value||''; return o; }, {});
-}
-
-function makeReportNumber() {
-  const n=new Date();
-  return 'AM-'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+String(n.getSeconds()).padStart(2,'0');
-}
-
-function buildAutoFindings(d) {
-  let t='לאחר בדיקה מקצועית בנכס הנ״ל, נמצא:\n';
-  const lines=[], add=(l,v)=>{ if(v) lines.push(l+': '+v); };
-  add('בדיקת לחץ',        d.pressure.includes('תקינה')?'נמצאה תקינה':(d.pressure.includes('חריג')?'נמצא חריג':''));
-  add('בדיקת לחות',       d.moisture.includes('תקינה')?'נמצאה תקינה':(d.moisture.includes('חריג')?'נמצא חריג':''));
-  add('בדיקת הצפה',       d.flood.includes('תקינה')?'נמצאה תקינה':(d.flood.includes('חריג')?'נמצא חריג':''));
-  add('צילום טמוגרפי',    d.thermal.includes('תקין')?'נמצא תקין':(d.thermal.includes('חריג')?'נמצא חריג':''));
-  add('צילום פנים צנרת',  d.pipe.includes('ללא')?'ללא ממצאים חריגים':(d.pipe.includes('חריג')?'נמצא חריג':''));
-  add('בדיקת כשלי איטום', d.sealing.includes('נמצאו כשלים')?'נמצאו כשלים':(d.sealing.includes('לא נמצאו')?'לא נמצאו כשלים':''));
-  add('בדיקה באמצעות גז', d.gas.includes('תקינה')?'נמצאה תקינה':(d.gas.includes('חריג')?'נמצא חריג':''));
-  if (lines.length) t+='\nממצאים אוטומטיים:\n'+lines.map(x=>'• '+x).join('\n');
-  return t;
-}
-
-function buildReportHtml() {
-  const d=collect(), rn=makeReportNumber();
-  const findings=[buildAutoFindings(d),d.manualFindings].filter(Boolean).join('\n\n');
-  const testRow=(name,val)=>{
-    const cls=val==='לא בוצע'?'':(val.includes('חריג')||val.includes('כשלים')?'style="color:#c0392b;font-weight:700"':'style="color:#1a7f37;font-weight:700"');
-    return `<tr><td>${escapeHtml(name)}</td><td ${cls}>${escapeHtml(val)}</td></tr>`;
-  };
-  const imgPages=CATS.map(c=>{
-    const items=state.images[c.key]; if(!items.length) return '';
-    const figs=items.map(it=>`<figure class="fig"><img src="${it.src}" class="fig-img" alt=""><figcaption class="fig-cap">${escapeHtml(it.caption||'')}</figcaption></figure>`).join('');
-    return `<section class="pb"><h3 class="sec-title">${escapeHtml(c.icon)} ${escapeHtml(c.title)}</h3><div class="fig-grid">${figs}</div></section>`;
-  }).join('');
-
-  const css=`@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;direction:rtl;color:#1a1a2e;font-size:15px;line-height:1.6}.header{border:2px solid #0b5ea8;border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:14px}.header:before{content:'';position:absolute;top:0;right:0;left:0;height:5px;background:linear-gradient(90deg,#0b5ea8,#1d9bf0,#d62828)}.report-no{font-size:13px;color:#d62828;font-weight:700;margin-top:4px}.title{font-size:22px;font-weight:900;color:#0b5ea8;margin:0}.box{border:1px solid #d1d5db;border-radius:12px;padding:14px;margin-bottom:12px}.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:14px}.kv b{color:#0b5ea8}.disclaimer{margin-top:10px;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px}table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}th,td{border:1px solid #1a1a2e;padding:8px 10px;text-align:center}th{background:#f8fafc;font-weight:700}.sec-title{font-weight:900;font-size:15px;padding:8px 12px;border-right:5px solid #0b5ea8;background:#fff;border-radius:10px;margin:0 0 10px 0}.fig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.fig{margin:0;border:1px solid #d1d5db;border-radius:10px;overflow:hidden}.fig-img{width:100%;height:220px;object-fit:cover;display:block}.fig-cap{padding:6px 10px;font-size:13px;border-top:1px solid #e2e8f0;min-height:36px;white-space:pre-wrap}.findings{white-space:pre-wrap;font-size:14px;line-height:1.7}.pb{page-break-before:always}.footer{margin-top:14px;border-top:1px solid #d1d5db;padding-top:10px;font-size:12px;color:#475569}ul{padding-right:20px;line-height:1.8}`;
-
-  const edu=`<ul><li>לימודי תעודה מערכות שאיבה במכללת מישלב.</li><li>לימודי תעודה שרברבות תברואתית במכללת מישלב.</li><li>לימודי תעודה למערכות פקסגול / מולטיגול בחברת גולן (מתקין מוסמך).</li><li>28 שנות ניסיון בתחום השרברבות והבנייה.</li><li>16 שנות ניסיון באיתור נזילות ושיקום נזקי צנרת.</li><li>בעל ניסיון רב באיתור נזילות באמצעות צילום טמוגרפי.</li><li>ניסיון רב בענף הבנייה על הכרת כל המערכות הסניטריות בבניין.</li></ul>`;
-
-  return `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><title>דו״ח איתור נזילה</title><style>${css}</style></head><body>
-  <div class="header"><div class="title">הנדון: דו״ח איתור נזילות</div><div class="report-no">מספר דו״ח: ${escapeHtml(rn)}</div></div>
-  <div class="box"><div class="kv"><div><b>לכבוד:</b> ${escapeHtml(d.clientName)}</div><div><b>טלפון:</b> ${escapeHtml(d.phone)}</div><div><b>תאריך הבדיקה:</b> ${escapeHtml(d.inspectDate)}</div><div><b>שם הבודק:</b> ${escapeHtml(d.inspector)}</div><div><b>נוכחים בעת הבדיקה:</b> ${escapeHtml(d.present)}</div><div><b>יישוב:</b> ${escapeHtml(d.city)}</div><div><b>כתובת:</b> ${escapeHtml(d.address)}</div><div><b>מס׳ דירה/קומה:</b> ${escapeHtml(d.apartment)}</div></div><div class="disclaimer">יש לציין כי ממצאי הבדיקה אשר נערכו בנכס נכונים למועד תאריך הבדיקה בנכס ואין הח״מ אחראי על כל כשל או נזק נוסף אשר יימצא בעתיד.</div></div>
-  <div class="box"><h3 class="sec-title">הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי</h3><h3 class="sec-title" style="margin-top:8px">אלו פרטי השכלתי וניסיוני</h3>${edu}</div>
-  <div class="box"><h3 class="sec-title">תאור הבדיקות שבוצעו</h3><table><tr><th>סוג הבדיקה</th><th>סטטוס</th></tr>${testRow('בדיקת לחץ',d.pressure)}${testRow('בדיקת לחות',d.moisture)}${testRow('בדיקת הצפה',d.flood)}${testRow('צילום טמוגרפי',d.thermal)}${testRow('צילום פנים צנרת',d.pipe)}${testRow('בדיקת כשלי איטום',d.sealing)}${testRow('בדיקה באמצעות גז',d.gas)}</table></div>
-  <div class="box"><h3 class="sec-title">ממצאים</h3><div class="findings">${escapeHtml(findings)}</div></div>
-  ${d.myTools?`<div class="box"><h3 class="sec-title">הכלים שלי</h3><div class="findings">${escapeHtml(d.myTools)}</div></div>`:''}
-  <div class="footer">תודה שבחרתם ב־OMDAN Leak. נשמח לעמוד לשירותכם תמיד.<br>בברכה, צוות OMDAN Leak</div>
-  ${imgPages}</body></html>`;
-}
-
-function openPreview() { document.getElementById('previewFrame').srcdoc=buildReportHtml(); document.getElementById('previewModal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
-function closePreview() { document.getElementById('previewModal').classList.add('hidden'); document.getElementById('previewFrame').srcdoc=''; document.body.style.overflow=''; }
-function generateReport() {
-  const w=window.open('','_blank');
-  if(!w){showToast('⚠ נא לאפשר פתיחת חלונות קופצים',true);return;}
-  w.document.open(); w.document.write(buildReportHtml()); w.document.close();
-  setTimeout(()=>{try{w.focus();w.print();}catch(e){}},600);
-  showToast('📄 הדו״ח נפתח בחלון חדש לשמירה כ-PDF');
-}
-
-['btnPreview','btnPreview2'].forEach(id=>document.getElementById(id)?.addEventListener('click',openPreview));
-['btnReport','btnReport2'].forEach(id=>document.getElementById(id)?.addEventListener('click',generateReport));
-document.getElementById('btnPrint').addEventListener('click',()=>{ const f=document.getElementById('previewFrame'); try{f.contentWindow.focus();f.contentWindow.print();}catch(e){generateReport();} });
-document.getElementById('btnCloseModal').addEventListener('click',closePreview);
-document.getElementById('previewModal').addEventListener('click',e=>{if(e.target===document.getElementById('previewModal'))closePreview();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closePreview();});
-
-function doClear() {
-  if(!confirm('לנקות את כל הנתונים והתמונות?')) return;
-  ['clientName','phone','city','address','apartment','inspector','present','manualFindings','myTools'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('inspectDate').value=todayISO();
-  ['pressure','moisture','flood','thermal','pipe','sealing','gas'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='לא בוצע';updateTestUI(el);}});
-  CATS.forEach(c=>{state.images[c.key]=[];renderCat(c.key);});
-  updateBadges(); showToast('🗑 כל הנתונים נוקו בהצלחה');
-}
-['btnClear','btnClear2'].forEach(id=>document.getElementById(id)?.addEventListener('click',doClear));
-
-const fab=document.getElementById('fabTop');
-window.addEventListener('scroll',()=>fab.classList.toggle('visible',window.scrollY>300));
-fab.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-
-let toastTimer;
-function showToast(msg,isError=false) {
-  const t=document.getElementById('toast'),icon=document.getElementById('toastIcon'),msgEl=document.getElementById('toastMsg');
-  icon.textContent=isError?'⚠':'✅'; msgEl.textContent=msg;
-  t.classList.add('show'); clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
-}
-
-
-const reportId = new URLSearchParams(location.search).get('id') || uid('rpt');
-document.getElementById('reportNo').value = reportNumber();
-const customerSelect = document.getElementById('customerSelect');
-const statusEl = document.getElementById('reportStatus');
-const reportNoEl = document.getElementById('reportNo');
-function hydrateCustomersSelect(){const items=getCustomers();customerSelect.innerHTML='<option value="">בחר לקוח שמור…</option>'+items.map(c=>`<option value="${c.id}">${escapeHtml(c.clientName||'ללא שם')} · ${escapeHtml(c.phone||'')}</option>`).join('')}
-hydrateCustomersSelect();
-customerSelect.addEventListener('change',()=>{const c=getCustomers().find(x=>x.id===customerSelect.value); if(!c) return; ['clientName','phone','city','address','apartment'].forEach(id=>{if(document.getElementById(id)) document.getElementById(id).value=c[id]||''}); updateBadges(); showToast('פרטי הלקוח נטענו מהמערכת')});
-function gatherFullData(){const d=collect(); return {id:reportId,reportNo:reportNoEl.value||reportNumber(),status:statusEl.value,templateVersion:document.getElementById('templateVersion').value,internalTags:document.getElementById('internalTags').value,createdAt:window.__createdAt||nowISO(),updatedAt:nowISO(),imageCounts:CATS.reduce((o,c)=>{o[c.key]=state.images[c.key].length;return o;},{}),totalImages:Object.values(state.images).reduce((n,arr)=>n+arr.length,0),images:JSON.parse(JSON.stringify(state.images)),...d}}
-function hydrateMeta(){document.getElementById('metaBadge').textContent=statusEl.value}
-statusEl.addEventListener('change',hydrateMeta); hydrateMeta();
-function saveDraft(show=true){const items=getReports();const data=gatherFullData();const i=items.findIndex(x=>x.id===reportId);if(i>=0) items[i]=data; else items.unshift(data);saveReports(items);upsertCustomerFromReport(data);logActivity('report.save',`טיוטה נשמרה: ${data.reportNo}`,{reportId:data.id,status:data.status});if(show) showToast('הטיוטה נשמרה במערכת המקומית')}
-document.getElementById('btnSaveDraft').addEventListener('click',()=>saveDraft(true));
-function loadReportIfExists(){const r=getReports().find(x=>x.id===reportId); if(!r) return; reportNoEl.value=r.reportNo||reportNumber(); ['clientName','phone','city','address','apartment','inspectDate','inspector','present','manualFindings','myTools','internalTags'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null) document.getElementById(id).value=r[id]}); ['pressure','moisture','flood','thermal','pipe','sealing','gas'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null){document.getElementById(id).value=r[id];updateTestUI(document.getElementById(id));}}); if(r.status) statusEl.value=r.status; if(r.templateVersion) document.getElementById('templateVersion').value=r.templateVersion; if(r.images){Object.keys(r.images).forEach(key=>{if(state.images[key]&&Array.isArray(r.images[key])) state.images[key]=r.images[key]}); CATS.forEach(c=>renderCat(c.key));} window.__createdAt=r.createdAt||nowISO(); updateBadges(); hydrateMeta(); showToast('הדוח נטען מהמאגר המקומי')}
-loadReportIfExists();
-const _generateReport = generateReport;
-generateReport = function(){const data=gatherFullData(); data.status='sent'; statusEl.value='sent'; saveDraft(false); const billing=getBilling(); if(billing.status==='trial'||billing.status==='active'){billing.reportsThisMonth=Number(billing.reportsThisMonth||0)+1; saveBilling(billing)} logActivity('report.export',`הופק דוח: ${data.reportNo}`,{reportId:data.id}); _generateReport()};
-const _buildReportHtml = buildReportHtml;
-buildReportHtml = function(){const html=_buildReportHtml(); const settings=getSettings(); return html.replace('</body>', `<div style="margin:20px 0 0;border-top:1px solid #d1d5db;padding-top:8px;font-size:12px;color:#475569">${escapeHtml(settings.disclaimer)}</div></body>`)};
-setInterval(()=>saveDraft(false),30000);
-
+document.getElementById('addPhotoBtn').addEventListener('click',()=>{ current.photos.push({url:'',caption:''}); renderPhotos(); updateProgress(); });
+['saveDraftBtn','saveDraftBtnBottom'].forEach(id=>document.getElementById(id).addEventListener('click', saveDraft));
+['previewBtn','previewBtnBottom'].forEach(id=>document.getElementById(id).addEventListener('click', preview));
+fields.forEach(id=>document.getElementById(id)?.addEventListener('input', updateProgress));
+document.querySelectorAll('.testCheck').forEach(ch=>ch.addEventListener('change', updateProgress));
+ensurePhotos(); renderPhotos(); updateProgress();
 </script>
-</body></html>
+</body>
+</html>
