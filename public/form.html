@@ -41,10 +41,10 @@ body {
   position: sticky; top: 0; z-index: 100;
   background: rgba(7,9,12,0.97);
   backdrop-filter: blur(12px);
-  border-bottom: 2px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border);
   padding: 0 16px;
   display: flex; align-items: center; justify-content: space-between;
-  height: 76px; gap: 12px;
+  height: 64px; gap: 12px;
 }
 
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -73,8 +73,8 @@ body {
   cursor: pointer; transition: all 0.15s ease;
   white-space: nowrap; text-decoration: none; min-height: 54px;
 }
-.btn-primary { background: var(--c-blue); color: #fff; }
-.btn-primary:hover { background: var(--c-blue-light); transform: translateY(-1px); }
+.btn-primary { background: linear-gradient(135deg,var(--c-gold),#d97706); color: #111; box-shadow:0 3px 12px rgba(245,158,11,.3); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow:0 5px 20px rgba(245,158,11,.45); }
 .btn-ghost { background: transparent; color: var(--c-text2); border: 2px solid var(--c-border); }
 .btn-ghost:hover { background: var(--c-surface2); color: var(--c-text); }
 .btn-sm { padding: 10px 16px; font-size: 16px; min-height: 48px; }
@@ -234,7 +234,7 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
 .modal-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 16px 20px; background: var(--c-surface2);
-  border-bottom: 2px solid var(--c-border); flex-shrink: 0;
+  border-bottom: 1px solid var(--c-border); flex-shrink: 0;
 }
 .modal-head h3 { font-size: 18px; font-weight: 900; }
 .modal-actions { display: flex; gap: 8px; }
@@ -314,8 +314,8 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
   <div class="brand">
     <div class="brand-icon">🔍</div>
     <div>
-      <div class="brand-name">אמיר — מאתר נזקי צנרת</div>
-      <div class="brand-sub">מערכת דיווח פנימית</div>
+      <div class="brand-name">OMDAN Leak</div>
+      <div class="brand-sub">מערכת איתור נזילות ודוחות מקצועיים</div>
     </div>
   </div>
   <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="index.html">🏠 דשבורד</a><a class="btn btn-ghost btn-sm" href="customers.html">👥 לקוחות</a><button class="btn btn-ghost btn-sm" id="btnSaveDraft">💾 שמור טיוטה</button><button class="btn btn-ghost btn-sm" id="btnPreview">תצוגה מקדימה</button><button class="btn btn-primary btn-sm pulse" id="btnReport">📄 הפק דו״ח</button></div>
@@ -338,7 +338,7 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
       <div class="form-group"><label>מספר דוח</label><input id="reportNo" placeholder="נוצר אוטומטית" readonly/></div>
       <div class="form-group"><label>סטטוס דוח</label><select id="reportStatus"><option value="draft">טיוטה</option><option value="ready">מוכן לבדיקה</option><option value="sent">נשלח</option><option value="archived">בארכיון</option></select></div>
       <div class="form-group"><label>לקוח קיים</label><select id="customerSelect"><option value="">בחר לקוח שמור…</option></select></div>
-      <div class="form-group"><label>תבנית דוח</label><select id="templateVersion"><option value="v1">Leak Report v1</option><option value="v2">Leak Report v2</option></select></div>
+      <div class="form-group"><label>תבנית דוח</label><select id="templateVersion"><option value="v1">OMDAN Leak v1</option><option value="v2">OMDAN Leak v2</option></select></div>
       <div class="form-group full"><label>תגיות פנימיות</label><input id="internalTags" placeholder="לדוגמה: דחוף, ביטוח, רטיבות קיר דרומי"/></div>
     </div>
   </div>
@@ -349,6 +349,7 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
     <div class="step" data-target="sec-tests"><span class="step-num">2</span> בדיקות</div>
     <div class="step" data-target="sec-images"><span class="step-num">3</span> תמונות</div>
     <div class="step" data-target="sec-findings"><span class="step-num">4</span> ממצאים</div>
+    <div class="step" data-target="sec-tools"><span class="step-num">5</span> הכלים שלי</div>
   </div>
 
   <!-- 1. CLIENT -->
@@ -367,7 +368,7 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
         <div class="form-group"><label>כתובת</label><input id="address" placeholder="רחוב ומספר בית"/></div>
         <div class="form-group"><label>מספר דירה / קומה</label><input id="apartment" placeholder="דירה X, קומה Y"/></div>
         <div class="form-group"><label>תאריך הבדיקה</label><input id="inspectDate" type="date"/></div>
-        <div class="form-group"><label>שם הבודק</label><input id="inspector" placeholder="אמיר..."/></div>
+        <div class="form-group"><label>שם הבודק</label><input id="inspector" placeholder="שם הבודק/ת"/></div>
         <div class="form-group"><label>נוכחים בעת הבדיקה</label><input id="present" placeholder="בעל הנכס, שוכר..."/></div>
       </div>
     </div>
@@ -420,6 +421,22 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
     </div>
   </div>
 
+
+  <!-- 5. TOOLS -->
+  <div class="card" id="sec-tools">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-header-icon icon-blue">🧰</div>
+      <div class="card-title">הכלים שלי</div>
+      <div class="card-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label>ציוד, מצלמות, מכשור וכלי עבודה</label>
+        <textarea id="myTools" placeholder="לדוגמה: מצלמה טרמית, מד לחות, ציוד לחץ, גז tracer, סיב אופטי, ציוד בדיקת הצפה..."></textarea>
+      </div>
+    </div>
+  </div>
+
   <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
     <button class="btn btn-ghost" id="btnClear2">🗑 נקה הכל</button>
     <button class="btn btn-ghost" id="btnPreview2">👁 תצוגה מקדימה</button>
@@ -462,11 +479,9 @@ input[type="file"] { position: absolute; left: -9999px; width: 1px; height: 1px;
 
 const CATS = [
   { key:'damage',       title:'נזקי רטיבות',            icon:'💧' },
-  { key:'thermalImgs',  title:'צילומים טמוגרפים',       icon:'🌡' },
-  { key:'pressureImgs', title:'בדיקת לחץ – לפני/אחרי',  icon:'📊' },
-  { key:'floodImgs',    title:'בדיקת הצפה',             icon:'🌊' },
+  { key:'thermalImgs',  title:'צילומים טמוגרפיים',      icon:'🌡' },
+  { key:'pressureImgs', title:'בדיקות לחץ',             icon:'📊' },
   { key:'pipeImgs',     title:'צילום פנים צנרת',         icon:'🔩' },
-  { key:'sealingImgs',  title:'כשלי איטום',              icon:'🛡' },
 ];
 
 const state = { images: Object.fromEntries(CATS.map(c => [c.key, []])) };
@@ -566,7 +581,7 @@ function escapeHtml(s) {
 }
 
 function collect() {
-  return ['clientName','phone','city','address','apartment','inspectDate','inspector','present','pressure','moisture','flood','thermal','pipe','sealing','gas','manualFindings']
+  return ['clientName','phone','city','address','apartment','inspectDate','inspector','present','pressure','moisture','flood','thermal','pipe','sealing','gas','manualFindings','myTools']
     .reduce((o,id) => { o[id]=document.getElementById(id)?.value||''; return o; }, {});
 }
 
@@ -607,12 +622,13 @@ function buildReportHtml() {
   const edu=`<ul><li>לימודי תעודה מערכות שאיבה במכללת מישלב.</li><li>לימודי תעודה שרברבות תברואתית במכללת מישלב.</li><li>לימודי תעודה למערכות פקסגול / מולטיגול בחברת גולן (מתקין מוסמך).</li><li>28 שנות ניסיון בתחום השרברבות והבנייה.</li><li>16 שנות ניסיון באיתור נזילות ושיקום נזקי צנרת.</li><li>בעל ניסיון רב באיתור נזילות באמצעות צילום טמוגרפי.</li><li>ניסיון רב בענף הבנייה על הכרת כל המערכות הסניטריות בבניין.</li></ul>`;
 
   return `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><title>דו״ח איתור נזילה</title><style>${css}</style></head><body>
-  <div class="header"><div class="title">הנדון: דו״ח איתור נזילה</div><div class="report-no">מספר דו״ח: ${escapeHtml(rn)}</div></div>
+  <div class="header"><div class="title">הנדון: דו״ח איתור נזילות</div><div class="report-no">מספר דו״ח: ${escapeHtml(rn)}</div></div>
   <div class="box"><div class="kv"><div><b>לכבוד:</b> ${escapeHtml(d.clientName)}</div><div><b>טלפון:</b> ${escapeHtml(d.phone)}</div><div><b>תאריך הבדיקה:</b> ${escapeHtml(d.inspectDate)}</div><div><b>שם הבודק:</b> ${escapeHtml(d.inspector)}</div><div><b>נוכחים בעת הבדיקה:</b> ${escapeHtml(d.present)}</div><div><b>יישוב:</b> ${escapeHtml(d.city)}</div><div><b>כתובת:</b> ${escapeHtml(d.address)}</div><div><b>מס׳ דירה/קומה:</b> ${escapeHtml(d.apartment)}</div></div><div class="disclaimer">יש לציין כי ממצאי הבדיקה אשר נערכו בנכס נכונים למועד תאריך הבדיקה בנכס ואין הח״מ אחראי על כל כשל או נזק נוסף אשר יימצא בעתיד.</div></div>
   <div class="box"><h3 class="sec-title">הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי</h3><h3 class="sec-title" style="margin-top:8px">אלו פרטי השכלתי וניסיוני</h3>${edu}</div>
   <div class="box"><h3 class="sec-title">תאור הבדיקות שבוצעו</h3><table><tr><th>סוג הבדיקה</th><th>סטטוס</th></tr>${testRow('בדיקת לחץ',d.pressure)}${testRow('בדיקת לחות',d.moisture)}${testRow('בדיקת הצפה',d.flood)}${testRow('צילום טמוגרפי',d.thermal)}${testRow('צילום פנים צנרת',d.pipe)}${testRow('בדיקת כשלי איטום',d.sealing)}${testRow('בדיקה באמצעות גז',d.gas)}</table></div>
   <div class="box"><h3 class="sec-title">ממצאים</h3><div class="findings">${escapeHtml(findings)}</div></div>
-  <div class="footer">תודה שבחרתם באמיר איתור נזקי צנרת, נשמח לעמוד לשירותכם תמיד.<br>בברכה, אמיר איתור נזקי צנרת</div>
+  ${d.myTools?`<div class="box"><h3 class="sec-title">הכלים שלי</h3><div class="findings">${escapeHtml(d.myTools)}</div></div>`:''}
+  <div class="footer">תודה שבחרתם ב־OMDAN Leak. נשמח לעמוד לשירותכם תמיד.<br>בברכה, צוות OMDAN Leak</div>
   ${imgPages}</body></html>`;
 }
 
@@ -635,7 +651,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closePreview();});
 
 function doClear() {
   if(!confirm('לנקות את כל הנתונים והתמונות?')) return;
-  ['clientName','phone','city','address','apartment','inspector','present','manualFindings'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['clientName','phone','city','address','apartment','inspector','present','manualFindings','myTools'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('inspectDate').value=todayISO();
   ['pressure','moisture','flood','thermal','pipe','sealing','gas'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='לא בוצע';updateTestUI(el);}});
   CATS.forEach(c=>{state.images[c.key]=[];renderCat(c.key);});
@@ -669,7 +685,7 @@ function hydrateMeta(){document.getElementById('metaBadge').textContent=statusEl
 statusEl.addEventListener('change',hydrateMeta); hydrateMeta();
 function saveDraft(show=true){const items=getReports();const data=gatherFullData();const i=items.findIndex(x=>x.id===reportId);if(i>=0) items[i]=data; else items.unshift(data);saveReports(items);upsertCustomerFromReport(data);logActivity('report.save',`טיוטה נשמרה: ${data.reportNo}`,{reportId:data.id,status:data.status});if(show) showToast('הטיוטה נשמרה במערכת המקומית')}
 document.getElementById('btnSaveDraft').addEventListener('click',()=>saveDraft(true));
-function loadReportIfExists(){const r=getReports().find(x=>x.id===reportId); if(!r) return; reportNoEl.value=r.reportNo||reportNumber(); ['clientName','phone','city','address','apartment','inspectDate','inspector','present','manualFindings','internalTags'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null) document.getElementById(id).value=r[id]}); ['pressure','moisture','flood','thermal','pipe','sealing','gas'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null){document.getElementById(id).value=r[id];updateTestUI(document.getElementById(id));}}); if(r.status) statusEl.value=r.status; if(r.templateVersion) document.getElementById('templateVersion').value=r.templateVersion; if(r.images){Object.keys(r.images).forEach(key=>{if(state.images[key]&&Array.isArray(r.images[key])) state.images[key]=r.images[key]}); CATS.forEach(c=>renderCat(c.key));} window.__createdAt=r.createdAt||nowISO(); updateBadges(); hydrateMeta(); showToast('הדוח נטען מהמאגר המקומי')}
+function loadReportIfExists(){const r=getReports().find(x=>x.id===reportId); if(!r) return; reportNoEl.value=r.reportNo||reportNumber(); ['clientName','phone','city','address','apartment','inspectDate','inspector','present','manualFindings','myTools','internalTags'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null) document.getElementById(id).value=r[id]}); ['pressure','moisture','flood','thermal','pipe','sealing','gas'].forEach(id=>{if(document.getElementById(id)&&r[id]!=null){document.getElementById(id).value=r[id];updateTestUI(document.getElementById(id));}}); if(r.status) statusEl.value=r.status; if(r.templateVersion) document.getElementById('templateVersion').value=r.templateVersion; if(r.images){Object.keys(r.images).forEach(key=>{if(state.images[key]&&Array.isArray(r.images[key])) state.images[key]=r.images[key]}); CATS.forEach(c=>renderCat(c.key));} window.__createdAt=r.createdAt||nowISO(); updateBadges(); hydrateMeta(); showToast('הדוח נטען מהמאגר המקומי')}
 loadReportIfExists();
 const _generateReport = generateReport;
 generateReport = function(){const data=gatherFullData(); data.status='sent'; statusEl.value='sent'; saveDraft(false); const billing=getBilling(); if(billing.status==='trial'||billing.status==='active'){billing.reportsThisMonth=Number(billing.reportsThisMonth||0)+1; saveBilling(billing)} logActivity('report.export',`הופק דוח: ${data.reportNo}`,{reportId:data.id}); _generateReport()};
