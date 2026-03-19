@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>לקוחות</title><link rel="stylesheet" href="shared.css"></head>
+<body>
+<nav class="topnav">
+  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
+  <div class="nav-actions"><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
+</nav>
+<main class="container">
+  <div class="page-head"><div><div class="page-title">לקוחות</div><div class="page-sub">ישות לקוח נפרדת עם היסטוריית דוחות וקישור חזרה לדוח האחרון.</div></div></div>
+  <div class="pill-nav"><a href="index.html">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html" class="active">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html">מנוי</a></div>
+  
+<div class="card">
+  <div class="card-header"><div class="card-title">רשימת לקוחות</div><div class="toolbar"><input id="q" placeholder="חיפוש לפי שם / טלפון" style="min-width:240px"><button class="btn btn-ghost btn-sm" id="btnExportCustomers">ייצוא JSON</button></div></div>
+  <div class="card-body table-wrap" id="customersWrap"></div>
+</div>
+
+  
+<div class="footer-legal">
+  <a href="legal/index.html">מסמכים משפטיים</a>
+  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
+  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
+  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
+  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+</div>
+
+</main>
+<script src="shared.js"></script>
+<script>
+const q=document.getElementById('q');
+function renderCustomers(){const base=getCustomers(), term=(q.value||'').trim(); const items=base.filter(c=>!term||[c.clientName,c.phone,c.city,c.address].join(' ').includes(term)); const el=document.getElementById('customersWrap'); if(!items.length){el.innerHTML='<div class="empty">לא נמצאו לקוחות.</div>'; return;} el.innerHTML='<table class="table"><thead><tr><th>שם</th><th>טלפון</th><th>מיקום</th><th>דוחות</th><th>עדכון אחרון</th><th>פעולה</th></tr></thead><tbody>'+items.map(c=>{const report=getReports().find(r=>r.id===c.lastReportId); return `<tr><td>${escapeHtml(c.clientName||'')}</td><td>${escapeHtml(c.phone||'')}</td><td>${escapeHtml((c.city||'')+' '+(c.address||''))}</td><td>${c.reportsCount||0}</td><td>${fmtDate(c.lastUpdatedAt||c.createdAt)}</td><td>${report?`<a class="btn btn-ghost btn-sm" href="form.html?id=${encodeURIComponent(report.id)}">פתח דוח אחרון</a>`:'—'}</td></tr>`}).join('')+'</tbody></table>'}
+q.addEventListener('input',renderCustomers); renderCustomers();
+document.getElementById('btnExportCustomers').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(getCustomers(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='amir-leak-customers.json';a.click();URL.revokeObjectURL(a.href);showToast('קובץ הלקוחות יוצא')});
+</script>
+</body></html>

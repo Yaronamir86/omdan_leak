@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ניהול מנוי</title><link rel="stylesheet" href="shared.css"></head>
+<body>
+<nav class="topnav">
+  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="pricing.html">מסלולים</a></div>
+</nav>
+<main class="container">
+  <div class="page-head"><div><div class="page-title">ניהול מנוי</div><div class="page-sub">אזור billing בסגנון OMDAN עם plan state, פעולות והיסטוריה.</div></div></div>
+  <div class="pill-nav"><a href="index.html">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html" class="active">מנוי</a></div>
+  
+<div class="grid grid-2">
+  <div class="card"><div class="card-header"><div class="card-title">מצב מנוי</div><a class="btn btn-ghost btn-sm" href="pricing.html">שנה מסלול</a></div><div class="card-body" id="billingState"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">פעולות</div></div><div class="card-body"><div class="toolbar"><button class="btn btn-primary" id="activatePro">הפעל Pro Leak</button><button class="btn btn-ghost" id="backToTrial">חזרה ל־Trial</button><button class="btn btn-danger" id="cancelAtEnd">בטל בסוף תקופה</button></div></div></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="card-header"><div class="card-title">היסטוריית חיובים</div></div><div class="card-body" id="billingHistory"></div></div>
+
+  
+<div class="footer-legal">
+  <a href="legal/index.html">מסמכים משפטיים</a>
+  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
+  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
+  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
+  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+</div>
+
+</main>
+<script src="shared.js"></script>
+<script>
+function renderBilling(){const b=getBilling();document.getElementById('billingState').innerHTML=`<div style="display:grid;gap:10px"><div>תכנית: <strong>${escapeHtml(b.plan||'trial')}</strong></div><div>סטטוס: <strong>${escapeHtml(b.status||'trial')}</strong></div><div>מחזור: <strong>${escapeHtml(b.cycle||'monthly')}</strong></div><div>מגבלת דוחות: <strong>${escapeHtml(String(b.reportsLimit||5))}</strong></div><div>דוחות החודש: <strong>${escapeHtml(String(b.reportsThisMonth||0))}</strong></div><div>סיום ניסיון / תקופה: <strong>${fmtDate(b.trialEnd||b.subscriptionEnd)}</strong></div><div>ביטול בסוף תקופה: <strong>${b.cancelAtEnd?'כן':'לא'}</strong></div></div>`; const acts=getActivity().filter(a=>a.type.startsWith('billing')); document.getElementById('billingHistory').innerHTML=acts.length?'<div style="display:grid;gap:10px">'+acts.slice(0,12).map(a=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800">${escapeHtml(a.message)}</div><div style="font-size:12px;color:var(--c-text3)">${fmtDateTime(a.at)}</div></div>`).join('')+'</div>':'<div class="empty">עדיין אין אירועי חיוב.</div>'}
+document.getElementById('activatePro').addEventListener('click',()=>{saveBilling({plan:'pro',status:'active',cycle:'monthly',reportsLimit:999,subscriptionEnd:addDaysISO(new Date(),30),cancelAtEnd:false});logActivity('billing.change','המסלול שודרג ל־Pro Leak');renderBilling();showToast('מסלול Pro הופעל')});
+document.getElementById('backToTrial').addEventListener('click',()=>{saveBilling({plan:'trial',status:'trial',cycle:'monthly',reportsLimit:5,trialEnd:addDaysISO(new Date(),14),cancelAtEnd:false});logActivity('billing.change','המסלול חזר ל־Trial');renderBilling();showToast('חזרת למסלול ניסיון')});
+document.getElementById('cancelAtEnd').addEventListener('click',()=>{const b=getBilling();saveBilling({cancelAtEnd:!b.cancelAtEnd});logActivity('billing.cancel',b.cancelAtEnd?'בוטל דגל cancelAtEnd':'סומן ביטול בסוף תקופה');renderBilling();showToast('עודכן סטטוס ביטול')});
+renderBilling();
+</script>
+</body></html>

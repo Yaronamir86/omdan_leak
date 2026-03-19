@@ -1,0 +1,1 @@
+Added dashboard, customers, settings, billing, legal center, autosave drafts, lifecycle statuses, report numbering, consent checkbox and PDF disclaimer.
