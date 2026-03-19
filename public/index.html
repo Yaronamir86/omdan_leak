@@ -1,89 +1,52 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>דשבורד מערכת איתור נזילות</title><link rel="stylesheet" href="shared.css"></head>
+<body>
+<nav class="topnav">
+  <div class="brand"><div class="brand-icon">🔍</div><div><div class="brand-name">אמיר — מאתר נזקי צנרת</div><div class="brand-sub">ארכיטקטורה מלאה בסגנון OMDAN</div></div></div>
+  <div class="nav-actions"><a class="btn btn-ghost btn-sm" href="pricing.html">💠 מסלולים</a><a class="btn btn-primary btn-sm" href="form.html">+ דוח חדש</a></div>
+</nav>
+<main class="container">
+  <div class="page-head"><div><div class="page-title">דשבורד מערכת איתור נזילות</div><div class="page-sub">מרכז ניהול ראשי בסגנון OMDAN: דוחות, לקוחות, billing, legal ו־activity log.</div></div></div>
+  <div class="pill-nav"><a href="index.html" class="active">דשבורד</a><a href="form.html">דוח חדש</a><a href="customers.html">לקוחות</a><a href="settings.html">הגדרות</a><a href="account-billing.html">מנוי</a></div>
+  
+<div class="grid grid-4">
+  <div class="kpi"><div class="kpi-label">סה״כ דוחות</div><div class="kpi-value" id="kpiReports">0</div><div class="kpi-sub">כולל טיוטות ודוחות שנשלחו</div></div>
+  <div class="kpi"><div class="kpi-label">לקוחות</div><div class="kpi-value" id="kpiCustomers">0</div><div class="kpi-sub">רשומות לקוח פעילות</div></div>
+  <div class="kpi"><div class="kpi-label">דוחות החודש</div><div class="kpi-value" id="kpiMonth">0</div><div class="kpi-sub">הפקות PDF החודש</div></div>
+  <div class="kpi"><div class="kpi-label">תכנית מנוי</div><div class="kpi-value" id="kpiPlan" style="font-size:24px">trial</div><div class="kpi-sub" id="kpiPlanSub">מוגבל ל־5 דוחות</div></div>
+</div>
+<div class="grid grid-2" style="margin-top:16px">
+  <div class="card"><div class="card-header"><div class="card-title">דוחות אחרונים</div><a class="btn btn-ghost btn-sm" href="form.html">+ דוח חדש</a></div><div class="card-body table-wrap" id="latestReportsWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Activity Log</div><span class="badge">OMDAN-like</span></div><div class="card-body" id="activityWrap"></div></div>
+</div>
+<div class="grid grid-3" style="margin-top:16px">
+  <div class="card"><div class="card-header"><div class="card-title">סטטוסי דוחות</div></div><div class="card-body" id="statusWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">לקוחות אחרונים</div><a class="btn btn-ghost btn-sm" href="customers.html">לרשימה מלאה</a></div><div class="card-body" id="latestCustomersWrap"></div></div>
+  <div class="card"><div class="card-header"><div class="card-title">ארכיטקטורה שהושלמה</div></div><div class="card-body"><div style="display:grid;gap:10px"><div class="badge ok">Dashboard</div><div class="badge ok">Reports Entity</div><div class="badge ok">Customers Entity</div><div class="badge ok">Billing Area</div><div class="badge ok">Settings Area</div><div class="badge ok">Legal Center</div><div class="badge ok">Activity Log</div></div></div></div>
+</div>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.10.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.10.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.10.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+  
+<div class="footer-legal">
+  <a href="legal/index.html">מסמכים משפטיים</a>
+  <a href="legal/terms-of-service/terms-he.html">תנאי שימוש</a>
+  <a href="legal/privacy-policy/privacy-he.html">מדיניות פרטיות</a>
+  <a href="legal/refund-policy/refunds-he.html">החזרים וביטול מנוי</a>
+  <a href="legal/professional-disclaimer/disclaimer-he.html">הבהרה מקצועית</a>
+</div>
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
-  </body>
-</html>
+</main>
+<script src="shared.js"></script>
+<script>
+const reports=getReports(), customers=getCustomers(), billing=getBilling();
+document.getElementById('kpiReports').textContent=reports.length;
+document.getElementById('kpiCustomers').textContent=customers.length;
+document.getElementById('kpiMonth').textContent=billing.reportsThisMonth||0;
+document.getElementById('kpiPlan').textContent=billing.plan||'trial';
+document.getElementById('kpiPlanSub').textContent=billing.plan==='trial' ? `מוגבל ל־${billing.reportsLimit||5} דוחות` : `סטטוס: ${billing.status||'active'}`;
+(function(){const el=document.getElementById('latestReportsWrap'); if(!reports.length){el.innerHTML='<div class="empty">אין עדיין דוחות. התחל מיצירת דוח חדש.</div>'; return;} el.innerHTML='<table class="table"><thead><tr><th>מספר</th><th>לקוח</th><th>סטטוס</th><th>עודכן</th><th>פעולה</th></tr></thead><tbody>'+reports.slice(0,8).map(r=>`<tr><td>${escapeHtml(r.reportNo||'')}</td><td>${escapeHtml(r.clientName||'—')}</td><td>${statusBadge(r.status||'draft')}</td><td>${fmtDate(r.updatedAt)}</td><td><a class="btn btn-ghost btn-sm" href="form.html?id=${encodeURIComponent(r.id)}">פתח</a></td></tr>`).join('')+'</tbody></table>'})();
+(function(){const counts={draft:0,ready:0,sent:0,archived:0}; reports.forEach(r=>counts[r.status||'draft']=(counts[r.status||'draft']||0)+1); document.getElementById('statusWrap').innerHTML=`<div style="display:grid;gap:10px"><div>טיוטות: <strong>${counts.draft}</strong></div><div>מוכנים: <strong>${counts.ready}</strong></div><div>נשלחו: <strong>${counts.sent}</strong></div><div>בארכיון: <strong>${counts.archived}</strong></div></div>`})();
+(function(){const el=document.getElementById('latestCustomersWrap'); if(!customers.length){el.innerHTML='<div class="empty">אין עדיין לקוחות שמורים.</div>'; return;} el.innerHTML='<div style="display:grid;gap:12px">'+customers.slice(0,6).map(c=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:900">${escapeHtml(c.clientName||'ללא שם')}</div><div style="font-size:13px;color:var(--c-text3)">${escapeHtml(c.phone||'ללא טלפון')}</div><div style="font-size:13px;color:var(--c-text3)">${escapeHtml((c.city||'')+' '+(c.address||''))}</div></div>`).join('')+'</div>'})();
+(function(){const acts=getActivity(), el=document.getElementById('activityWrap'); if(!acts.length){el.innerHTML='<div class="empty">עדיין אין פעילות מתועדת.</div>'; return;} el.innerHTML='<div style="display:grid;gap:10px">'+acts.slice(0,8).map(a=>`<div style="padding:12px;border:2px solid var(--c-border2);border-radius:12px;background:var(--c-bg)"><div style="font-weight:800">${escapeHtml(a.message)}</div><div style="font-size:12px;color:var(--c-text3)">${fmtDateTime(a.at)} · ${escapeHtml(a.type)}</div></div>`).join('')+'</div>'})();
+</script>
+</body></html>
