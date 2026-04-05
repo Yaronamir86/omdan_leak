@@ -123,7 +123,7 @@ function cleanupSettingsOnboarding() {
   --bg:#030712;--surface:#0d1117;--surface2:#111827;--surface3:#1a2332;
   --border:#1f2937;--border2:#374151;
   --text:#f9fafb;--muted:#9ca3af;--subtle:#6b7280;
-  --accent:#f59e0b;--accent2:#fde68a;
+  --accent:#2196F3;--accent2:#fde68a;
   --blue:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;
   --r:12px;--shadow:0 4px 24px rgba(0,0,0,.5);
 }
@@ -365,7 +365,7 @@ body::before{
 .save-status.saved{color:var(--green);}
 .save-status.saving{color:var(--accent);}
 .btn-save{
-  padding:11px 28px;background:linear-gradient(135deg,#f59e0b,#d97706);
+  padding:11px 28px;background:linear-gradient(135deg,#2196F3,#1565C0);
   border:none;border-radius:10px;color:#0f1117;font-size:14px;font-weight:800;
   font-family:'Heebo',sans-serif;cursor:pointer;transition:opacity .2s;
 }
@@ -815,14 +815,14 @@ body.ob-lock{overflow:hidden;}
             </div>
             <div style="font-size:11px;color:var(--subtle);margin-top:6px;">עד 3 תווים — ראשי תיבות מהשם</div>
             <div class="color-swatches" id="logoColorSwatches">
-              <div class="swatch active" style="background:#f59e0b" onclick="setLogoColor('#f59e0b','#0f1117',this)"></div>
+              <div class="swatch active" style="background:#2196F3" onclick="setLogoColor('#2196F3','#0f1117',this)"></div>
               <div class="swatch" style="background:#3b82f6" onclick="setLogoColor('#3b82f6','#fff',this)"></div>
               <div class="swatch" style="background:#10b981" onclick="setLogoColor('#10b981','#fff',this)"></div>
               <div class="swatch" style="background:#ef4444" onclick="setLogoColor('#ef4444','#fff',this)"></div>
               <div class="swatch" style="background:#8b5cf6" onclick="setLogoColor('#8b5cf6','#fff',this)"></div>
               <div class="swatch" style="background:#ec4899" onclick="setLogoColor('#ec4899','#fff',this)"></div>
               <div class="swatch" style="background:#f97316" onclick="setLogoColor('#f97316','#fff',this)"></div>
-              <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#f59e0b',this)"></div>
+              <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#2196F3',this)"></div>
             </div>
           </div>
 
@@ -1089,7 +1089,7 @@ body.ob-lock{overflow:hidden;}
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
-let logoColor     = '#f59e0b';
+let logoColor     = '#2196F3';
 let logoTextColor = '#0f1117';
 let logoMode      = 'initials'; // 'initials' | 'upload'
 let logoImageUrl  = null;       // uploaded image URL
@@ -1176,8 +1176,8 @@ function updateLogoPreview(){
     preview.style.background = '';
   } else {
     preview.style.background = logoColor || '#1a2332';
-    preview.style.color = logoTextColor || '#f59e0b';
-    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#f59e0b'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
+    preview.style.color = logoTextColor || '#2196F3';
+    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#2196F3'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
   }
 }
 
@@ -1522,7 +1522,7 @@ function renderThemeGrid(){
     const sel = currentReportTheme === key;
     return `<div onclick="selectTheme('${key}')" style="
       cursor:pointer;border-radius:10px;overflow:hidden;
-      border:2px solid ${sel ? '#f59e0b' : 'rgba(255,255,255,.1)'};
+      border:2px solid ${sel ? '#2196F3' : 'rgba(255,255,255,.1)'};
       transition:all .2s;display:flex;flex-direction:column;
     ">
       <div style="background:${t.rptBg};padding:8px;direction:rtl;flex:1;">
@@ -1537,7 +1537,7 @@ function renderThemeGrid(){
           <tr style="background:${t.summaryBg};"><td style="padding:2px 4px;font-weight:800;">סה"כ</td><td style="padding:2px 4px;font-weight:800;color:${t.accentColor};">₪8,500</td></tr>
         </table>
       </div>
-      <div style="background:${sel?'#f59e0b':'#1F2937'};padding:5px;text-align:center;">
+      <div style="background:${sel?'#2196F3':'#1F2937'};padding:5px;text-align:center;">
         <span style="font-size:11px;font-weight:700;color:${sel?'#000':'#F9FAFB'};">${t.emoji} ${t.name}</span>
       </div>
     </div>`;
@@ -1909,7 +1909,7 @@ document.addEventListener('keydown', e=>{
 <style>
 .omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
 .omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#f59e0b;}
+.omdan-footer a:hover{color:#2196F3;}
 
 
 
@@ -1933,7 +1933,7 @@ document.addEventListener('keydown', e=>{
   padding:4px;color:#9CA3AF;font-family:'Heebo',sans-serif;font-size:9px;font-weight:600;
   background:none;border:none;cursor:pointer;text-decoration:none;transition:color .15s;}
 .settings-mob-nav a:hover,.settings-mob-nav button:hover{color:#F9FAFB;}
-.settings-mob-nav a.active{color:#F59E0B;}
+.settings-mob-nav a.active{color:#2196F3;}
 @media(max-width:768px){.settings-mob-nav{display:grid;}.app{padding-bottom:72px;}}
 </style>
 <nav class="settings-mob-nav">

@@ -1,226 +1,633 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMDA איתור | הרשמה</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Heebo',sans-serif;background:#030712;color:#f9fafb;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-.card{background:#0d1117;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:48px 40px;width:440px;max-width:100%;box-shadow:0 32px 80px rgba(0,0,0,.6);}
-.logo-row{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:28px;}
-.subtitle{text-align:center;font-size:12px;color:#6b7280;margin-bottom:28px;}
-.trial-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;margin-bottom:28px;}
-.section-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06);}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-.field input{width:100%;background:#030712;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
-.field input:focus{border-color:#f59e0b;}
-.field input::placeholder{color:#4b5563;}
-.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:22px 0;}
-.btn-register{width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;padding:14px;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-top:8px;}
-.btn-register:hover{opacity:.88;}
-.btn-register:disabled{opacity:.4;cursor:not-allowed;}
-.terms{font-size:11px;color:#4b5563;text-align:center;margin-top:14px;line-height:1.6;}
-.terms a{color:#6b7280;text-decoration:underline;}
-.login-link{text-align:center;margin-top:20px;font-size:13px;color:#6b7280;}
-.login-link a{color:#f59e0b;text-decoration:none;font-weight:700;}
-.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:13px;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:none;}
-.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;font-size:14px;border-radius:12px;padding:24px;text-align:center;display:none;}
-.pw-wrap{position:relative;}
-.pw-wrap input{padding-left:40px;}
-.pw-toggle{position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6b7280;padding:0;display:flex;align-items:center;font-size:18px;line-height:1;}
-.pw-toggle:hover{color:#f59e0b;}
-.btn-google{width:100%;background:#1e1e2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;}
-.btn-google:hover{background:#2a2a3e;border-color:rgba(255,255,255,.3);}
-.or-divider{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-.or-divider span{font-size:11px;color:#4b5563;white-space:nowrap;}
-.or-divider::before,.or-divider::after{content:'';flex:1;border-top:1px solid rgba(255,255,255,.08);}
-.omdan-footer{background:#0d1117;border-top:none;padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;width:100%;}
-.omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#f59e0b;}
-</style>
-<link rel="icon" type="image/png" href="/assets/omda-icon.png">
-</head>
-<body>
-
-<div class="logo-row">
-  <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:56px;width:56px;object-fit:contain;" onerror="this.src='/assets/omda-icon.png'">
-  <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:42px;object-fit:contain;filter:brightness(0) invert(1);" onerror="this.style.display='none'">
-  <div class="subtitle">מערכת ניהול תיקי איתור נזילות מקצועית</div>
-</div>
-
-<div class="card">
-  <div style="text-align:center;margin-bottom:28px;">
-    <span class="trial-badge">✅ ניסיון חינמי 14 יום — ללא כרטיס אשראי</span>
-  </div>
-
-  <div class="success" id="successMsg">
-    <div style="font-size:36px;margin-bottom:10px;">🎉</div>
-    <div style="font-size:17px;font-weight:800;margin-bottom:6px;">ברוך הבא ל-OMDA איתור!</div>
-    <div style="font-size:13px;opacity:.8;">החשבון נוצר. מועבר לדשבורד...</div>
-  </div>
-
-  <div id="regErr" class="err"></div>
-
-  <div id="regForm">
-    <button class="btn-google" onclick="doGoogleRegister()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      הרשמה עם Google
-    </button>
-    <div class="or-divider"><span>או עם אימייל וסיסמה</span></div>
-
-    <div class="section-title">פרטים אישיים</div>
-    <div class="row-2">
-      <div class="field"><label>שם פרטי</label><input type="text" id="firstName" placeholder="ישראל" autocomplete="given-name"></div>
-      <div class="field"><label>שם משפחה</label><input type="text" id="lastName" placeholder="ישראלי" autocomplete="family-name"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OMDA איתור | הרשמה</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Heebo", sans-serif;
+        background: #030712;
+        color: #f9fafb;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        background: #0d1117;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 48px 40px;
+        width: 440px;
+        max-width: 100%;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+      }
+      .logo-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 28px;
+      }
+      .subtitle {
+        text-align: center;
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 28px;
+      }
+      .trial-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #6ee7b7;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-bottom: 28px;
+      }
+      .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .field input {
+        width: 100%;
+        background: #030712;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 11px 14px;
+        color: #fff;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .field input:focus {
+        border-color: #2196f3;
+      }
+      .field input::placeholder {
+        color: #4b5563;
+      }
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .divider {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        margin: 22px 0;
+      }
+      .btn-register {
+        width: 100%;
+        background: linear-gradient(135deg, #2196f3, #1565c0);
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        color: #000;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity 0.2s;
+        margin-top: 8px;
+      }
+      .btn-register:hover {
+        opacity: 0.88;
+      }
+      .btn-register:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .terms {
+        font-size: 11px;
+        color: #4b5563;
+        text-align: center;
+        margin-top: 14px;
+        line-height: 1.6;
+      }
+      .terms a {
+        color: #6b7280;
+        text-decoration: underline;
+      }
+      .login-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: #6b7280;
+      }
+      .login-link a {
+        color: #2196f3;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .err {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        font-size: 13px;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        display: none;
+      }
+      .success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #6ee7b7;
+        font-size: 14px;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        display: none;
+      }
+      .pw-wrap {
+        position: relative;
+      }
+      .pw-wrap input {
+        padding-left: 40px;
+      }
+      .pw-toggle {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        line-height: 1;
+      }
+      .pw-toggle:hover {
+        color: #2196f3;
+      }
+      .btn-google {
+        width: 100%;
+        background: #1e1e2e;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 13px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .btn-google:hover {
+        background: #2a2a3e;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+      .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .or-divider span {
+        font-size: 11px;
+        color: #4b5563;
+        white-space: nowrap;
+      }
+      .or-divider::before,
+      .or-divider::after {
+        content: "";
+        flex: 1;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .omdan-footer {
+        background: #0d1117;
+        border-top: none;
+        padding: 20px 5%;
+        text-align: center;
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 40px;
+        width: 100%;
+      }
+      .omdan-footer a {
+        color: #9ca3af;
+        text-decoration: none;
+        margin: 0 6px;
+        transition: color 0.2s;
+      }
+      .omdan-footer a:hover {
+        color: #2196f3;
+      }
+    </style>
+    <link rel="icon" type="image/png" href="/assets/omda-icon.png" />
+  </head>
+  <body>
+    <div class="logo-row">
+      <img
+        src="/assets/img/omdan-leak-icon.png"
+        alt=""
+        style="height: 56px; width: 56px; object-fit: contain"
+        onerror="this.src = '/assets/omda-icon.png'"
+      />
+      <img
+        src="/assets/img/omdan-leak-logo.png"
+        alt="OMDA איתור"
+        style="
+          height: 42px;
+          object-fit: contain;
+          filter: brightness(0) invert(1);
+        "
+        onerror="this.style.display = 'none'"
+      />
+      <div class="subtitle">מערכת ניהול תיקי איתור נזילות מקצועית</div>
     </div>
-    <div class="row-2">
-      <div class="field"><label>טלפון</label><input type="tel" id="phone" placeholder="050-0000000"></div>
-      <div class="field"><label>עיר</label><input type="text" id="city" placeholder="תל אביב"></div>
-    </div>
 
-    <hr class="divider">
-    <div class="section-title">פרטי כניסה</div>
+    <div class="card">
+      <div style="text-align: center; margin-bottom: 28px">
+        <span class="trial-badge"
+          >✅ ניסיון חינמי 14 יום — ללא כרטיס אשראי</span
+        >
+      </div>
 
-    <div class="field"><label>אימייל</label><input type="email" id="email" placeholder="your@email.com" dir="ltr"></div>
-    <div class="field">
-      <label>סיסמה</label>
-      <div class="pw-wrap">
-        <input type="password" id="password" placeholder="לפחות 6 תווים" autocomplete="new-password">
-        <button type="button" class="pw-toggle" onclick="togglePW(this,'password')">👁</button>
+      <div class="success" id="successMsg">
+        <div style="font-size: 36px; margin-bottom: 10px">🎉</div>
+        <div style="font-size: 17px; font-weight: 800; margin-bottom: 6px">
+          ברוך הבא ל-OMDA איתור!
+        </div>
+        <div style="font-size: 13px; opacity: 0.8">
+          החשבון נוצר. מועבר לדשבורד...
+        </div>
+      </div>
+
+      <div id="regErr" class="err"></div>
+
+      <div id="regForm">
+        <button class="btn-google" onclick="doGoogleRegister()">
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path
+              fill="#EA4335"
+              d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+            />
+            <path
+              fill="#34A853"
+              d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+            />
+          </svg>
+          הרשמה עם Google
+        </button>
+        <div class="or-divider"><span>או עם אימייל וסיסמה</span></div>
+
+        <div class="section-title">פרטים אישיים</div>
+        <div class="row-2">
+          <div class="field">
+            <label>שם פרטי</label
+            ><input
+              type="text"
+              id="firstName"
+              placeholder="ישראל"
+              autocomplete="given-name"
+            />
+          </div>
+          <div class="field">
+            <label>שם משפחה</label
+            ><input
+              type="text"
+              id="lastName"
+              placeholder="ישראלי"
+              autocomplete="family-name"
+            />
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>טלפון</label
+            ><input type="tel" id="phone" placeholder="050-0000000" />
+          </div>
+          <div class="field">
+            <label>עיר</label
+            ><input type="text" id="city" placeholder="תל אביב" />
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <div class="section-title">פרטי כניסה</div>
+
+        <div class="field">
+          <label>אימייל</label
+          ><input
+            type="email"
+            id="email"
+            placeholder="your@email.com"
+            dir="ltr"
+          />
+        </div>
+        <div class="field">
+          <label>סיסמה</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="password"
+              placeholder="לפחות 6 תווים"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="pw-toggle"
+              onclick="togglePW(this, 'password')"
+            >
+              👁
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label>אימות סיסמה</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="password2"
+              placeholder="הקלד שוב"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="pw-toggle"
+              onclick="togglePW(this, 'password2')"
+            >
+              👁
+            </button>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <div
+          style="
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <input
+            type="checkbox"
+            id="acceptTerms"
+            style="
+              width: 16px;
+              height: 16px;
+              margin-top: 2px;
+              flex-shrink: 0;
+              accent-color: #2196f3;
+            "
+          />
+          <label
+            for="acceptTerms"
+            style="
+              font-size: 12px;
+              color: #9ca3af;
+              text-transform: none;
+              letter-spacing: 0;
+              cursor: pointer;
+            "
+          >
+            קראתי ואני מסכים/ה ל<a
+              href="/legal/terms-of-service/terms-he.html"
+              style="color: #2196f3; text-decoration: none"
+              target="_blank"
+              >תנאי השימוש</a
+            >
+            ול<a
+              href="/legal/privacy-policy/privacy-he.html"
+              style="color: #2196f3; text-decoration: none"
+              target="_blank"
+              >מדיניות הפרטיות</a
+            >
+          </label>
+        </div>
+
+        <button class="btn-register" id="regBtn" onclick="doRegister()">
+          יצירת חשבון חינמי
+        </button>
+
+        <div class="login-link">
+          יש לך חשבון? <a href="/index.html">כניסה</a>
+        </div>
       </div>
     </div>
-    <div class="field">
-      <label>אימות סיסמה</label>
-      <div class="pw-wrap">
-        <input type="password" id="password2" placeholder="הקלד שוב" autocomplete="new-password">
-        <button type="button" class="pw-toggle" onclick="togglePW(this,'password2')">👁</button>
-      </div>
-    </div>
 
-    <hr class="divider">
-    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;">
-      <input type="checkbox" id="acceptTerms" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:#f59e0b;">
-      <label for="acceptTerms" style="font-size:12px;color:#9ca3af;text-transform:none;letter-spacing:0;cursor:pointer;">
-        קראתי ואני מסכים/ה ל<a href="/legal/terms-of-service/terms-he.html" style="color:#f59e0b;text-decoration:none;" target="_blank">תנאי השימוש</a>
-        ול<a href="/legal/privacy-policy/privacy-he.html" style="color:#f59e0b;text-decoration:none;" target="_blank">מדיניות הפרטיות</a>
-      </label>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+      // *** REPLACE WITH YOUR ACTUAL omda-itur FIREBASE CONFIG ***
+      firebase.initializeApp({
+        apiKey: "AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI",
+        authDomain: "omdan-leak.firebaseapp.com",
+        projectId: "omdan-leak",
+        storageBucket: "omdan-leak.firebasestorage.app",
+        messagingSenderId: "979018499185",
+        appId: "1:979018499185:web:1496303b1cd8a993bdc7d0",
+        measurementId: "G-P62VFXD521",
+      });
+      const auth = firebase.auth(),
+        db = firebase.firestore();
+      auth.onAuthStateChanged((u) => {
+        if (u) window.location.href = "/app/dashboard.html";
+      });
 
-    <button class="btn-register" id="regBtn" onclick="doRegister()">יצירת חשבון חינמי</button>
+      function togglePW(btn, id) {
+        const inp = document.getElementById(id);
+        inp.type = inp.type === "password" ? "text" : "password";
+        btn.textContent = inp.type === "password" ? "👁" : "🙈";
+      }
 
-    <div class="login-link">יש לך חשבון? <a href="/index.html">כניסה</a></div>
-  </div>
-</div>
+      function showErr(m) {
+        const e = document.getElementById("regErr");
+        e.textContent = m;
+        e.style.display = "block";
+      }
+      function clearErr() {
+        document.getElementById("regErr").style.display = "none";
+      }
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script>
-// *** REPLACE WITH YOUR ACTUAL omda-itur FIREBASE CONFIG ***
-firebase.initializeApp({
- apiKey: "AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI", authDomain: "omdan-leak.firebaseapp.com", projectId: "omdan-leak", storageBucket: "omdan-leak.firebasestorage.app", messagingSenderId: "979018499185", appId: "1:979018499185:web:1496303b1cd8a993bdc7d0", measurementId: "G-P62VFXD521"
-});
-const auth=firebase.auth(), db=firebase.firestore();
-auth.onAuthStateChanged(u=>{ if(u) window.location.href="/app/dashboard.html"; });
+      async function doGoogleRegister() {
+        clearErr();
+        try {
+          const c = await auth.signInWithPopup(
+            new firebase.auth.GoogleAuthProvider(),
+          );
+          const u = c.user;
+          await createUserProfile(u, {
+            displayName: u.displayName,
+            email: u.email,
+            phone: "",
+            city: "",
+            photoURL: u.photoURL,
+          });
+        } catch (err) {
+          showErr(hErr(err.code));
+        }
+      }
 
-function togglePW(btn,id){
-  const inp=document.getElementById(id);
-  inp.type=inp.type==='password'?'text':'password';
-  btn.textContent=inp.type==='password'?'👁':'🙈';
-}
+      async function doRegister() {
+        clearErr();
+        const first = document.getElementById("firstName").value.trim();
+        const last = document.getElementById("lastName").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const city = document.getElementById("city").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const pass = document.getElementById("password").value;
+        const pass2 = document.getElementById("password2").value;
+        const accepted = document.getElementById("acceptTerms").checked;
 
-function showErr(m){const e=document.getElementById("regErr");e.textContent=m;e.style.display="block";}
-function clearErr(){document.getElementById("regErr").style.display="none";}
+        if (!first || !last) {
+          showErr("יש למלא שם פרטי ושם משפחה");
+          return;
+        }
+        if (!email) {
+          showErr("יש להזין אימייל");
+          return;
+        }
+        if (!pass) {
+          showErr("יש להזין סיסמה");
+          return;
+        }
+        if (pass.length < 6) {
+          showErr("סיסמה חייבת להיות לפחות 6 תווים");
+          return;
+        }
+        if (pass !== pass2) {
+          showErr("הסיסמאות אינן תואמות");
+          return;
+        }
+        if (!accepted) {
+          showErr("יש לאשר את תנאי השימוש");
+          return;
+        }
 
-async function doGoogleRegister(){
-  clearErr();
-  try{
-    const c=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    const u=c.user;
-    await createUserProfile(u, {
-      displayName: u.displayName,
-      email: u.email,
-      phone: '',
-      city: '',
-      photoURL: u.photoURL
-    });
-  }catch(err){ showErr(hErr(err.code)); }
-}
+        const btn = document.getElementById("regBtn");
+        btn.disabled = true;
+        btn.textContent = "יוצר חשבון...";
 
-async function doRegister(){
-  clearErr();
-  const first=document.getElementById("firstName").value.trim();
-  const last=document.getElementById("lastName").value.trim();
-  const phone=document.getElementById("phone").value.trim();
-  const city=document.getElementById("city").value.trim();
-  const email=document.getElementById("email").value.trim();
-  const pass=document.getElementById("password").value;
-  const pass2=document.getElementById("password2").value;
-  const accepted=document.getElementById("acceptTerms").checked;
+        try {
+          const displayName = `${first} ${last}`.trim();
+          const c = await auth.createUserWithEmailAndPassword(email, pass);
+          await c.user.updateProfile({ displayName });
+          await createUserProfile(c.user, { displayName, email, phone, city });
+          document.getElementById("regForm").style.display = "none";
+          document.getElementById("successMsg").style.display = "block";
+          setTimeout(
+            () => (window.location.href = "/app/dashboard.html"),
+            1500,
+          );
+        } catch (err) {
+          showErr(hErr(err.code));
+          btn.disabled = false;
+          btn.textContent = "יצירת חשבון חינמי";
+        }
+      }
 
-  if(!first||!last){showErr("יש למלא שם פרטי ושם משפחה");return;}
-  if(!email){showErr("יש להזין אימייל");return;}
-  if(!pass){showErr("יש להזין סיסמה");return;}
-  if(pass.length<6){showErr("סיסמה חייבת להיות לפחות 6 תווים");return;}
-  if(pass!==pass2){showErr("הסיסמאות אינן תואמות");return;}
-  if(!accepted){showErr("יש לאשר את תנאי השימוש");return;}
+      async function createUserProfile(user, extra) {
+        await db
+          .collection("users")
+          .doc(user.uid)
+          .set(
+            {
+              ...extra,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              onboardingCompleted: false,
+              onboardingStep: "dashboard",
+            },
+            { merge: true },
+          );
+        // Create trial billing
+        const billingRef = db.collection("billing").doc(user.uid);
+        const billingSnap = await billingRef.get();
+        if (!billingSnap.exists) {
+          const trialEnd = new Date();
+          trialEnd.setDate(trialEnd.getDate() + 14);
+          await billingRef.set({
+            uid: user.uid,
+            email: user.email || extra.email,
+            plan: "trial",
+            products: ["omdan-leak"],
+            trialEnd: trialEnd.toISOString(),
+            subscriptionEnd: null,
+            status: null,
+            reportsThisMonth: 0,
+            createdAt: new Date().toISOString(),
+          });
+        }
+      }
 
-  const btn=document.getElementById("regBtn");
-  btn.disabled=true; btn.textContent="יוצר חשבון...";
+      function hErr(code) {
+        return (
+          {
+            "auth/email-already-in-use": "האימייל כבר רשום במערכת",
+            "auth/invalid-email": "אימייל לא תקין",
+            "auth/weak-password": "סיסמה חלשה מדי — לפחות 6 תווים",
+            "auth/popup-closed-by-user": "החלון נסגר",
+            "auth/too-many-requests": "יותר מדי ניסיונות, נסה מאוחר יותר",
+          }[code] || "שגיאה: " + code
+        );
+      }
+    </script>
 
-  try{
-    const displayName=`${first} ${last}`.trim();
-    const c=await auth.createUserWithEmailAndPassword(email,pass);
-    await c.user.updateProfile({displayName});
-    await createUserProfile(c.user, {displayName, email, phone, city});
-    document.getElementById("regForm").style.display="none";
-    document.getElementById("successMsg").style.display="block";
-    setTimeout(()=>window.location.href="/app/dashboard.html", 1500);
-  }catch(err){
-    showErr(hErr(err.code));
-    btn.disabled=false; btn.textContent="יצירת חשבון חינמי";
-  }
-}
-
-async function createUserProfile(user, extra){
-  await db.collection("users").doc(user.uid).set({
-    ...extra,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    onboardingCompleted: false,
-    onboardingStep: 'dashboard',
-  }, {merge:true});
-  // Create trial billing
-  const billingRef=db.collection("billing").doc(user.uid);
-  const billingSnap=await billingRef.get();
-  if(!billingSnap.exists){
-    const trialEnd=new Date(); trialEnd.setDate(trialEnd.getDate()+14);
-    await billingRef.set({
-      uid: user.uid, email: user.email||extra.email,
-      plan:'trial', products:['omdan-leak'],
-      trialEnd: trialEnd.toISOString(),
-      subscriptionEnd: null, status: null,
-      reportsThisMonth: 0, createdAt: new Date().toISOString()
-    });
-  }
-}
-
-function hErr(code){
-  return{"auth/email-already-in-use":"האימייל כבר רשום במערכת","auth/invalid-email":"אימייל לא תקין","auth/weak-password":"סיסמה חלשה מדי — לפחות 6 תווים","auth/popup-closed-by-user":"החלון נסגר","auth/too-many-requests":"יותר מדי ניסיונות, נסה מאוחר יותר"}[code]||"שגיאה: "+code;
-}
-</script>
-
-<footer class="omdan-footer">
-  <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
-  <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
-  <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
-  <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-  <a href="/legal/index.html">מסמכים משפטיים</a>
-  <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
-</footer>
-</body>
+    <footer class="omdan-footer">
+      <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
+      <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
+      <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
+      <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
+      <a href="/legal/index.html">מסמכים משפטיים</a>
+      <br /><span style="margin-top: 6px; display: block"
+        >© 2026 OMDA. כל הזכויות שמורות.</span
+      >
+    </footer>
+  </body>
 </html>

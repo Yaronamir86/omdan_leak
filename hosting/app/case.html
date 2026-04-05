@@ -9,7 +9,7 @@
 <style>
 :root{
   --primary:#111827;--primary2:#1F2937;--primary3:#374151;
-  --accent:#F59E0B;--accent2:#FDE68A;--accent3:#D97706;
+  --accent:#2196F3;--accent2:#FDE68A;--accent3:#1565C0;
   --blue:#3B82F6;--red:#EF4444;--green:#10B981;--purple:#8B5CF6;--cyan:#06B6D4;
   --text:#F9FAFB;--muted:#9CA3AF;--subtle:#6B7280;--border:#1F2937;
   --card:#111827;--bg:#030712;
@@ -125,7 +125,7 @@ main{max-width:1200px;margin:0 auto;padding:28px 20px 80px;}
 .rpt-findings-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-top:8px;}
 .rpt-certainty{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;}
 .rpt-cert-low{background:#fee2e2;color:#dc2626;}
-.rpt-cert-medium{background:#fef3c7;color:#d97706;}
+.rpt-cert-medium{background:#fef3c7;color:#1565C0;}
 .rpt-cert-high{background:#d1fae5;color:#059669;}
 .rpt-sig{border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;}
 .rpt-sig-block{text-align:center;}
@@ -835,7 +835,7 @@ function renderReport(){
 <div class="rpt-header">
   <div class="rpt-logo-area">
     ${profileData.logoImageData?`<img src="${profileData.logoImageData}" style="max-height:60px;max-width:160px;object-fit:contain;display:block;">`:
-    profileData.logoLetters?`<div style="width:56px;height:56px;border-radius:12px;background:${profileData.logoColor||'#F59E0B'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${profileData.logoTextColor||'#111'};">${profileData.logoLetters}</div>`:
+    profileData.logoLetters?`<div style="width:56px;height:56px;border-radius:12px;background:${profileData.logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${profileData.logoTextColor||'#111'};">${profileData.logoLetters}</div>`:
     `<div style="font-size:18px;font-weight:900;color:#111;">OMDA איתור</div>`}
     <div style="margin-top:8px;font-size:13px;font-weight:700;color:#374151;">${profName}</div>
     <div style="font-size:12px;color:#6b7280;">${profTitle}${profLicense?` · רישיון ${profLicense}`:''}</div>

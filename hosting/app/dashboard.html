@@ -1,533 +1,1552 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OMDA איתור | דשבורד</title>
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-  <link rel="icon" type="image/png" href="/assets/omdan-leak.png">
-  <link rel="apple-touch-icon" href="/assets/omdan-leak-icon.png">
-  <meta name="theme-color" content="#F59E0B">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="OMDA איתור">
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --primary:#111827;--primary2:#1F2937;--primary3:#374151;
-      --r:10px;
-      --accent:#F59E0B;--accent2:#FDE68A;--accent3:#D97706;
-      --blue:#3B82F6;--red:#EF4444;--green:#10B981;--purple:#8B5CF6;
-      --text:#F9FAFB;--muted:#9CA3AF;--subtle:#6B7280;--border:#1F2937;
-      --card:#111827;--bg:#030712;
-      --shadow:0 4px 20px rgba(0,0,0,0.4);
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OMDA איתור | דשבורד</title>
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+    <link rel="icon" type="image/png" href="/assets/img/omdan-leak.png" />
+    <link rel="apple-touch-icon" href="/assets/img/omdan-leak-icon.png" />
+    <meta name="theme-color" content="#2196F3" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OMDA איתור" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #111827;
+        --primary2: #1f2937;
+        --primary3: #374151;
+        --r: 10px;
+        --accent: #2196f3;
+        --accent2: #fde68a;
+        --accent3: #1565c0;
+        --blue: #3b82f6;
+        --red: #ef4444;
+        --green: #10b981;
+        --purple: #8b5cf6;
+        --text: #f9fafb;
+        --muted: #9ca3af;
+        --subtle: #6b7280;
+        --border: #1f2937;
+        --card: #111827;
+        --bg: #030712;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Heebo", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 14px;
+        line-height: 1.6;
+      }
 
-    /* ── NAV ── */
-    #topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
-    .tb-left{display:flex;align-items:center;gap:10px;}
-    .tb-logo{font-size:20px;font-weight:900;color:var(--accent);letter-spacing:1px;}
-    .tb-divider{width:1px;height:22px;background:var(--border);}
-    .tb-page{font-size:13px;font-weight:700;color:var(--muted);}
-    .tb-right{display:flex;align-items:center;gap:8px;}
-    .tb-user{font-size:13px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      /* ── NAV ── */
+      #topbar {
+        background: var(--primary);
+        border-bottom: 1px solid var(--border);
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .tb-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .tb-logo {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--accent);
+        letter-spacing: 1px;
+      }
+      .tb-divider {
+        width: 1px;
+        height: 22px;
+        background: var(--border);
+      }
+      .tb-page {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .tb-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .tb-user {
+        font-size: 13px;
+        color: var(--muted);
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    /* ── BUTTONS ── */
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:12px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;transition:all .18s;}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#111;box-shadow:0 3px 12px rgba(245,158,11,.3);}
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(245,158,11,.4);}
-    .btn-secondary{background:var(--primary2);border:1px solid var(--primary3);color:var(--text);}
-    .btn-ghost{background:transparent;border:1px solid var(--primary3);color:var(--muted);}
-    .btn-ghost:hover{color:var(--text);border-color:var(--muted);}
-    .btn-sm{padding:6px 14px;font-size:12px;border-radius:10px;}
+      /* ── BUTTONS ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: "Heebo", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all 0.18s;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent3));
+        color: #111;
+        box-shadow: 0 3px 12px rgba(245, 158, 11, 0.3);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 18px rgba(245, 158, 11, 0.4);
+      }
+      .btn-secondary {
+        background: var(--primary2);
+        border: 1px solid var(--primary3);
+        color: var(--text);
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--primary3);
+        color: var(--muted);
+      }
+      .btn-ghost:hover {
+        color: var(--text);
+        border-color: var(--muted);
+      }
+      .btn-sm {
+        padding: 6px 14px;
+        font-size: 12px;
+        border-radius: 10px;
+      }
 
-    /* ── MAIN ── */
-    main{max-width:1100px;margin:0 auto;padding:28px 20px;}
-    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
-    .page-title{font-size:20px;font-weight:800;}
-    .page-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+      /* ── MAIN ── */
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 20px;
+        width: 100%;
+      }
+      .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .page-title {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .page-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
 
-    /* ── STATS ── */
-    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px;}
-    .sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:border-color .2s;}
-    .sc:hover{border-color:var(--primary3);}
-    .sc .label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-    .sc .value{font-size:26px;font-weight:900;letter-spacing:-1px;}
-    .sc .sub{font-size:12px;color:var(--subtle);margin-top:3px;}
-    .sc-accent{border-top:3px solid var(--accent);}
-    .sc-green{border-top:3px solid var(--green);}
-    .sc-blue{border-top:3px solid var(--blue);}
-    .sc-purple{border-top:3px solid var(--purple);}
+      /* ── STATS ── */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .sc {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px 20px;
+        transition: border-color 0.2s;
+      }
+      .sc:hover {
+        border-color: var(--primary3);
+      }
+      .sc .label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+      }
+      .sc .value {
+        font-size: 26px;
+        font-weight: 900;
+        letter-spacing: -1px;
+      }
+      .sc .sub {
+        font-size: 12px;
+        color: var(--subtle);
+        margin-top: 3px;
+      }
+      .sc-accent {
+        border-top: 3px solid var(--accent);
+      }
+      .sc-green {
+        border-top: 3px solid var(--green);
+      }
+      .sc-blue {
+        border-top: 3px solid var(--blue);
+      }
+      .sc-purple {
+        border-top: 3px solid var(--purple);
+      }
 
-    /* ── TOOLBAR ── */
-    .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
-    .toolbar-title{font-size:16px;font-weight:800;}
-    .search-wrap{position:relative;flex:1;max-width:300px;}
-    .search-wrap input{width:100%;background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:9px 12px 9px 36px;font-size:13px;font-family:'Heebo',sans-serif;color:var(--text);direction:rtl;outline:none;transition:border-color .2s;}
-    .search-wrap input:focus{border-color:var(--accent);}
-    .search-wrap .ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none;}
-    .insight-bar{display:none;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.28);border-radius:14px;padding:12px 16px;margin-bottom:18px;}
-    .insight-main{display:flex;align-items:center;gap:10px;min-width:0;}
-    .insight-icon{width:32px;height:32px;border-radius:10px;background:rgba(245,158,11,.14);display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;}
-    .insight-text{font-size:13px;font-weight:700;color:var(--text);}
-    .insight-sub{font-size:12px;color:var(--muted);}
-    .filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    .filter-select{background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:9px 34px 9px 12px;font-size:13px;font-family:'Heebo',sans-serif;color:var(--text);outline:none;min-width:135px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) calc(50% - 3px),calc(100% - 13px) calc(50% - 3px);background-size:5px 5px;background-repeat:no-repeat;}
-    .filter-select:focus{border-color:var(--accent);}
+      /* ── TOOLBAR ── */
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .toolbar-title {
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .search-wrap {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+      }
+      .search-wrap input {
+        width: 100%;
+        background: var(--primary2);
+        border: 1.5px solid var(--primary3);
+        border-radius: 10px;
+        padding: 9px 12px 9px 36px;
+        font-size: 13px;
+        font-family: "Heebo", sans-serif;
+        color: var(--text);
+        direction: rtl;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .search-wrap input:focus {
+        border-color: var(--accent);
+      }
+      .search-wrap .ico {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 15px;
+        pointer-events: none;
+      }
+      .insight-bar {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: linear-gradient(
+          135deg,
+          rgba(245, 158, 11, 0.12),
+          rgba(245, 158, 11, 0.05)
+        );
+        border: 1px solid rgba(245, 158, 11, 0.28);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 18px;
+      }
+      .insight-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .insight-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(245, 158, 11, 0.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex: 0 0 auto;
+      }
+      .insight-text {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .insight-sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .filters {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .filter-select {
+        background: var(--primary2);
+        border: 1.5px solid var(--primary3);
+        border-radius: 10px;
+        padding: 9px 34px 9px 12px;
+        font-size: 13px;
+        font-family: "Heebo", sans-serif;
+        color: var(--text);
+        outline: none;
+        min-width: 135px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+          linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+          linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+        background-position:
+          calc(100% - 18px) calc(50% - 3px),
+          calc(100% - 13px) calc(50% - 3px);
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+      }
+      .filter-select:focus {
+        border-color: var(--accent);
+      }
 
-    /* ── TABLE ── */
-    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-    table{width:100%;border-collapse:collapse;}
-    thead{background:var(--primary2);}
-    th{padding:11px 16px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;}
-    td{padding:13px 16px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
-    tr{position:relative;}
-    tr:hover td{background:rgba(245,158,11,.04);cursor:pointer;}
-    .row-actions{position:absolute;top:50%;left:12px;transform:translateY(-50%);display:flex;align-items:center;gap:6px;opacity:0;pointer-events:none;transition:opacity .15s;}
-    tr:hover .row-actions{opacity:1;pointer-events:auto;}
-    @media(max-width:768px){.row-actions{opacity:1!important;pointer-events:auto!important;position:static;transform:none;}}
-    .row-menu-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:16px;font-weight:900;letter-spacing:1px;transition:background .15s,color .15s;font-family:inherit;}
-    .row-menu-btn:hover{background:var(--primary2);color:var(--text);}
-    .row-dropdown{position:fixed;z-index:500;min-width:160px;background:#1F2937;border:1px solid var(--primary3);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);padding:6px;display:none;}
-    .row-dropdown.open{display:block;}
-    .row-dropdown-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:background .12s;white-space:nowrap;}
-    .row-dropdown-item:hover{background:rgba(255,255,255,.06);}
-    .row-dropdown-item.danger{color:#F87171;}
-    .row-dropdown-item.danger:hover{background:rgba(239,68,68,.1);}
-    .row-dropdown-sep{height:1px;background:var(--border);margin:4px 0;}
-    .case-num{font-weight:800;color:var(--accent);font-size:12px;}
-    .case-title{font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      /* ── TABLE ── */
+      .table-wrap {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead {
+        background: var(--primary2);
+      }
+      th {
+        padding: 11px 16px;
+        text-align: right;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      td {
+        padding: 13px 16px;
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      tr {
+        position: relative;
+      }
+      tr:hover td {
+        background: rgba(245, 158, 11, 0.04);
+        cursor: pointer;
+      }
+      .row-actions {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s;
+      }
+      tr:hover .row-actions {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      @media (max-width: 768px) {
+        .row-actions {
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          position: static;
+          transform: none;
+        }
+      }
+      .row-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        font-family: inherit;
+      }
+      .row-menu-btn:hover {
+        background: var(--primary2);
+        color: var(--text);
+      }
+      .row-dropdown {
+        position: fixed;
+        z-index: 500;
+        min-width: 160px;
+        background: #1f2937;
+        border: 1px solid var(--primary3);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        padding: 6px;
+        display: none;
+      }
+      .row-dropdown.open {
+        display: block;
+      }
+      .row-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        transition: background 0.12s;
+        white-space: nowrap;
+      }
+      .row-dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .row-dropdown-item.danger {
+        color: #f87171;
+      }
+      .row-dropdown-item.danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .row-dropdown-sep {
+        height: 1px;
+        background: var(--border);
+        margin: 4px 0;
+      }
+      .case-num {
+        font-weight: 800;
+        color: var(--accent);
+        font-size: 12px;
+      }
+      .case-title {
+        font-weight: 600;
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-    /* ── BADGES ── */
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-    .badge-draft{background:rgba(107,114,128,.15);color:var(--muted);}
-    .badge-processing{background:rgba(59,130,246,.15);color:var(--blue);}
-    .badge-done{background:rgba(16,185,129,.15);color:var(--green);}
-    .badge-review{background:rgba(245,158,11,.15);color:var(--accent);}
+      /* ── BADGES ── */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .badge-draft {
+        background: rgba(107, 114, 128, 0.15);
+        color: var(--muted);
+      }
+      .badge-processing {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--blue);
+      }
+      .badge-done {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--green);
+      }
+      .badge-review {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--accent);
+      }
 
-    /* ── SOURCE TAG ── */
-    .source-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
-    .source-direct{background:rgba(59,130,246,.12);color:var(--blue);}
-    .source-insurance{background:rgba(239,68,68,.12);color:var(--red);}
-    .source-contractor{background:rgba(16,185,129,.12);color:var(--green);}
-    .source-legal{background:rgba(139,92,246,.12);color:var(--purple);}
+      /* ── SOURCE TAG ── */
+      .source-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .source-direct {
+        background: rgba(59, 130, 246, 0.12);
+        color: var(--blue);
+      }
+      .source-insurance {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--red);
+      }
+      .source-contractor {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--green);
+      }
+      .source-legal {
+        background: rgba(139, 92, 246, 0.12);
+        color: var(--purple);
+      }
 
-    /* ── EMPTY / LOADING ── */
-    .loading-row td,.empty{text-align:center;padding:50px 20px;color:var(--muted);}
-    .empty .icon{font-size:40px;margin-bottom:10px;}
-    .empty p{font-size:14px;}
-    .spin{display:inline-block;width:18px;height:18px;border:2px solid var(--primary3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:8px;}
-    @keyframes spin{to{transform:rotate(360deg)}}
+      /* ── EMPTY / LOADING ── */
+      .loading-row td,
+      .empty {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--muted);
+      }
+      .empty .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+      }
+      .empty p {
+        font-size: 14px;
+      }
+      .spin {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--primary3);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: middle;
+        margin-left: 8px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-    @media(max-width:480px){
-      #topbar{padding:0 12px;}
-      main{padding:16px 12px;}
-      .stats{grid-template-columns:repeat(2,1fr);gap:10px;}
-      .sc{padding:14px;}
-      .sc .value{font-size:22px;}
-      th:nth-child(3),td:nth-child(3){display:none;}
-      .toolbar{flex-direction:column;align-items:stretch;}
-      .filters{width:100%;}
-      .filter-select,.search-wrap{max-width:100%;width:100%;}
-      .insight-bar{align-items:flex-start;flex-direction:column;}
-      .search-wrap{max-width:100%;}
-      .page-header{flex-direction:column;align-items:flex-start;}
-    }
-    @media(max-width:768px){
-      .stats{grid-template-columns:repeat(2,1fr);}
-      .toolbar{flex-wrap:wrap;}
-      th:nth-child(4),th:nth-child(5),td:nth-child(4),td:nth-child(5){display:none;}
-    }
+      @media (max-width: 480px) {
+        #topbar {
+          padding: 0 12px;
+        }
+        main {
+          padding: 16px 12px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .sc {
+          padding: 14px;
+        }
+        .sc .value {
+          font-size: 22px;
+        }
+        th:nth-child(3),
+        td:nth-child(3) {
+          display: none;
+        }
+        .toolbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .filters {
+          width: 100%;
+        }
+        .filter-select,
+        .search-wrap {
+          max-width: 100%;
+          width: 100%;
+        }
+        .insight-bar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .search-wrap {
+          max-width: 100%;
+        }
+        .page-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+      @media (max-width: 768px) {
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .toolbar {
+          flex-wrap: wrap;
+        }
+        th:nth-child(4),
+        th:nth-child(5),
+        td:nth-child(4),
+        td:nth-child(5) {
+          display: none;
+        }
+      }
 
-    /* ── APP LAYOUT ── */
-    .app{display:flex;min-height:100vh;}
-    .sidebar{width:240px;flex-shrink:0;background:var(--primary);border-left:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:150;}
-    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;}
-    .sb-logo{display:flex;align-items:center;padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;}
-    .sb-nav{flex:1;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;transition:all .15s;border-right:3px solid transparent;white-space:nowrap;}
-    .sb-nav a:hover{color:var(--text);background:rgba(255,255,255,.04);}
-    .sb-nav a.active{color:var(--accent);border-right-color:var(--accent);background:rgba(245,158,11,.06);}
-    .sb-nav .nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;}
-    .sb-sep{height:1px;background:var(--border);margin:6px 20px;}
-    .sb-footer{padding:16px 20px;border-top:1px solid var(--border);}
-    .sb-user-name{font-size:11px;color:var(--subtle);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .btn-logout{width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
-    .btn-logout:hover{background:rgba(239,68,68,.18);}
-    @media(min-width:769px){.tb-logo-wrap{display:none!important;}.tb-divider{display:none!important;}}
+      /* ── APP LAYOUT ── */
+      .app {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background: var(--primary);
+        border-left: 1px solid var(--border);
+        padding: 24px 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        z-index: 150;
+      }
+      .main-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .sb-logo {
+        display: flex;
+        align-items: center;
+        padding: 0 20px 20px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 8px;
+      }
+      .sb-nav {
+        flex: 1;
+      }
+      .sb-nav a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        text-decoration: none;
+        transition: all 0.15s;
+        border-right: 3px solid transparent;
+        white-space: nowrap;
+      }
+      .sb-nav a:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .sb-nav a.active {
+        color: var(--accent);
+        border-right-color: var(--accent);
+        background: rgba(245, 158, 11, 0.06);
+      }
+      .sb-nav .nav-icon {
+        font-size: 16px;
+        width: 22px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .sb-sep {
+        height: 1px;
+        background: var(--border);
+        margin: 6px 20px;
+      }
+      .sb-footer {
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+      }
+      .sb-user-name {
+        font-size: 11px;
+        color: var(--subtle);
+        margin-bottom: 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .btn-logout {
+        width: 100%;
+        padding: 9px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        color: #f87171;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: "Heebo", sans-serif;
+        transition: background 0.2s;
+      }
+      .btn-logout:hover {
+        background: rgba(239, 68, 68, 0.18);
+      }
+      @media (min-width: 769px) {
+        .tb-logo-wrap {
+          display: none !important;
+        }
+        .tb-divider {
+          display: none !important;
+        }
+      }
 
-    /* ── MOBILE BOTTOM NAV ── */
-    .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--primary);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));grid-template-columns:repeat(4,1fr);}
-    .mob-nav a,.mob-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:9px;font-weight:600;background:none;border:none;cursor:pointer;text-decoration:none;transition:color .15s;}
-    .mob-nav a:hover,.mob-nav button:hover,.mob-nav a.active{color:var(--accent);}
-    .mob-nav .mn-icon{font-size:20px;line-height:1;}
-    @media(max-width:768px){
-      .sidebar{display:none;}
-      .mob-nav{display:grid;}
-      main{padding-bottom:120px!important;}
-      .stats{grid-template-columns:repeat(2,1fr)!important;}
-      .page-header{flex-direction:column;align-items:flex-start;gap:8px;}
-      .toolbar{flex-wrap:wrap;}
-      .search-wrap{max-width:100%!important;}
-      th:nth-child(3),td:nth-child(3){display:none;}
-      th:nth-child(5),td:nth-child(5){display:none;}
-      .tb-user{display:none;}
-      .tb-right .btn{display:none!important;}
-    }
-    @media(max-width:480px){#topbar{padding:0 12px;}.sc .value{font-size:20px;}}
+      /* ── MOBILE BOTTOM NAV ── */
+      .mob-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        background: var(--primary);
+        border-top: 1px solid var(--border);
+        padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .mob-nav a,
+      .mob-nav button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 8px;
+        color: var(--muted);
+        font-family: "Heebo", sans-serif;
+        font-size: 9px;
+        font-weight: 600;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+      .mob-nav a:hover,
+      .mob-nav button:hover,
+      .mob-nav a.active {
+        color: var(--accent);
+      }
+      .mob-nav .mn-icon {
+        font-size: 20px;
+        line-height: 1;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          display: none;
+        }
+        .mob-nav {
+          display: grid;
+        }
+        main {
+          padding-bottom: 120px !important;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .page-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .toolbar {
+          flex-wrap: wrap;
+        }
+        .search-wrap {
+          max-width: 100% !important;
+        }
+        th:nth-child(3),
+        td:nth-child(3) {
+          display: none;
+        }
+        th:nth-child(5),
+        td:nth-child(5) {
+          display: none;
+        }
+        .tb-user {
+          display: none;
+        }
+        .tb-right .btn {
+          display: none !important;
+        }
+      }
+      @media (max-width: 480px) {
+        #topbar {
+          padding: 0 12px;
+        }
+        .sc .value {
+          font-size: 20px;
+        }
+      }
 
-    /* ── ONBOARDING ── */
-    .ob-strip{position:fixed;background:rgba(3,7,18,.82);z-index:241;display:none;pointer-events:none;transition:all .18s ease;}
-    .ob-strip.show{display:block;}
-    .ob-frame{position:fixed;z-index:242;pointer-events:none;display:none;border-radius:12px;box-shadow:0 0 0 2.5px rgba(245,158,11,.8),0 0 24px rgba(245,158,11,.2);transition:all .18s ease;}
-    .ob-frame.show{display:block;}
-    .ob-card{position:fixed;z-index:280;display:none;width:min(420px,calc(100vw - 32px));background:rgba(17,24,39,.98);border:1px solid rgba(245,158,11,.25);border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.45);padding:20px 20px 18px;}
-    .ob-card.show{display:block;}
-    .ob-step{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
-    .ob-title{font-size:20px;font-weight:900;margin-bottom:8px;line-height:1.2;}
-    .ob-text{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px;}
-    .ob-list{display:flex;flex-direction:column;gap:10px;margin:0 0 16px;padding:0;list-style:none;}
-    .ob-list li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text);}
-    .ob-list li span:first-child{color:var(--accent);font-weight:900;min-width:18px;text-align:center;}
-    .ob-actions{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-    .ob-progress{font-size:12px;color:var(--subtle);font-weight:700;}
-    .ob-arrow{position:absolute;width:18px;height:18px;background:rgba(17,24,39,.98);border-left:1px solid rgba(245,158,11,.25);border-top:1px solid rgba(245,158,11,.25);transform:rotate(45deg);}
-    .ob-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.24);color:var(--accent);font-size:11px;font-weight:800;margin-bottom:12px;}
-    .ob-demo-note{display:none;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,rgba(59,130,246,.13),rgba(59,130,246,.05));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:12px 16px;margin:0 0 16px;}
-    .ob-demo-note.show{display:flex;}
-    .ob-demo-note strong{font-size:13px;}
-    .ob-demo-note span{font-size:12px;color:var(--muted);}
-    body.ob-lock{overflow:hidden;}
-    @media(max-width:768px){
-      .ob-card{width:calc(100vw - 24px);padding:18px 16px 16px;}
-      .ob-title{font-size:18px;}
-      .ob-demo-note{flex-direction:column;align-items:flex-start;}
-    }
-  </style>
-</head>
-<body>
+      /* ── ONBOARDING ── */
+      .ob-strip {
+        position: fixed;
+        background: rgba(3, 7, 18, 0.82);
+        z-index: 241;
+        display: none;
+        pointer-events: none;
+        transition: all 0.18s ease;
+      }
+      .ob-strip.show {
+        display: block;
+      }
+      .ob-frame {
+        position: fixed;
+        z-index: 242;
+        pointer-events: none;
+        display: none;
+        border-radius: 12px;
+        box-shadow:
+          0 0 0 2.5px rgba(245, 158, 11, 0.8),
+          0 0 24px rgba(245, 158, 11, 0.2);
+        transition: all 0.18s ease;
+      }
+      .ob-frame.show {
+        display: block;
+      }
+      .ob-card {
+        position: fixed;
+        z-index: 280;
+        display: none;
+        width: min(420px, calc(100vw - 32px));
+        background: rgba(17, 24, 39, 0.98);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        padding: 20px 20px 18px;
+      }
+      .ob-card.show {
+        display: block;
+      }
+      .ob-step {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--accent);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .ob-title {
+        font-size: 20px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        line-height: 1.2;
+      }
+      .ob-text {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.7;
+        margin-bottom: 16px;
+      }
+      .ob-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0 0 16px;
+        padding: 0;
+        list-style: none;
+      }
+      .ob-list li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .ob-list li span:first-child {
+        color: var(--accent);
+        font-weight: 900;
+        min-width: 18px;
+        text-align: center;
+      }
+      .ob-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .ob-progress {
+        font-size: 12px;
+        color: var(--subtle);
+        font-weight: 700;
+      }
+      .ob-arrow {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: rgba(17, 24, 39, 0.98);
+        border-left: 1px solid rgba(245, 158, 11, 0.25);
+        border-top: 1px solid rgba(245, 158, 11, 0.25);
+        transform: rotate(45deg);
+      }
+      .ob-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.24);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .ob-demo-note {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.13),
+          rgba(59, 130, 246, 0.05)
+        );
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin: 0 0 16px;
+      }
+      .ob-demo-note.show {
+        display: flex;
+      }
+      .ob-demo-note strong {
+        font-size: 13px;
+      }
+      .ob-demo-note span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      body.ob-lock {
+        overflow: hidden;
+      }
+      @media (max-width: 768px) {
+        .ob-card {
+          width: calc(100vw - 24px);
+          padding: 18px 16px 16px;
+        }
+        .ob-title {
+          font-size: 18px;
+        }
+        .ob-demo-note {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar">
+        <div class="sb-logo">
+          <a
+            href="/"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="/assets/img/omdan-leak-icon.png"
+              alt=""
+              style="height: 32px; width: 32px; object-fit: contain"
+              onerror="this.src = '/assets/omda-icon.png'"
+            />
+            <img
+              src="/assets/img/omdan-leak-logo.png"
+              alt="OMDA איתור"
+              style="
+                height: 26px;
+                object-fit: contain;
+                filter: brightness(0) invert(1);
+              "
+              onerror="this.style.display = 'none'"
+            />
+          </a>
+        </div>
+        <nav class="sb-nav">
+          <a href="/app/dashboard.html" class="active"
+            ><span class="nav-icon">📊</span> דשבורד</a
+          >
+          <a href="/app/reports.html"><span class="nav-icon">📄</span> דוחות</a>
+          <a href="/app/clients.html"
+            ><span class="nav-icon">👥</span> לקוחות</a
+          >
+          <a href="/app/payments.html"
+            ><span class="nav-icon">💰</span> תשלומים</a
+          >
+          <div class="sb-sep"></div>
+          <a href="/app/settings.html" id="sbSettingsLink"
+            ><span class="nav-icon">⚙️</span> הגדרות</a
+          >
+          <a href="/app/account-billing.html"
+            ><span class="nav-icon">💳</span> מנוי</a
+          >
+        </nav>
+        <div class="sb-footer">
+          <div class="sb-user-name" id="sidebarUser"></div>
+          <button class="btn-logout" onclick="doLogout()">🚪 התנתקות</button>
+        </div>
+      </aside>
 
-<div class="app">
+      <!-- ── Main wrap ── -->
+      <div class="main-wrap">
+        <div id="topbar">
+          <div class="tb-left">
+            <a
+              class="tb-logo-wrap"
+              href="/"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                text-decoration: none;
+              "
+            >
+              <img
+                src="/assets/img/omdan-leak-icon.png"
+                alt=""
+                style="height: 36px; width: 36px; object-fit: contain"
+                onerror="this.src = '/assets/img/omdan-leak-icon.png'"
+              />
+              <img
+                src="/assets/img/omdan-leak-logo.png"
+                alt="OMDA איתור"
+                style="
+                  height: 30px;
+                  object-fit: contain;
+                  filter: brightness(0) invert(1);
+                "
+                onerror="this.style.display = 'none'"
+              />
+            </a>
+            <div class="tb-divider"></div>
+            <div class="tb-page">ניהול תיקים</div>
+          </div>
+          <div class="tb-right">
+            <span class="tb-user" id="navUser"></span>
+            <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+              יציאה
+            </button>
+          </div>
+        </div>
 
-<!-- ── Sidebar ── -->
-<aside class="sidebar">
-  <div class="sb-logo">
-    <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;" onerror="this.src='/assets/omda-icon.png'">
-      <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);" onerror="this.style.display='none'">
-    </a>
-  </div>
-  <nav class="sb-nav">
-    <a href="/app/dashboard.html" class="active"><span class="nav-icon">📊</span> דשבורד</a>
-    <a href="/app/reports.html"><span class="nav-icon">📄</span> דוחות</a>
-    <a href="/app/clients.html"><span class="nav-icon">👥</span> לקוחות</a>
-    <a href="/app/payments.html"><span class="nav-icon">💰</span> תשלומים</a>
-    <div class="sb-sep"></div>
-    <a href="/app/settings.html" id="sbSettingsLink"><span class="nav-icon">⚙️</span> הגדרות</a>
-    <a href="/app/account-billing.html"><span class="nav-icon">💳</span> מנוי</a>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-user-name" id="sidebarUser"></div>
-    <button class="btn-logout" onclick="doLogout()">🚪 התנתקות</button>
-  </div>
-</aside>
+        <main>
+          <div class="page-header">
+            <div>
+              <div class="page-title">התיקים שלי</div>
+              <div class="page-sub" id="pageSubtitle"></div>
+            </div>
+            <button class="btn btn-primary" id="newCaseBtn" onclick="newCase()">
+              + תיק חדש
+            </button>
+          </div>
 
-<!-- ── Main wrap ── -->
-<div class="main-wrap">
+          <!-- סטטיסטיקות -->
+          <div class="stats">
+            <div class="sc sc-accent">
+              <div class="label">סה"כ תיקים</div>
+              <div class="value" id="statTotal">0</div>
+              <div class="sub">כל הזמנים</div>
+            </div>
+            <div class="sc sc-blue">
+              <div class="label">בטיפול</div>
+              <div class="value" id="statOpen">0</div>
+              <div class="sub">בבדיקה / בהכנה</div>
+            </div>
+            <div class="sc sc-green">
+              <div class="label">הושלמו</div>
+              <div class="value" id="statDone">0</div>
+              <div class="sub">דוחות מסורים</div>
+            </div>
+            <div class="sc sc-purple">
+              <div class="label">ממתינים להשלמה</div>
+              <div class="value" id="statPending">0</div>
+              <div class="sub">כמעט סגורים</div>
+            </div>
+            <div class="sc sc-accent">
+              <div class="label">החודש</div>
+              <div class="value" id="statMonth">0</div>
+              <div class="sub">קריאות חדשות</div>
+            </div>
+          </div>
 
-<div id="topbar">
-  <div class="tb-left">
-    <a class="tb-logo-wrap" href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:36px;width:36px;object-fit:contain;" onerror="this.src='/assets/omdan-leak-icon.png'">
-      <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:30px;object-fit:contain;filter:brightness(0) invert(1);" onerror="this.style.display='none'">
-    </a>
-    <div class="tb-divider"></div>
-    <div class="tb-page">ניהול תיקים</div>
-  </div>
-  <div class="tb-right">
-    <span class="tb-user" id="navUser"></span>
-    <button class="btn btn-ghost btn-sm" onclick="doLogout()">יציאה</button>
-  </div>
-</div>
+          <div class="insight-bar" id="insightBar">
+            <div class="insight-main">
+              <div class="insight-icon">💡</div>
+              <div>
+                <div class="insight-text" id="insightText">
+                  טוען תמונת מצב...
+                </div>
+                <div class="insight-sub" id="insightSub"></div>
+              </div>
+            </div>
+          </div>
 
-<main>
-  <div class="page-header">
-    <div>
-      <div class="page-title">התיקים שלי</div>
-      <div class="page-sub" id="pageSubtitle"></div>
+          <!-- כלי עבודה -->
+          <div class="toolbar">
+            <div class="toolbar-title">כל התיקים</div>
+            <div class="filters">
+              <div class="search-wrap">
+                <span class="ico">🔍</span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="חפש לפי שם / כתובת / מספר תיק"
+                  oninput="filterCases()"
+                />
+              </div>
+              <select
+                id="statusFilter"
+                class="filter-select"
+                onchange="filterCases()"
+              >
+                <option value="">כל הסטטוסים</option>
+                <option value="draft">טיוטה</option>
+                <option value="processing">בבדיקה</option>
+                <option value="pending_completion">ממתין להשלמה</option>
+                <option value="completed">הושלם</option>
+              </select>
+              <select
+                id="sourceFilter"
+                class="filter-select"
+                onchange="filterCases()"
+              >
+                <option value="">כל המקורות</option>
+                <option value="direct">פנייה ישירה</option>
+                <option value="insurance">חברת ביטוח</option>
+                <option value="contractor">קבלן / ועד בית</option>
+                <option value="legal">עו"ד / שמאי</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- טבלת תיקים -->
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>מספר תיק</th>
+                  <th>לקוח / כתובת</th>
+                  <th>מקור</th>
+                  <th>חשד / בדיקה</th>
+                  <th>סטטוס</th>
+                  <th>תאריך</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="casesBody">
+                <tr id="loadingRow">
+                  <td
+                    colspan="7"
+                    style="
+                      text-align: center;
+                      padding: 60px 20px;
+                      color: var(--muted);
+                    "
+                  >
+                    <div style="font-size: 28px; margin-bottom: 12px">⏳</div>
+                    <div
+                      style="
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 4px;
+                      "
+                    >
+                      טוען תיקים...
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="ob-demo-note" id="obDemoNote">
+            <div>
+              <strong>מצב הדגמה ראשונית</strong><br />
+              <span
+                >הנתונים שמוצגים נועדו להמחיש איך ייראה לוח הניהול שלך בעבודה
+                השוטפת.</span
+              >
+            </div>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="skipDashboardOnboarding()"
+            >
+              סגור הדגמה
+            </button>
+          </div>
+        </main>
+      </div>
+      <!-- /.main-wrap -->
     </div>
-    <button class="btn btn-primary" id="newCaseBtn" onclick="newCase()">+ תיק חדש</button>
-  </div>
+    <!-- /.app -->
 
-  <!-- סטטיסטיקות -->
-  <div class="stats">
-    <div class="sc sc-accent"><div class="label">סה"כ תיקים</div><div class="value" id="statTotal">0</div><div class="sub">כל הזמנים</div></div>
-    <div class="sc sc-blue"><div class="label">בטיפול</div><div class="value" id="statOpen">0</div><div class="sub">בבדיקה / בהכנה</div></div>
-    <div class="sc sc-green"><div class="label">הושלמו</div><div class="value" id="statDone">0</div><div class="sub">דוחות מסורים</div></div>
-    <div class="sc sc-purple"><div class="label">ממתינים להשלמה</div><div class="value" id="statPending">0</div><div class="sub">כמעט סגורים</div></div>
-    <div class="sc sc-accent"><div class="label">החודש</div><div class="value" id="statMonth">0</div><div class="sub">קריאות חדשות</div></div>
-  </div>
+    <!-- Row context menu -->
+    <div
+      class="row-dropdown"
+      id="rowDropdown"
+      onclick="event.stopPropagation()"
+    ></div>
 
-  <div class="insight-bar" id="insightBar">
-    <div class="insight-main">
-      <div class="insight-icon">💡</div>
-      <div>
-        <div class="insight-text" id="insightText">טוען תמונת מצב...</div>
-        <div class="insight-sub" id="insightSub"></div>
+    <div class="ob-strip" id="obStripTop"></div>
+    <div class="ob-strip" id="obStripBottom"></div>
+    <div class="ob-strip" id="obStripLeft"></div>
+    <div class="ob-strip" id="obStripRight"></div>
+    <div class="ob-frame" id="obSpotlightFrame"></div>
+    <div class="ob-card" id="obCard">
+      <div class="ob-arrow" id="obArrow"></div>
+      <div class="ob-step" id="obStepLabel">שלב 1</div>
+      <div class="ob-chip" id="obChip">היכרות ראשונית</div>
+      <div class="ob-title" id="obTitle">ברוך הבא ל-OMDA איתור</div>
+      <div class="ob-text" id="obText"></div>
+      <ul class="ob-list" id="obList"></ul>
+      <div class="ob-actions">
+        <div class="ob-progress" id="obProgress">1 / 4</div>
+        <div style="display: flex; gap: 8px">
+          <button
+            class="btn btn-ghost btn-sm"
+            id="obSkipBtn"
+            onclick="skipDashboardOnboarding()"
+          >
+            דלג
+          </button>
+          <button
+            class="btn btn-secondary btn-sm"
+            id="obBackBtn"
+            onclick="prevOnboardingStep()"
+            style="display: none"
+          >
+            חזרה
+          </button>
+          <button
+            class="btn btn-primary btn-sm"
+            id="obNextBtn"
+            onclick="nextOnboardingStep()"
+          >
+            התחל
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- כלי עבודה -->
-  <div class="toolbar">
-    <div class="toolbar-title">כל התיקים</div>
-    <div class="filters">
-      <div class="search-wrap">
-        <span class="ico">🔍</span>
-        <input type="text" id="searchInput" placeholder="חפש לפי שם / כתובת / מספר תיק" oninput="filterCases()" />
-      </div>
-      <select id="statusFilter" class="filter-select" onchange="filterCases()">
-        <option value="">כל הסטטוסים</option>
-        <option value="draft">טיוטה</option>
-        <option value="processing">בבדיקה</option>
-        <option value="pending_completion">ממתין להשלמה</option>
-        <option value="completed">הושלם</option>
-      </select>
-      <select id="sourceFilter" class="filter-select" onchange="filterCases()">
-        <option value="">כל המקורות</option>
-        <option value="direct">פנייה ישירה</option>
-        <option value="insurance">חברת ביטוח</option>
-        <option value="contractor">קבלן / ועד בית</option>
-        <option value="legal">עו"ד / שמאי</option>
-      </select>
-    </div>
-  </div>
+    <!-- Billing Gate -->
+    <script src="/billing.js"></script>
+    <script src="/billing-gate.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+      // *** REPLACE WITH YOUR ACTUAL omda-itur FIREBASE CONFIG ***
+      firebase.initializeApp({
+        apiKey: "AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI",
+        authDomain: "omdan-leak.firebaseapp.com",
+        projectId: "omdan-leak",
+        storageBucket: "omdan-leak.firebasestorage.app",
+        messagingSenderId: "979018499185",
+        appId: "1:979018499185:web:1496303b1cd8a993bdc7d0",
+        measurementId: "G-P62VFXD521",
+      });
+      const auth = firebase.auth(),
+        db = firebase.firestore();
 
-  <!-- טבלת תיקים -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>מספר תיק</th>
-          <th>לקוח / כתובת</th>
-          <th>מקור</th>
-          <th>חשד / בדיקה</th>
-          <th>סטטוס</th>
-          <th>תאריך</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="casesBody">
-        <tr id="loadingRow"><td colspan="7" style="text-align:center;padding:60px 20px;color:var(--muted);"><div style="font-size:28px;margin-bottom:12px;">⏳</div><div style="font-weight:700;font-size:15px;margin-bottom:4px;">טוען תיקים...</div></td></tr>
-      </tbody>
-    </table>
-  </div>
+      let currentUser = null,
+        allCases = [];
+      const ONBOARDING_DEFAULTS = {
+        onboardingCompleted: false,
+        onboardingStep: "dashboard",
+      };
+      let onboardingUserState = { ...ONBOARDING_DEFAULTS };
 
-  <div class="ob-demo-note" id="obDemoNote">
-    <div>
-      <strong>מצב הדגמה ראשונית</strong><br>
-      <span>הנתונים שמוצגים נועדו להמחיש איך ייראה לוח הניהול שלך בעבודה השוטפת.</span>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="skipDashboardOnboarding()">סגור הדגמה</button>
-  </div>
+      function isCaseDone(c) {
+        return (
+          c.status === "completed" ||
+          !!(c.state?.summary?.leakSource && c.state?.summary?.resolved)
+        );
+      }
+      function getProgressScore(c) {
+        let score = 0;
+        if (c.state?.client?.name) score++;
+        if (c.state?.client?.address || c.state?.client?.city) score++;
+        if (c.state?.inspection?.thermal || c.state?.inspection?.moisture)
+          score++;
+        if (c.state?.findings?.leakSource) score++;
+        if (c.state?.findings?.certainty) score++;
+        if (c.state?.summary?.recommendation) score++;
+        return score;
+      }
+      function isWaitingCompletion(c) {
+        return !isCaseDone(c) && getProgressScore(c) >= 3;
+      }
+      function getDerivedStatus(c) {
+        if (isCaseDone(c)) return "completed";
+        if (isWaitingCompletion(c)) return "pending_completion";
+        if (c.status === "processing") return "processing";
+        return c.status || "draft";
+      }
 
-</main>
-</div><!-- /.main-wrap -->
-</div><!-- /.app -->
+      auth.onAuthStateChanged(async (u) => {
+        if (!u) {
+          window.location.href =
+            "/index.html?redirect=" +
+            encodeURIComponent(location.pathname + location.search);
+          return;
+        }
+        const now = new Date();
+        let billingToken = null;
+        try {
+          const billingDoc = await db.collection("billing").doc(u.uid).get();
+          billingToken = billingDoc.exists ? billingDoc.data() : null;
+        } catch (e) {
+          console.warn("[Dashboard] billing fetch error:", e.message);
+        }
 
-<!-- Row context menu -->
-<div class="row-dropdown" id="rowDropdown" onclick="event.stopPropagation()"></div>
+        if (!billingToken) {
+          const trialEnd = new Date();
+          trialEnd.setDate(trialEnd.getDate() + 14);
+          billingToken = {
+            uid: u.uid,
+            email: u.email,
+            plan: "trial",
+            products: ["omdan-leak"],
+            trialEnd: trialEnd.toISOString(),
+            subscriptionEnd: null,
+            status: null,
+            reportsThisMonth: 0,
+            createdAt: new Date().toISOString(),
+          };
+          try {
+            await db.collection("billing").doc(u.uid).set(billingToken);
+          } catch (e) {
+            console.warn("trial create failed:", e);
+          }
+        }
 
-<div class="ob-strip" id="obStripTop"></div>
-<div class="ob-strip" id="obStripBottom"></div>
-<div class="ob-strip" id="obStripLeft"></div>
-<div class="ob-strip" id="obStripRight"></div>
-<div class="ob-frame" id="obSpotlightFrame"></div>
-<div class="ob-card" id="obCard">
-  <div class="ob-arrow" id="obArrow"></div>
-  <div class="ob-step" id="obStepLabel">שלב 1</div>
-  <div class="ob-chip" id="obChip">היכרות ראשונית</div>
-  <div class="ob-title" id="obTitle">ברוך הבא ל-OMDA איתור</div>
-  <div class="ob-text" id="obText"></div>
-  <ul class="ob-list" id="obList"></ul>
-  <div class="ob-actions">
-    <div class="ob-progress" id="obProgress">1 / 4</div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost btn-sm" id="obSkipBtn" onclick="skipDashboardOnboarding()">דלג</button>
-      <button class="btn btn-secondary btn-sm" id="obBackBtn" onclick="prevOnboardingStep()" style="display:none;">חזרה</button>
-      <button class="btn btn-primary btn-sm" id="obNextBtn" onclick="nextOnboardingStep()">התחל</button>
-    </div>
-  </div>
-</div>
+        const _toDate = (v) =>
+          v?.toDate ? v.toDate() : v ? new Date(v) : null;
+        let hasAccess = false;
+        if (billingToken.plan === "trial") {
+          const trialEnd = _toDate(billingToken.trialEnd);
+          hasAccess = !!trialEnd && now < trialEnd;
+        } else if (
+          billingToken.plan === "leak" &&
+          billingToken.status === "active"
+        ) {
+          const subEnd = _toDate(billingToken.subscriptionEnd);
+          hasAccess = !!subEnd && now < subEnd;
+        } else if (billingToken.plans?.["omdan-leak"]?.status === "active") {
+          const subEnd = _toDate(
+            billingToken.plans["omdan-leak"].subscriptionEnd,
+          );
+          hasAccess = !!subEnd && now < subEnd;
+        }
 
-<!-- Billing Gate -->
-<script src="/billing.js"></script>
-<script src="/billing-gate.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script>
-// *** REPLACE WITH YOUR ACTUAL omda-itur FIREBASE CONFIG ***
-firebase.initializeApp({
- apiKey: "AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI", authDomain: "omdan-leak.firebaseapp.com", projectId: "omdan-leak", storageBucket: "omdan-leak.firebasestorage.app", messagingSenderId: "979018499185", appId: "1:979018499185:web:1496303b1cd8a993bdc7d0", measurementId: "G-P62VFXD521"
-});
-const auth=firebase.auth(), db=firebase.firestore();
+        if (!hasAccess) {
+          const reason =
+            billingToken.plan === "trial"
+              ? "trial_expired"
+              : "subscription_expired";
+          window.location.href = `/billing-gate.html?reason=${reason}`;
+          return;
+        }
 
-let currentUser=null, allCases=[];
-const ONBOARDING_DEFAULTS={onboardingCompleted:false,onboardingStep:'dashboard'};
-let onboardingUserState={...ONBOARDING_DEFAULTS};
+        currentUser = u;
+        document.getElementById("navUser").textContent =
+          u.displayName || u.email;
+        const sb = document.getElementById("sidebarUser");
+        if (sb) sb.textContent = u.displayName || u.email;
 
-function isCaseDone(c){
-  return c.status==="completed"||!!(c.state?.summary?.leakSource&&c.state?.summary?.resolved);
-}
-function getProgressScore(c){
-  let score=0;
-  if(c.state?.client?.name) score++;
-  if(c.state?.client?.address||c.state?.client?.city) score++;
-  if(c.state?.inspection?.thermal||c.state?.inspection?.moisture) score++;
-  if(c.state?.findings?.leakSource) score++;
-  if(c.state?.findings?.certainty) score++;
-  if(c.state?.summary?.recommendation) score++;
-  return score;
-}
-function isWaitingCompletion(c){return !isCaseDone(c)&&getProgressScore(c)>=3;}
-function getDerivedStatus(c){
-  if(isCaseDone(c)) return "completed";
-  if(isWaitingCompletion(c)) return "pending_completion";
-  if(c.status==="processing") return "processing";
-  return c.status||"draft";
-}
+        try {
+          const userRef = db.collection("users").doc(u.uid);
+          const userSnap = await userRef.get();
+          const userData = userSnap.exists ? userSnap.data() || {} : {};
+          const completed = userData.onboardingCompleted === true;
+          const step =
+            userData.onboardingStep || (completed ? "done" : "dashboard");
+          onboardingUserState = {
+            onboardingCompleted: completed,
+            onboardingStep: step,
+          };
+          // כתוב לFirestore רק אם חסרים שדות, ורק אם לא completed
+          if (
+            !completed &&
+            (!("onboardingStep" in userData) ||
+              !("onboardingCompleted" in userData))
+          ) {
+            await userRef.set(
+              {
+                onboardingCompleted: false,
+                onboardingStep: step,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+        } catch (e) {
+          console.warn("onboarding state load failed", e);
+        }
 
-auth.onAuthStateChanged(async u=>{
-  if (!u) {
-  window.location.href = '/index.html?redirect=' + encodeURIComponent(location.pathname + location.search);
-  return;
-}
-  const now=new Date();
-  let billingToken=null;
-  try{
-    const billingDoc=await db.collection("billing").doc(u.uid).get();
-    billingToken=billingDoc.exists?billingDoc.data():null;
-  }catch(e){console.warn('[Dashboard] billing fetch error:',e.message);}
+        loadCases().finally(() =>
+          setTimeout(maybeStartDashboardOnboarding, 180),
+        );
+      });
 
-  if(!billingToken){
-    const trialEnd=new Date(); trialEnd.setDate(trialEnd.getDate()+14);
-    billingToken={uid:u.uid,email:u.email,plan:'trial',products:['omdan-leak'],trialEnd:trialEnd.toISOString(),subscriptionEnd:null,status:null,reportsThisMonth:0,createdAt:new Date().toISOString()};
-    try{await db.collection("billing").doc(u.uid).set(billingToken);}catch(e){console.warn('trial create failed:',e);}
-  }
+      async function loadCases() {
+        document.getElementById("casesBody").innerHTML =
+          `<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:28px;margin-bottom:12px;">⏳</div><div style="font-weight:700;">טוען תיקים...</div></td></tr>`;
+        try {
+          const snap = await db
+            .collection("leakCases")
+            .where("uid", "==", currentUser.uid)
+            .limit(100)
+            .get();
+          allCases = snap.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+            createdAt:
+              d.data().createdAt?.toDate?.()?.toISOString() ||
+              d.data().createdAt,
+          }));
+          allCases.sort(
+            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+          );
+          renderStats(allCases);
+          renderTable(allCases);
+          document.getElementById("pageSubtitle").textContent = allCases.length
+            ? `${allCases.length} תיקים בסך הכל`
+            : "";
+        } catch (e) {
+          console.error("loadCases error:", e);
+          document.getElementById("casesBody").innerHTML =
+            `<tr><td colspan="7"><div class="empty"><div class="icon">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;color:var(--red);">שגיאה בטעינת נתונים</div><p style="margin-bottom:16px;font-size:13px;">${e.message || "אירעה שגיאה"}</p><button class="btn btn-ghost" onclick="location.reload()">🔄 נסה שוב</button></div></td></tr>`;
+        }
+      }
 
-  const _toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null);
-  let hasAccess=false;
-  if(billingToken.plan==='trial'){
-    const trialEnd=_toDate(billingToken.trialEnd);
-    hasAccess=!!trialEnd&&now<trialEnd;
-  }else if(billingToken.plan==='leak'&&billingToken.status==='active'){
-    const subEnd=_toDate(billingToken.subscriptionEnd);
-    hasAccess=!!subEnd&&now<subEnd;
-  }else if(billingToken.plans?.['omdan-leak']?.status==='active'){
-    const subEnd=_toDate(billingToken.plans['omdan-leak'].subscriptionEnd);
-    hasAccess=!!subEnd&&now<subEnd;
-  }
+      function renderStats(cases) {
+        const now = new Date();
+        const thisMonth = cases.filter((c) => {
+          if (!c.createdAt) return false;
+          const d =
+            typeof c.createdAt === "string"
+              ? new Date(c.createdAt)
+              : c.createdAt?.seconds
+                ? new Date(c.createdAt.seconds * 1000)
+                : null;
+          return (
+            d &&
+            d.getMonth() === now.getMonth() &&
+            d.getFullYear() === now.getFullYear()
+          );
+        });
+        const done = cases.filter(isCaseDone);
+        const open = cases.filter((c) => !isCaseDone(c));
+        const pending = cases.filter(isWaitingCompletion);
+        document.getElementById("statTotal").textContent = cases.length;
+        document.getElementById("statOpen").textContent = open.length;
+        document.getElementById("statDone").textContent = done.length;
+        document.getElementById("statPending").textContent = pending.length;
+        document.getElementById("statMonth").textContent = thisMonth.length;
+        const statsEl = document.querySelector(".stats");
+        if (statsEl) statsEl.style.display = cases.length ? "" : "none";
+        renderInsight(cases, { done, open, pending, thisMonth });
+      }
 
-  if(!hasAccess){
-    const reason=billingToken.plan==='trial'?'trial_expired':'subscription_expired';
-    window.location.href=`/billing-gate.html?reason=${reason}`;
-    return;
-  }
+      function renderInsight(cases, stats) {
+        const bar = document.getElementById("insightBar");
+        const text = document.getElementById("insightText");
+        const sub = document.getElementById("insightSub");
+        if (!bar || !text || !sub) return;
+        if (!cases.length) {
+          bar.style.display = "none";
+          return;
+        }
+        bar.style.display = "flex";
+        if (stats.pending.length) {
+          text.textContent = `יש לך ${stats.pending.length} תיקים ממתינים להשלמה.`;
+          sub.textContent = "תיקים עם ממצאים שהדוח טרם נסגר.";
+          return;
+        }
+        if (stats.open.length) {
+          text.textContent = `יש לך ${stats.open.length} תיקים פעילים.`;
+          sub.textContent = "המשך מהתיק כדי להשלים בדיקות ודוח.";
+          return;
+        }
+        text.textContent = "כל התיקים שלך מעודכנים.";
+        sub.textContent = "פתח תיק חדש לקריאת איתור חדשה.";
+      }
 
-  currentUser=u;
-  document.getElementById("navUser").textContent=u.displayName||u.email;
-  const sb=document.getElementById("sidebarUser"); if(sb) sb.textContent=u.displayName||u.email;
-
-  try{
-    const userRef=db.collection('users').doc(u.uid);
-    const userSnap=await userRef.get();
-    const userData=userSnap.exists?(userSnap.data()||{}):{};
-    const completed = userData.onboardingCompleted===true;
-    const step = userData.onboardingStep || (completed ? 'done' : 'dashboard');
-    onboardingUserState = {onboardingCompleted: completed, onboardingStep: step};
-    // כתוב לFirestore רק אם חסרים שדות, ורק אם לא completed
-    if(!completed && (!('onboardingStep' in userData)||!('onboardingCompleted' in userData))){
-      await userRef.set({onboardingCompleted:false,onboardingStep:step,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-    }
-  }catch(e){console.warn('onboarding state load failed',e);}
-
-  loadCases().finally(()=>setTimeout(maybeStartDashboardOnboarding,180));
-});
-
-async function loadCases(){
-  document.getElementById('casesBody').innerHTML=`<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:28px;margin-bottom:12px;">⏳</div><div style="font-weight:700;">טוען תיקים...</div></td></tr>`;
-  try{
-    const snap=await db.collection("leakCases").where("uid","==",currentUser.uid).limit(100).get();
-    allCases=snap.docs.map(d=>({id:d.id,...d.data(),createdAt:d.data().createdAt?.toDate?.()?.toISOString()||d.data().createdAt}));
-    allCases.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
-    renderStats(allCases);
-    renderTable(allCases);
-    document.getElementById("pageSubtitle").textContent=allCases.length?`${allCases.length} תיקים בסך הכל`:'';
-  }catch(e){
-    console.error("loadCases error:",e);
-    document.getElementById('casesBody').innerHTML=`<tr><td colspan="7"><div class="empty"><div class="icon">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;color:var(--red);">שגיאה בטעינת נתונים</div><p style="margin-bottom:16px;font-size:13px;">${e.message||'אירעה שגיאה'}</p><button class="btn btn-ghost" onclick="location.reload()">🔄 נסה שוב</button></div></td></tr>`;
-  }
-}
-
-function renderStats(cases){
-  const now=new Date();
-  const thisMonth=cases.filter(c=>{
-    if(!c.createdAt) return false;
-    const d=typeof c.createdAt==="string"?new Date(c.createdAt):(c.createdAt?.seconds?new Date(c.createdAt.seconds*1000):null);
-    return d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-  });
-  const done=cases.filter(isCaseDone);
-  const open=cases.filter(c=>!isCaseDone(c));
-  const pending=cases.filter(isWaitingCompletion);
-  document.getElementById("statTotal").textContent=cases.length;
-  document.getElementById("statOpen").textContent=open.length;
-  document.getElementById("statDone").textContent=done.length;
-  document.getElementById("statPending").textContent=pending.length;
-  document.getElementById("statMonth").textContent=thisMonth.length;
-  const statsEl=document.querySelector('.stats');
-  if(statsEl) statsEl.style.display=cases.length?'':'none';
-  renderInsight(cases,{done,open,pending,thisMonth});
-}
-
-function renderInsight(cases,stats){
-  const bar=document.getElementById('insightBar');
-  const text=document.getElementById('insightText');
-  const sub=document.getElementById('insightSub');
-  if(!bar||!text||!sub) return;
-  if(!cases.length){bar.style.display='none';return;}
-  bar.style.display='flex';
-  if(stats.pending.length){text.textContent=`יש לך ${stats.pending.length} תיקים ממתינים להשלמה.`;sub.textContent='תיקים עם ממצאים שהדוח טרם נסגר.';return;}
-  if(stats.open.length){text.textContent=`יש לך ${stats.open.length} תיקים פעילים.`;sub.textContent='המשך מהתיק כדי להשלים בדיקות ודוח.';return;}
-  text.textContent='כל התיקים שלך מעודכנים.';
-  sub.textContent='פתח תיק חדש לקריאת איתור חדשה.';
-}
-
-function renderTable(cases,isSearch=false){
-  const tbody=document.getElementById("casesBody");
-  if(!cases.length){
-    if(isSearch){
-      tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="icon">🔍</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">לא נמצאו תוצאות</div><p>נסה מילות חיפוש אחרות</p></div></td></tr>`;
-    }else{
-      tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="icon">💧</div><div style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text);">אין לך עדיין תיקים</div><p style="margin-bottom:20px;">התחל ביצירת תיק ראשון</p><button class="btn btn-primary" onclick="newCase()" style="font-size:15px;padding:12px 28px;">+ תיק איתור חדש</button></div></td></tr>`;
-    }
-    return;
-  }
-  tbody.innerHTML=cases.map(c=>{
-    const caseId=c.id||c.docId;
-    const clientName=c.state?.client?.name||c.name||"";
-    const address=c.state?.client?.address||c.state?.client?.city||"";
-    const title=clientName?`${clientName}${address?` — ${address}`:''}`:address||"ללא כותרת";
-    const dateStr=typeof c.createdAt==="string"?c.createdAt:(c.createdAt?.seconds?new Date(c.createdAt.seconds*1000).toLocaleDateString("he-IL"):"");
-    const isDone=isCaseDone(c);
-    const status=getDerivedStatus(c);
-    const leakTypeMap={water:'💧 מים',sewage:'🚽 ביוב',gas:'⚠️ גז',heating:'🌡️ חימום',pool:'🏊 בריכה',other:'🔧 אחר'};
-    const leakType=leakTypeMap[c.state?.findings?.leakType]||c.state?.findings?.leakType||'';
-    const source=c.state?.client?.source||c.source||'';
-    return `<tr onclick="openCase('${caseId}')">
-      <td><span class="case-num">${caseId?.replace("leak_","#")?.slice(-6)||""}</span></td>
+      function renderTable(cases, isSearch = false) {
+        const tbody = document.getElementById("casesBody");
+        if (!cases.length) {
+          if (isSearch) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="icon">🔍</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">לא נמצאו תוצאות</div><p>נסה מילות חיפוש אחרות</p></div></td></tr>`;
+          } else {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="icon">💧</div><div style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text);">אין לך עדיין תיקים</div><p style="margin-bottom:20px;">התחל ביצירת תיק ראשון</p><button class="btn btn-primary" onclick="newCase()" style="font-size:15px;padding:12px 28px;">+ תיק איתור חדש</button></div></td></tr>`;
+          }
+          return;
+        }
+        tbody.innerHTML = cases
+          .map((c) => {
+            const caseId = c.id || c.docId;
+            const clientName = c.state?.client?.name || c.name || "";
+            const address =
+              c.state?.client?.address || c.state?.client?.city || "";
+            const title = clientName
+              ? `${clientName}${address ? ` — ${address}` : ""}`
+              : address || "ללא כותרת";
+            const dateStr =
+              typeof c.createdAt === "string"
+                ? c.createdAt
+                : c.createdAt?.seconds
+                  ? new Date(c.createdAt.seconds * 1000).toLocaleDateString(
+                      "he-IL",
+                    )
+                  : "";
+            const isDone = isCaseDone(c);
+            const status = getDerivedStatus(c);
+            const leakTypeMap = {
+              water: "💧 מים",
+              sewage: "🚽 ביוב",
+              gas: "⚠️ גז",
+              heating: "🌡️ חימום",
+              pool: "🏊 בריכה",
+              other: "🔧 אחר",
+            };
+            const leakType =
+              leakTypeMap[c.state?.findings?.leakType] ||
+              c.state?.findings?.leakType ||
+              "";
+            const source = c.state?.client?.source || c.source || "";
+            return `<tr onclick="openCase('${caseId}')">
+      <td><span class="case-num">${caseId?.replace("leak_", "#")?.slice(-6) || ""}</span></td>
       <td><span class="case-title">${escHtml(title)}</span></td>
       <td>${sourceTag(source)}</td>
       <td><span style="font-size:12px;">${leakType}</span></td>
@@ -539,305 +1558,659 @@ function renderTable(cases,isSearch=false){
         </div>
       </td>
     </tr>`;
-  }).join("");
-}
+          })
+          .join("");
+      }
 
-function filterCases(){
-  const q=(document.getElementById("searchInput").value||"").toLowerCase().trim();
-  const statusFilter=(document.getElementById("statusFilter")?.value||"").trim();
-  const sourceFilter=(document.getElementById("sourceFilter")?.value||"").trim();
-  const hasFilters=!!(q||statusFilter||sourceFilter);
-  const filtered=allCases.filter(c=>{
-    const name=(c.state?.client?.name||c.name||"").toLowerCase();
-    const address=(c.state?.client?.address||c.state?.client?.city||"").toLowerCase();
-    const cid=(c.id||"").toLowerCase();
-    const source=(c.state?.client?.source||c.source||"").toLowerCase();
-    const status=getDerivedStatus(c);
-    const matchesText=!q||name.includes(q)||address.includes(q)||cid.includes(q);
-    const matchesStatus=!statusFilter||status===statusFilter;
-    const matchesSource=!sourceFilter||source===sourceFilter;
-    return matchesText&&matchesStatus&&matchesSource;
-  });
-  renderTable(filtered,hasFilters);
-}
+      function filterCases() {
+        const q = (document.getElementById("searchInput").value || "")
+          .toLowerCase()
+          .trim();
+        const statusFilter = (
+          document.getElementById("statusFilter")?.value || ""
+        ).trim();
+        const sourceFilter = (
+          document.getElementById("sourceFilter")?.value || ""
+        ).trim();
+        const hasFilters = !!(q || statusFilter || sourceFilter);
+        const filtered = allCases.filter((c) => {
+          const name = (c.state?.client?.name || c.name || "").toLowerCase();
+          const address = (
+            c.state?.client?.address ||
+            c.state?.client?.city ||
+            ""
+          ).toLowerCase();
+          const cid = (c.id || "").toLowerCase();
+          const source = (
+            c.state?.client?.source ||
+            c.source ||
+            ""
+          ).toLowerCase();
+          const status = getDerivedStatus(c);
+          const matchesText =
+            !q || name.includes(q) || address.includes(q) || cid.includes(q);
+          const matchesStatus = !statusFilter || status === statusFilter;
+          const matchesSource = !sourceFilter || source === sourceFilter;
+          return matchesText && matchesStatus && matchesSource;
+        });
+        renderTable(filtered, hasFilters);
+      }
 
-function sourceTag(s){
-  const map={direct:["source-direct","פנייה ישירה"],insurance:["source-insurance","ביטוח"],contractor:["source-contractor","קבלן / ועד"],legal:["source-legal","עו\"ד / שמאי"]};
-  const[cls,lbl]=map[s]||["source-direct",s||"ישיר"];
-  return`<span class="source-tag ${cls}">${lbl}</span>`;
-}
+      function sourceTag(s) {
+        const map = {
+          direct: ["source-direct", "פנייה ישירה"],
+          insurance: ["source-insurance", "ביטוח"],
+          contractor: ["source-contractor", "קבלן / ועד"],
+          legal: ["source-legal", 'עו"ד / שמאי'],
+        };
+        const [cls, lbl] = map[s] || ["source-direct", s || "ישיר"];
+        return `<span class="source-tag ${cls}">${lbl}</span>`;
+      }
 
-function statusBadge(s){
-  const map={draft:["badge-draft","טיוטה"],processing:["badge-processing","בבדיקה"],pending_completion:["badge-review","ממתין להשלמה"],completed:["badge-done","הושלם"]};
-  const[cls,lbl]=map[s]||["badge-draft",s||"טיוטה"];
-  return`<span class="badge ${cls}">${lbl}</span>`;
-}
+      function statusBadge(s) {
+        const map = {
+          draft: ["badge-draft", "טיוטה"],
+          processing: ["badge-processing", "בבדיקה"],
+          pending_completion: ["badge-review", "ממתין להשלמה"],
+          completed: ["badge-done", "הושלם"],
+        };
+        const [cls, lbl] = map[s] || ["badge-draft", s || "טיוטה"];
+        return `<span class="badge ${cls}">${lbl}</span>`;
+      }
 
-function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+      function escHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
 
-// ── Row context menu ──
-let _activeMenu=null;
-function openRowMenu(e,caseId,isDone){
-  e.stopPropagation();
-  const dd=document.getElementById('rowDropdown');
-  if(_activeMenu===caseId&&dd.classList.contains('open')){closeRowMenu();return;}
-  _activeMenu=caseId;
-  const items=[];
-  if(!isDone) items.push(`<div class="row-dropdown-item" onclick="closeRowMenu();openCase('${caseId}')">✏️ פתח לעריכה</div>`);
-  else{items.push(`<div class="row-dropdown-item" onclick="closeRowMenu();openCaseReport('${caseId}')">📄 הצג דוח</div>`);items.push(`<div class="row-dropdown-item" onclick="closeRowMenu();downloadCasePDF('${caseId}')">⬇️ הורד PDF</div>`);}
-  items.push(`<div class="row-dropdown-item" onclick="closeRowMenu();shareCase('${caseId}')">🔗 שתף תיק</div>`);
-  items.push(`<div class="row-dropdown-sep"></div>`);
-  items.push(`<div class="row-dropdown-item danger" onclick="closeRowMenu();deleteCase('${caseId}')">🗑️ מחק תיק</div>`);
-  dd.innerHTML=items.join('');
-  dd.classList.add('open');
-  const btnRect=e.currentTarget.getBoundingClientRect();
-  const ddW=170,ddH=dd.offsetHeight||160;
-  let top=btnRect.bottom+6,left=btnRect.left-ddW+btnRect.width;
-  if(top+ddH>window.innerHeight-12) top=btnRect.top-ddH-6;
-  if(left<8) left=8;
-  dd.style.top=top+'px'; dd.style.left=left+'px';
-}
-function closeRowMenu(){document.getElementById('rowDropdown').classList.remove('open');_activeMenu=null;}
-document.addEventListener('click',closeRowMenu);
-document.addEventListener('keydown',e=>{if(e.key==='Escape') closeRowMenu();});
+      // ── Row context menu ──
+      let _activeMenu = null;
+      function openRowMenu(e, caseId, isDone) {
+        e.stopPropagation();
+        const dd = document.getElementById("rowDropdown");
+        if (_activeMenu === caseId && dd.classList.contains("open")) {
+          closeRowMenu();
+          return;
+        }
+        _activeMenu = caseId;
+        const items = [];
+        if (!isDone)
+          items.push(
+            `<div class="row-dropdown-item" onclick="closeRowMenu();openCase('${caseId}')">✏️ פתח לעריכה</div>`,
+          );
+        else {
+          items.push(
+            `<div class="row-dropdown-item" onclick="closeRowMenu();openCaseReport('${caseId}')">📄 הצג דוח</div>`,
+          );
+          items.push(
+            `<div class="row-dropdown-item" onclick="closeRowMenu();downloadCasePDF('${caseId}')">⬇️ הורד PDF</div>`,
+          );
+        }
+        items.push(
+          `<div class="row-dropdown-item" onclick="closeRowMenu();shareCase('${caseId}')">🔗 שתף תיק</div>`,
+        );
+        items.push(`<div class="row-dropdown-sep"></div>`);
+        items.push(
+          `<div class="row-dropdown-item danger" onclick="closeRowMenu();deleteCase('${caseId}')">🗑️ מחק תיק</div>`,
+        );
+        dd.innerHTML = items.join("");
+        dd.classList.add("open");
+        const btnRect = e.currentTarget.getBoundingClientRect();
+        const ddW = 170,
+          ddH = dd.offsetHeight || 160;
+        let top = btnRect.bottom + 6,
+          left = btnRect.left - ddW + btnRect.width;
+        if (top + ddH > window.innerHeight - 12) top = btnRect.top - ddH - 6;
+        if (left < 8) left = 8;
+        dd.style.top = top + "px";
+        dd.style.left = left + "px";
+      }
+      function closeRowMenu() {
+        document.getElementById("rowDropdown").classList.remove("open");
+        _activeMenu = null;
+      }
+      document.addEventListener("click", closeRowMenu);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeRowMenu();
+      });
 
-async function deleteCase(caseId){
-  if(!confirm('האם למחוק את התיק? פעולה זו אינה ניתנת לביטול.')) return;
-  try{
-    await db.collection('leakCases').doc(caseId).delete();
-    allCases=allCases.filter(c=>c.id!==caseId);
-    renderStats(allCases);
-    renderTable(allCases);
-    document.getElementById('pageSubtitle').textContent=allCases.length?`${allCases.length} תיקים בסך הכל`:'';
-  }catch(e){alert('שגיאה במחיקה: '+e.message);}
-}
+      async function deleteCase(caseId) {
+        if (!confirm("האם למחוק את התיק? פעולה זו אינה ניתנת לביטול.")) return;
+        try {
+          await db.collection("leakCases").doc(caseId).delete();
+          allCases = allCases.filter((c) => c.id !== caseId);
+          renderStats(allCases);
+          renderTable(allCases);
+          document.getElementById("pageSubtitle").textContent = allCases.length
+            ? `${allCases.length} תיקים בסך הכל`
+            : "";
+        } catch (e) {
+          alert("שגיאה במחיקה: " + e.message);
+        }
+      }
 
-function shareCase(caseId){
-  const url=`${location.origin}/app/case.html?case=${caseId}`;
-  if(navigator.share){navigator.share({title:'תיק OMDA איתור',url}).catch(()=>{});}
-  else{
-    navigator.clipboard?.writeText(url).then(()=>{
-      const tmp=document.createElement('div');
-      tmp.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F2937;border:1px solid #374151;color:#F9FAFB;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;';
-      tmp.textContent='✓ הקישור הועתק';
-      document.body.appendChild(tmp);
-      setTimeout(()=>tmp.remove(),2200);
-    }).catch(()=>prompt('העתק קישור:',url));
-  }
-}
-function downloadCasePDF(caseId){window.open(`/app/case.html?case=${caseId}&view=report&print=1`,'_blank');}
-function openCase(caseId){window.location.href=`/app/case.html?case=${caseId}`;}
-function openCaseReport(caseId){window.location.href=`/app/case.html?case=${caseId}&view=report`;}
-async function newCase(){
-  if(onboardingUserState.onboardingCompleted!==true&&onboardingUserState.onboardingStep==='first_case'){
-    try{await updateOnboardingState({onboardingCompleted:true,onboardingStep:'done'});}catch(e){}
-  }
-  window.location.href="/app/case.html";
-}
-async function goSettings(){
-  if(onboardingUserState.onboardingCompleted!==true&&onboardingUserState.onboardingStep==='dashboard'){
-    try{await updateOnboardingState({onboardingCompleted:false,onboardingStep:'settings'});}catch(e){}
-  }
-  window.location.href="/app/settings.html";
-}
-function doLogout(){auth.signOut().then(()=>window.location.href="/");}
+      function shareCase(caseId) {
+        const url = `${location.origin}/app/case.html?case=${caseId}`;
+        if (navigator.share) {
+          navigator.share({ title: "תיק OMDA איתור", url }).catch(() => {});
+        } else {
+          navigator.clipboard
+            ?.writeText(url)
+            .then(() => {
+              const tmp = document.createElement("div");
+              tmp.style.cssText =
+                "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F2937;border:1px solid #374151;color:#F9FAFB;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;";
+              tmp.textContent = "✓ הקישור הועתק";
+              document.body.appendChild(tmp);
+              setTimeout(() => tmp.remove(), 2200);
+            })
+            .catch(() => prompt("העתק קישור:", url));
+        }
+      }
+      function downloadCasePDF(caseId) {
+        window.open(
+          `/app/case.html?case=${caseId}&view=report&print=1`,
+          "_blank",
+        );
+      }
+      function openCase(caseId) {
+        window.location.href = `/app/case.html?case=${caseId}`;
+      }
+      function openCaseReport(caseId) {
+        window.location.href = `/app/case.html?case=${caseId}&view=report`;
+      }
+      async function newCase() {
+        if (
+          onboardingUserState.onboardingCompleted !== true &&
+          onboardingUserState.onboardingStep === "first_case"
+        ) {
+          try {
+            await updateOnboardingState({
+              onboardingCompleted: true,
+              onboardingStep: "done",
+            });
+          } catch (e) {}
+        }
+        window.location.href = "/app/case.html";
+      }
+      async function goSettings() {
+        if (
+          onboardingUserState.onboardingCompleted !== true &&
+          onboardingUserState.onboardingStep === "dashboard"
+        ) {
+          try {
+            await updateOnboardingState({
+              onboardingCompleted: false,
+              onboardingStep: "settings",
+            });
+          } catch (e) {}
+        }
+        window.location.href = "/app/settings.html";
+      }
+      function doLogout() {
+        auth.signOut().then(() => (window.location.href = "/"));
+      }
 
-// ── Onboarding ──
-const DASHBOARD_ONBOARDING_KEY='omda_itur_dashboard_onboarding_done';
-let onboardingActive=false,onboardingStep=0,onboardingRestoreCases=null;
-const onboardingDemoCases=[
-  {id:'leak_demo_1001',status:'processing',createdAt:'2026-03-30T10:00:00Z',source:'insurance',state:{client:{name:'משפחת כהן',address:'בלפור 12, בת ים',source:'insurance'},inspection:{thermal:'חריגה בקיר דרומי',moisture:'86 יח׳'},findings:{leakType:'water',leakSource:'צנרת מטמונת בקיר',certainty:'גבוהה'}}},
-  {id:'leak_demo_1002',status:'draft',createdAt:'2026-03-28T08:30:00Z',source:'direct',state:{client:{name:'יוסי לוי',address:'ההסתדרות 4, חולון',source:'direct'},inspection:{moisture:'52 יח׳'},findings:{leakType:'sewage',certainty:'בינונית'}}},
-  {id:'leak_demo_1003',status:'completed',createdAt:'2026-03-19T09:00:00Z',source:'contractor',state:{client:{name:'ועד בית שכטר',address:'הכרמל 8, ראשון לציון',source:'contractor'},findings:{leakType:'water',leakSource:'ממסר גג דולף',certainty:'גבוהה'},summary:{leakSource:'ממסר גג',resolved:true,recommendation:'החלפת ממסר + איטום'}}}
-];
-const onboardingSteps=[
-  {target:'.page-header',placement:'bottom',step:'ברוך הבא',chip:'לוח דשבורד לדוגמה',title:'ככה ייראה מרכז השליטה שלך',text:'בכניסה הראשונה תראה דשבורד עם נתוני דוגמה — כדי להבין מיד איך תיקי האיתור שלך ייראו בפועל.',bullets:['הכפתור הראשי פותח תיק קריאה חדש.','הדשבורד מציג תמונת מצב מיידית.','מכאן ממשיכים להגדרות.'],nextLabel:'המשך'},
-  {target:'.stats',placement:'bottom',step:'שלב 1',chip:'סטטיסטיקות',title:'הכרטיסים מסכמים את מצב העבודה',text:'ראה מיד כמה קריאות פתוחות, בבדיקה, הושלמו ועוד.',bullets:['בבדיקה = עבודה שוטפת.','ממתין להשלמה = כמעט מוכן לדוח.','החודש = קריאות חדשות.'],nextLabel:'הבנתי'},
-  {target:'.table-wrap',placement:'top',step:'שלב 2',chip:'רשימת תיקים',title:'ניהול כל תיקי האיתור ממקום אחד',text:'לכל תיק: לקוח, כתובת, מקור הפניה, חשד לנזילה וסטטוס.',bullets:['לחץ על שורה לפתיחת התיק.','פעולות נוספות דרך כפתור ⋯.','חיפוש וסינון מהיר בלי לצאת.'],nextLabel:'עבור להגדרות'},
-  {target:'#sbSettingsLink',placement:'bottom',step:'שלב 3',chip:'לפני קריאה ראשונה',title:'הגדר את הפרופיל המקצועי שלך',text:'לפני תיק ראשון, הגדר לוגו, חתימה ופרטים — יכנסו אוטומטית לדוח הסופי.',bullets:['לוגו בראש כל דוח.','פרטי המאתר ורישיון.','חתימה דיגיטלית אוטומטית.'],nextLabel:'עבור להגדרות',final:true}
-];
+      // ── Onboarding ──
+      const DASHBOARD_ONBOARDING_KEY = "omda_itur_dashboard_onboarding_done";
+      let onboardingActive = false,
+        onboardingStep = 0,
+        onboardingRestoreCases = null;
+      const onboardingDemoCases = [
+        {
+          id: "leak_demo_1001",
+          status: "processing",
+          createdAt: "2026-03-30T10:00:00Z",
+          source: "insurance",
+          state: {
+            client: {
+              name: "משפחת כהן",
+              address: "בלפור 12, בת ים",
+              source: "insurance",
+            },
+            inspection: { thermal: "חריגה בקיר דרומי", moisture: "86 יח׳" },
+            findings: {
+              leakType: "water",
+              leakSource: "צנרת מטמונת בקיר",
+              certainty: "גבוהה",
+            },
+          },
+        },
+        {
+          id: "leak_demo_1002",
+          status: "draft",
+          createdAt: "2026-03-28T08:30:00Z",
+          source: "direct",
+          state: {
+            client: {
+              name: "יוסי לוי",
+              address: "ההסתדרות 4, חולון",
+              source: "direct",
+            },
+            inspection: { moisture: "52 יח׳" },
+            findings: { leakType: "sewage", certainty: "בינונית" },
+          },
+        },
+        {
+          id: "leak_demo_1003",
+          status: "completed",
+          createdAt: "2026-03-19T09:00:00Z",
+          source: "contractor",
+          state: {
+            client: {
+              name: "ועד בית שכטר",
+              address: "הכרמל 8, ראשון לציון",
+              source: "contractor",
+            },
+            findings: {
+              leakType: "water",
+              leakSource: "ממסר גג דולף",
+              certainty: "גבוהה",
+            },
+            summary: {
+              leakSource: "ממסר גג",
+              resolved: true,
+              recommendation: "החלפת ממסר + איטום",
+            },
+          },
+        },
+      ];
+      const onboardingSteps = [
+        {
+          target: ".page-header",
+          placement: "bottom",
+          step: "ברוך הבא",
+          chip: "לוח דשבורד לדוגמה",
+          title: "ככה ייראה מרכז השליטה שלך",
+          text: "בכניסה הראשונה תראה דשבורד עם נתוני דוגמה — כדי להבין מיד איך תיקי האיתור שלך ייראו בפועל.",
+          bullets: [
+            "הכפתור הראשי פותח תיק קריאה חדש.",
+            "הדשבורד מציג תמונת מצב מיידית.",
+            "מכאן ממשיכים להגדרות.",
+          ],
+          nextLabel: "המשך",
+        },
+        {
+          target: ".stats",
+          placement: "bottom",
+          step: "שלב 1",
+          chip: "סטטיסטיקות",
+          title: "הכרטיסים מסכמים את מצב העבודה",
+          text: "ראה מיד כמה קריאות פתוחות, בבדיקה, הושלמו ועוד.",
+          bullets: [
+            "בבדיקה = עבודה שוטפת.",
+            "ממתין להשלמה = כמעט מוכן לדוח.",
+            "החודש = קריאות חדשות.",
+          ],
+          nextLabel: "הבנתי",
+        },
+        {
+          target: ".table-wrap",
+          placement: "top",
+          step: "שלב 2",
+          chip: "רשימת תיקים",
+          title: "ניהול כל תיקי האיתור ממקום אחד",
+          text: "לכל תיק: לקוח, כתובת, מקור הפניה, חשד לנזילה וסטטוס.",
+          bullets: [
+            "לחץ על שורה לפתיחת התיק.",
+            "פעולות נוספות דרך כפתור ⋯.",
+            "חיפוש וסינון מהיר בלי לצאת.",
+          ],
+          nextLabel: "עבור להגדרות",
+        },
+        {
+          target: "#sbSettingsLink",
+          placement: "bottom",
+          step: "שלב 3",
+          chip: "לפני קריאה ראשונה",
+          title: "הגדר את הפרופיל המקצועי שלך",
+          text: "לפני תיק ראשון, הגדר לוגו, חתימה ופרטים — יכנסו אוטומטית לדוח הסופי.",
+          bullets: [
+            "לוגו בראש כל דוח.",
+            "פרטי המאתר ורישיון.",
+            "חתימה דיגיטלית אוטומטית.",
+          ],
+          nextLabel: "עבור להגדרות",
+          final: true,
+        },
+      ];
 
-function shouldStartDashboardOnboarding(){
-  // אם המשתמש סיים אונבורדינג — לעולם לא מציגים
-  if(onboardingUserState.onboardingCompleted===true) return false;
-  if(['done','settings','first_case'].includes(onboardingUserState.onboardingStep)) return false;
-  const forcedStep=new URL(window.location.href).searchParams.get('onboarding');
-  if(forcedStep==='dashboard') return true;
-  return onboardingUserState.onboardingStep==='dashboard';
-}
-function shouldStartFirstCasePrompt(){
-  // אם המשתמש סיים — לא מציגים
-  if(onboardingUserState.onboardingCompleted===true) return false;
-  if(onboardingUserState.onboardingStep==='done') return false;
-  // חייב להיות בדיוק first_case ב-Firestore — URL param לבדו לא מספיק
-  return onboardingUserState.onboardingStep==='first_case';
-}
-function maybeStartDashboardOnboarding(){
-  if(onboardingActive) return;
-  if(shouldStartDashboardOnboarding()){
-    onboardingActive=true;
-    onboardingRestoreCases=Array.isArray(allCases)?[...allCases]:[];
-    renderDemoDashboard();
-    document.body.classList.add('ob-lock');
-    setTimeout(()=>showOnboardingStep(0),120);
-    return;
-  }
-  if(shouldStartFirstCasePrompt()) openFirstCasePrompt();
-}
-async function updateOnboardingState(patch){
-  if(!currentUser?.uid) return;
-  onboardingUserState={...onboardingUserState,...patch};
-  // לעולם לא שומר 'dashboard' אם כבר עברנו ממנו
-  const stepToSave = onboardingUserState.onboardingStep || 'done';
-  await db.collection('users').doc(currentUser.uid).set({
-    onboardingCompleted: onboardingUserState.onboardingCompleted===true,
-    onboardingStep: stepToSave,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  },{merge:true});
-}
-function renderDemoDashboard(){
-  document.getElementById('obDemoNote').classList.add('show');
-  renderStats(onboardingDemoCases);
-  renderTable(onboardingDemoCases);
-  document.getElementById('pageSubtitle').textContent='3 תיקים לדוגמה — כך ייראה הדשבורד שלך';
-}
-function restoreRealDashboard(){
-  document.getElementById('obDemoNote').classList.remove('show');
-  if(onboardingRestoreCases){
-    renderStats(onboardingRestoreCases);
-    renderTable(onboardingRestoreCases);
-    document.getElementById('pageSubtitle').textContent=onboardingRestoreCases.length?`${onboardingRestoreCases.length} תיקים בסך הכל`:'';
-  }
-}
-function updateSpotlightFrame(target){
-  const strips=['obStripTop','obStripBottom','obStripLeft','obStripRight'].map(id=>document.getElementById(id));
-  const frame=document.getElementById('obSpotlightFrame');
-  if(!target){strips.forEach(el=>{if(el){el.style.display='none';el.classList.remove('show');}});if(frame){frame.style.display='none';frame.classList.remove('show');}return;}
-  const r=target.getBoundingClientRect(),pad=10;
-  const W=window.innerWidth,H=window.innerHeight;
-  const x1=Math.max(0,r.left-pad),y1=Math.max(0,r.top-pad),x2=Math.min(W,r.right+pad),y2=Math.min(H,r.bottom+pad);
-  const defs=[{top:0,left:0,width:W,height:y1},{top:y2,left:0,width:W,height:H-y2},{top:y1,left:0,width:x1,height:y2-y1},{top:y1,left:x2,width:W-x2,height:y2-y1}];
-  strips.forEach((el,i)=>{if(!el) return;Object.assign(el.style,{top:defs[i].top+'px',left:defs[i].left+'px',width:defs[i].width+'px',height:defs[i].height+'px',display:'block'});el.classList.add('show');});
-  if(frame){Object.assign(frame.style,{top:y1+'px',left:x1+'px',width:(x2-x1)+'px',height:(y2-y1)+'px',display:'block'});frame.classList.add('show');}
-}
-function clearOnboardingSpotlight(){document.querySelectorAll('.ob-spotlight,.ob-spotlight-soft').forEach(el=>el.classList.remove('ob-spotlight','ob-spotlight-soft'));updateSpotlightFrame(null);}
-function showOnboardingStep(index){
-  onboardingStep=index;
-  clearOnboardingSpotlight();
-  const card=document.getElementById('obCard'),arrow=document.getElementById('obArrow');
-  const s=onboardingSteps[index],target=document.querySelector(s.target);
-  if(!target) return;
-  document.getElementById('obStepLabel').textContent=s.step;
-  document.getElementById('obChip').textContent=s.chip;
-  document.getElementById('obTitle').textContent=s.title;
-  document.getElementById('obText').textContent=s.text;
-  document.getElementById('obProgress').textContent=`${index+1} / ${onboardingSteps.length}`;
-  document.getElementById('obBackBtn').style.display=index>0?'inline-flex':'none';
-  document.getElementById('obNextBtn').textContent=s.nextLabel||(s.final?'סיום':'המשך');
-  const list=document.getElementById('obList');
-  list.innerHTML=(s.bullets||[]).map((item,i)=>`<li><span>${i+1}</span><span>${item}</span></li>`).join('');
-  card.classList.add('show');
-  card.style.visibility='hidden';
-  const placeStep=()=>{
-    updateSpotlightFrame(target);
-    const rect=target.getBoundingClientRect();
-    const cW=card.offsetWidth,cH=card.offsetHeight,vW=window.innerWidth,vH=window.innerHeight,gap=18;
-    let top=0,left=0;
-    if(s.placement==='top'){top=rect.top-cH-gap;if(top<12) top=rect.bottom+gap;}
-    else{top=rect.bottom+gap;if(top+cH>vH-12) top=rect.top-cH-gap;}
-    top=Math.max(12,Math.min(vH-cH-12,top));
-    left=rect.left+rect.width/2-cW/2;
-    left=Math.max(12,Math.min(vW-cW-12,left));
-    arrow.style.display='none';
-    card.style.top=`${top}px`;card.style.left=`${left}px`;card.style.visibility='visible';
-  };
-  if(index>0){target.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>requestAnimationFrame(placeStep),320);}
-  else requestAnimationFrame(placeStep);
-}
-async function nextOnboardingStep(){
-  const current=onboardingSteps[onboardingStep];
-  if(current?.final){
-    await updateOnboardingState({onboardingCompleted:false,onboardingStep:'settings'});
-    window.location.href='/app/settings.html?onboarding=profile-setup';
-    return;
-  }
-  if(onboardingStep<onboardingSteps.length-1) showOnboardingStep(onboardingStep+1);
-}
-function prevOnboardingStep(){if(onboardingStep>0) showOnboardingStep(onboardingStep-1);}
-async function skipDashboardOnboarding(){
-  await updateOnboardingState({onboardingCompleted:true,onboardingStep:'done'});
-  onboardingActive=false;clearOnboardingSpotlight();
-  document.getElementById('obCard').classList.remove('show');
-  updateSpotlightFrame(null);document.body.classList.remove('ob-lock');
-  restoreRealDashboard();
-}
-function openFirstCasePrompt(){
-  const card=document.getElementById('obCard');
-  clearOnboardingSpotlight();updateSpotlightFrame(null);
-  document.getElementById('obDemoNote').classList.remove('show');
-  document.body.classList.add('ob-lock');
-  card.classList.add('show');card.style.visibility='visible';
-  document.getElementById('obStepLabel').textContent='השלב הבא';
-  document.getElementById('obChip').textContent='תיק ראשון';
-  document.getElementById('obTitle').textContent='המערכת מוכנה — פתח קריאה ראשונה';
-  document.getElementById('obText').textContent='השלמת את הגדרות הפרופיל. מעכשיו הלוגו, החתימה והפרטים שלך יכנסו אוטומטית לכל דוח.';
-  document.getElementById('obProgress').textContent='סיום';
-  document.getElementById('obBackBtn').style.display='none';
-  document.getElementById('obSkipBtn').textContent='אחר כך';
-  document.getElementById('obSkipBtn').onclick=async function(){
-    await updateOnboardingState({onboardingCompleted:true,onboardingStep:'done'});
-    onboardingActive=false;
-    document.getElementById('obCard').classList.remove('show');
-    document.body.classList.remove('ob-lock');
-  };
-  document.getElementById('obNextBtn').textContent='פתח קריאה ראשונה';
-  document.getElementById('obNextBtn').onclick=function(){newCase();};
-  document.getElementById('obList').innerHTML=`<li><span>1</span><span>התיק הראשון ימחיש את זרימת העבודה.</span></li><li><span>2</span><span>הפרטים שהגדרת יכנסו לדוחות.</span></li><li><span>3</span><span>אחרי פתיחת תיק ראשון האונבורדינג לא יוצג שוב.</span></li>`;
-  card.style.top=`${Math.max(24,window.innerHeight/2-card.offsetHeight/2)}px`;
-  card.style.left=`${Math.max(12,window.innerWidth/2-card.offsetWidth/2)}px`;
-  document.getElementById('obArrow').style.display='none';
-  onboardingActive=true;
-}
-window.addEventListener('resize',()=>{
-  if(!onboardingActive) return;
-  const card=document.getElementById('obCard');
-  if(!card.classList.contains('show')) return;
-  const s=onboardingSteps[onboardingStep];
-  const t=s?document.querySelector(s.target):null;
-  if(!t) return;
-  updateSpotlightFrame(t);
-  const rect=t.getBoundingClientRect();
-  const cW=card.offsetWidth,cH=card.offsetHeight,vW=window.innerWidth,vH=window.innerHeight,gap=18;
-  let top=s.placement==='top'?rect.top-cH-gap:rect.bottom+gap;
-  if(top<12||top+cH>vH-12) top=rect.bottom+gap+cH<=vH-12?rect.bottom+gap:Math.max(12,rect.top-cH-gap);
-  let left=rect.left+rect.width/2-cW/2;
-  left=Math.max(12,Math.min(vW-cW-12,left));
-  card.style.top=`${top}px`;card.style.left=`${left}px`;
-});
-</script>
+      function shouldStartDashboardOnboarding() {
+        // אם המשתמש סיים אונבורדינג — לעולם לא מציגים
+        if (onboardingUserState.onboardingCompleted === true) return false;
+        if (
+          ["done", "settings", "first_case"].includes(
+            onboardingUserState.onboardingStep,
+          )
+        )
+          return false;
+        const forcedStep = new URL(window.location.href).searchParams.get(
+          "onboarding",
+        );
+        if (forcedStep === "dashboard") return true;
+        return onboardingUserState.onboardingStep === "dashboard";
+      }
+      function shouldStartFirstCasePrompt() {
+        // אם המשתמש סיים — לא מציגים
+        if (onboardingUserState.onboardingCompleted === true) return false;
+        if (onboardingUserState.onboardingStep === "done") return false;
+        // חייב להיות בדיוק first_case ב-Firestore — URL param לבדו לא מספיק
+        return onboardingUserState.onboardingStep === "first_case";
+      }
+      function maybeStartDashboardOnboarding() {
+        if (onboardingActive) return;
+        if (shouldStartDashboardOnboarding()) {
+          onboardingActive = true;
+          onboardingRestoreCases = Array.isArray(allCases) ? [...allCases] : [];
+          renderDemoDashboard();
+          document.body.classList.add("ob-lock");
+          setTimeout(() => showOnboardingStep(0), 120);
+          return;
+        }
+        if (shouldStartFirstCasePrompt()) openFirstCasePrompt();
+      }
+      async function updateOnboardingState(patch) {
+        if (!currentUser?.uid) return;
+        onboardingUserState = { ...onboardingUserState, ...patch };
+        // לעולם לא שומר 'dashboard' אם כבר עברנו ממנו
+        const stepToSave = onboardingUserState.onboardingStep || "done";
+        await db
+          .collection("users")
+          .doc(currentUser.uid)
+          .set(
+            {
+              onboardingCompleted:
+                onboardingUserState.onboardingCompleted === true,
+              onboardingStep: stepToSave,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true },
+          );
+      }
+      function renderDemoDashboard() {
+        document.getElementById("obDemoNote").classList.add("show");
+        renderStats(onboardingDemoCases);
+        renderTable(onboardingDemoCases);
+        document.getElementById("pageSubtitle").textContent =
+          "3 תיקים לדוגמה — כך ייראה הדשבורד שלך";
+      }
+      function restoreRealDashboard() {
+        document.getElementById("obDemoNote").classList.remove("show");
+        if (onboardingRestoreCases) {
+          renderStats(onboardingRestoreCases);
+          renderTable(onboardingRestoreCases);
+          document.getElementById("pageSubtitle").textContent =
+            onboardingRestoreCases.length
+              ? `${onboardingRestoreCases.length} תיקים בסך הכל`
+              : "";
+        }
+      }
+      function updateSpotlightFrame(target) {
+        const strips = [
+          "obStripTop",
+          "obStripBottom",
+          "obStripLeft",
+          "obStripRight",
+        ].map((id) => document.getElementById(id));
+        const frame = document.getElementById("obSpotlightFrame");
+        if (!target) {
+          strips.forEach((el) => {
+            if (el) {
+              el.style.display = "none";
+              el.classList.remove("show");
+            }
+          });
+          if (frame) {
+            frame.style.display = "none";
+            frame.classList.remove("show");
+          }
+          return;
+        }
+        const r = target.getBoundingClientRect(),
+          pad = 10;
+        const W = window.innerWidth,
+          H = window.innerHeight;
+        const x1 = Math.max(0, r.left - pad),
+          y1 = Math.max(0, r.top - pad),
+          x2 = Math.min(W, r.right + pad),
+          y2 = Math.min(H, r.bottom + pad);
+        const defs = [
+          { top: 0, left: 0, width: W, height: y1 },
+          { top: y2, left: 0, width: W, height: H - y2 },
+          { top: y1, left: 0, width: x1, height: y2 - y1 },
+          { top: y1, left: x2, width: W - x2, height: y2 - y1 },
+        ];
+        strips.forEach((el, i) => {
+          if (!el) return;
+          Object.assign(el.style, {
+            top: defs[i].top + "px",
+            left: defs[i].left + "px",
+            width: defs[i].width + "px",
+            height: defs[i].height + "px",
+            display: "block",
+          });
+          el.classList.add("show");
+        });
+        if (frame) {
+          Object.assign(frame.style, {
+            top: y1 + "px",
+            left: x1 + "px",
+            width: x2 - x1 + "px",
+            height: y2 - y1 + "px",
+            display: "block",
+          });
+          frame.classList.add("show");
+        }
+      }
+      function clearOnboardingSpotlight() {
+        document
+          .querySelectorAll(".ob-spotlight,.ob-spotlight-soft")
+          .forEach((el) =>
+            el.classList.remove("ob-spotlight", "ob-spotlight-soft"),
+          );
+        updateSpotlightFrame(null);
+      }
+      function showOnboardingStep(index) {
+        onboardingStep = index;
+        clearOnboardingSpotlight();
+        const card = document.getElementById("obCard"),
+          arrow = document.getElementById("obArrow");
+        const s = onboardingSteps[index],
+          target = document.querySelector(s.target);
+        if (!target) return;
+        document.getElementById("obStepLabel").textContent = s.step;
+        document.getElementById("obChip").textContent = s.chip;
+        document.getElementById("obTitle").textContent = s.title;
+        document.getElementById("obText").textContent = s.text;
+        document.getElementById("obProgress").textContent =
+          `${index + 1} / ${onboardingSteps.length}`;
+        document.getElementById("obBackBtn").style.display =
+          index > 0 ? "inline-flex" : "none";
+        document.getElementById("obNextBtn").textContent =
+          s.nextLabel || (s.final ? "סיום" : "המשך");
+        const list = document.getElementById("obList");
+        list.innerHTML = (s.bullets || [])
+          .map(
+            (item, i) => `<li><span>${i + 1}</span><span>${item}</span></li>`,
+          )
+          .join("");
+        card.classList.add("show");
+        card.style.visibility = "hidden";
+        const placeStep = () => {
+          updateSpotlightFrame(target);
+          const rect = target.getBoundingClientRect();
+          const cW = card.offsetWidth,
+            cH = card.offsetHeight,
+            vW = window.innerWidth,
+            vH = window.innerHeight,
+            gap = 18;
+          let top = 0,
+            left = 0;
+          if (s.placement === "top") {
+            top = rect.top - cH - gap;
+            if (top < 12) top = rect.bottom + gap;
+          } else {
+            top = rect.bottom + gap;
+            if (top + cH > vH - 12) top = rect.top - cH - gap;
+          }
+          top = Math.max(12, Math.min(vH - cH - 12, top));
+          left = rect.left + rect.width / 2 - cW / 2;
+          left = Math.max(12, Math.min(vW - cW - 12, left));
+          arrow.style.display = "none";
+          card.style.top = `${top}px`;
+          card.style.left = `${left}px`;
+          card.style.visibility = "visible";
+        };
+        if (index > 0) {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => requestAnimationFrame(placeStep), 320);
+        } else requestAnimationFrame(placeStep);
+      }
+      async function nextOnboardingStep() {
+        const current = onboardingSteps[onboardingStep];
+        if (current?.final) {
+          await updateOnboardingState({
+            onboardingCompleted: false,
+            onboardingStep: "settings",
+          });
+          window.location.href = "/app/settings.html?onboarding=profile-setup";
+          return;
+        }
+        if (onboardingStep < onboardingSteps.length - 1)
+          showOnboardingStep(onboardingStep + 1);
+      }
+      function prevOnboardingStep() {
+        if (onboardingStep > 0) showOnboardingStep(onboardingStep - 1);
+      }
+      async function skipDashboardOnboarding() {
+        await updateOnboardingState({
+          onboardingCompleted: true,
+          onboardingStep: "done",
+        });
+        onboardingActive = false;
+        clearOnboardingSpotlight();
+        document.getElementById("obCard").classList.remove("show");
+        updateSpotlightFrame(null);
+        document.body.classList.remove("ob-lock");
+        restoreRealDashboard();
+      }
+      function openFirstCasePrompt() {
+        const card = document.getElementById("obCard");
+        clearOnboardingSpotlight();
+        updateSpotlightFrame(null);
+        document.getElementById("obDemoNote").classList.remove("show");
+        document.body.classList.add("ob-lock");
+        card.classList.add("show");
+        card.style.visibility = "visible";
+        document.getElementById("obStepLabel").textContent = "השלב הבא";
+        document.getElementById("obChip").textContent = "תיק ראשון";
+        document.getElementById("obTitle").textContent =
+          "המערכת מוכנה — פתח קריאה ראשונה";
+        document.getElementById("obText").textContent =
+          "השלמת את הגדרות הפרופיל. מעכשיו הלוגו, החתימה והפרטים שלך יכנסו אוטומטית לכל דוח.";
+        document.getElementById("obProgress").textContent = "סיום";
+        document.getElementById("obBackBtn").style.display = "none";
+        document.getElementById("obSkipBtn").textContent = "אחר כך";
+        document.getElementById("obSkipBtn").onclick = async function () {
+          await updateOnboardingState({
+            onboardingCompleted: true,
+            onboardingStep: "done",
+          });
+          onboardingActive = false;
+          document.getElementById("obCard").classList.remove("show");
+          document.body.classList.remove("ob-lock");
+        };
+        document.getElementById("obNextBtn").textContent = "פתח קריאה ראשונה";
+        document.getElementById("obNextBtn").onclick = function () {
+          newCase();
+        };
+        document.getElementById("obList").innerHTML =
+          `<li><span>1</span><span>התיק הראשון ימחיש את זרימת העבודה.</span></li><li><span>2</span><span>הפרטים שהגדרת יכנסו לדוחות.</span></li><li><span>3</span><span>אחרי פתיחת תיק ראשון האונבורדינג לא יוצג שוב.</span></li>`;
+        card.style.top = `${Math.max(24, window.innerHeight / 2 - card.offsetHeight / 2)}px`;
+        card.style.left = `${Math.max(12, window.innerWidth / 2 - card.offsetWidth / 2)}px`;
+        document.getElementById("obArrow").style.display = "none";
+        onboardingActive = true;
+      }
+      window.addEventListener("resize", () => {
+        if (!onboardingActive) return;
+        const card = document.getElementById("obCard");
+        if (!card.classList.contains("show")) return;
+        const s = onboardingSteps[onboardingStep];
+        const t = s ? document.querySelector(s.target) : null;
+        if (!t) return;
+        updateSpotlightFrame(t);
+        const rect = t.getBoundingClientRect();
+        const cW = card.offsetWidth,
+          cH = card.offsetHeight,
+          vW = window.innerWidth,
+          vH = window.innerHeight,
+          gap = 18;
+        let top =
+          s.placement === "top" ? rect.top - cH - gap : rect.bottom + gap;
+        if (top < 12 || top + cH > vH - 12)
+          top =
+            rect.bottom + gap + cH <= vH - 12
+              ? rect.bottom + gap
+              : Math.max(12, rect.top - cH - gap);
+        let left = rect.left + rect.width / 2 - cW / 2;
+        left = Math.max(12, Math.min(vW - cW - 12, left));
+        card.style.top = `${top}px`;
+        card.style.left = `${left}px`;
+      });
+    </script>
 
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});});}</script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js", { updateViaCache: "none" })
+            .then((r) => r.update())
+            .catch(() => {});
+        });
+      }
+    </script>
 
-<style>
-.omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
-.omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#f59e0b;}
-</style>
-<footer class="omdan-footer">
-  <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
-  <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
-  <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
-  <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-  <a href="/legal/index.html">מסמכים משפטיים</a>
-  <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
-</footer>
+    <style>
+      .omdan-footer {
+        background: #0d1117;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 20px 5%;
+        text-align: center;
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 40px;
+      }
+      .omdan-footer a {
+        color: #9ca3af;
+        text-decoration: none;
+        margin: 0 6px;
+        transition: color 0.2s;
+      }
+      .omdan-footer a:hover {
+        color: #2196f3;
+      }
+    </style>
+    <footer class="omdan-footer">
+      <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
+      <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
+      <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
+      <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
+      <a href="/legal/index.html">מסמכים משפטיים</a>
+      <br /><span style="margin-top: 6px; display: block"
+        >© 2026 OMDA. כל הזכויות שמורות.</span
+      >
+    </footer>
 
-<!-- Mobile Bottom Nav -->
-<nav class="mob-nav">
-  <a href="/app/dashboard.html" class="active"><span class="mn-icon">📊</span>דשבורד</a>
-  <a href="/app/reports.html"><span class="mn-icon">📄</span>דוחות</a>
-  <a href="/app/payments.html"><span class="mn-icon">💰</span>תשלומים</a>
-  <a href="/app/settings.html"><span class="mn-icon">⚙️</span>הגדרות</a>
-</nav>
-</body>
+    <!-- Mobile Bottom Nav -->
+    <nav class="mob-nav">
+      <a href="/app/dashboard.html" class="active"
+        ><span class="mn-icon">📊</span>דשבורד</a
+      >
+      <a href="/app/reports.html"><span class="mn-icon">📄</span>דוחות</a>
+      <a href="/app/payments.html"><span class="mn-icon">💰</span>תשלומים</a>
+      <a href="/app/settings.html"><span class="mn-icon">⚙️</span>הגדרות</a>
+    </nav>
+  </body>
 </html>
