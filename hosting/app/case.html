@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMDA איתור | ניהול תיק</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/assets/omda-icon.png">
+<style>
+:root{
+  --primary:#111827;--primary2:#1F2937;--primary3:#374151;
+  --accent:#F59E0B;--accent2:#FDE68A;--accent3:#D97706;
+  --blue:#3B82F6;--red:#EF4444;--green:#10B981;--purple:#8B5CF6;--cyan:#06B6D4;
+  --text:#F9FAFB;--muted:#9CA3AF;--subtle:#6B7280;--border:#1F2937;
+  --card:#111827;--bg:#030712;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* ── APP LAYOUT ── */
+.app{display:flex;min-height:100vh;}
+.sidebar{width:240px;flex-shrink:0;background:var(--primary);border-left:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:150;}
+.main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;}
+.sb-logo{display:flex;align-items:center;padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.sb-nav{flex:1;}
+.sb-nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;transition:all .15s;border-right:3px solid transparent;white-space:nowrap;}
+.sb-nav a:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.sb-nav a.active{color:var(--accent);border-right-color:var(--accent);background:rgba(245,158,11,.06);}
+.sb-nav .nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;}
+.sb-sep{height:1px;background:var(--border);margin:6px 20px;}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--border);}
+.sb-user-name{font-size:11px;color:var(--subtle);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-logout{width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
+.btn-logout:hover{background:rgba(239,68,68,.18);}
+
+/* ── TOPBAR ── */
+#topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-page{font-size:13px;font-weight:700;color:var(--muted);}
+.tb-right{display:flex;align-items:center;gap:8px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:12px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;transition:all .18s;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#111;box-shadow:0 3px 12px rgba(245,158,11,.3);}
+.btn-primary:hover{transform:translateY(-1px);}
+.btn-ghost{background:transparent;border:1px solid var(--primary3);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+.btn-green{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green);}
+.btn-green:hover{background:rgba(16,185,129,.25);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:10px;}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;}
+
+/* ── MAIN ── */
+main{max-width:1200px;margin:0 auto;padding:28px 20px 80px;}
+
+/* ── STEPPER ── */
+.stepper-wrap{display:flex;gap:8px;margin-bottom:28px;overflow-x:auto;padding-bottom:4px;}
+.step-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;transition:all .18s;white-space:nowrap;flex-shrink:0;}
+.step-btn:hover{border-color:var(--primary3);color:var(--text);}
+.step-btn.active{border-color:var(--accent);background:rgba(245,158,11,.08);color:var(--accent);}
+.step-btn.done{border-color:var(--green);background:rgba(16,185,129,.06);color:var(--green);}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;background:var(--primary2);flex-shrink:0;}
+.step-btn.active .step-num{background:var(--accent);color:#111;}
+.step-btn.done .step-num{background:var(--green);color:#fff;}
+
+/* ── CARDS ── */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.card-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ── FORM FIELDS ── */
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.fields-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.field-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.field input,.field select,.field textarea{background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:'Heebo',sans-serif;transition:border-color .2s,box-shadow .2s;outline:none;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.12);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field textarea{resize:vertical;min-height:80px;}
+.field select{cursor:pointer;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) calc(50% - 3px),calc(100% - 11px) calc(50% - 3px);background-size:5px 5px;background-repeat:no-repeat;padding-left:32px;}
+.field-hint{font-size:11px;color:var(--subtle);margin-top:2px;}
+
+/* ── SECTION TITLE ── */
+.sub-title{font-size:11px;font-weight:800;color:var(--subtle);text-transform:uppercase;letter-spacing:.08em;padding:12px 0 10px;margin-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.sub-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+
+/* ── MEASUREMENT TABLE ── */
+.meas-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.meas-table th{padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;background:var(--primary2);border-bottom:1px solid var(--border);}
+.meas-table td{padding:10px 12px;border-bottom:1px solid var(--border);}
+.meas-table tr:last-child td{border-bottom:none;}
+.meas-table input{background:transparent;border:1px solid var(--primary3);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:'Heebo',sans-serif;width:100%;outline:none;transition:border-color .2s;}
+.meas-table input:focus{border-color:var(--accent);}
+.meas-table select{background:var(--primary2);border:1px solid var(--primary3);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:'Heebo',sans-serif;outline:none;}
+.meas-row-label{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;}
+.meas-icon{font-size:18px;text-align:center;width:32px;}
+
+/* ── CERTAINTY SELECTOR ── */
+.certainty-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.cert-btn{padding:8px 16px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;}
+.cert-btn:hover{border-color:var(--primary3);color:var(--text);}
+.cert-btn.active.low{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);}
+.cert-btn.active.medium{border-color:var(--accent);background:rgba(245,158,11,.1);color:var(--accent);}
+.cert-btn.active.high{border-color:var(--green);background:rgba(16,185,129,.1);color:var(--green);}
+
+/* ── BADGE / STATUS ── */
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.status-draft{background:rgba(107,114,128,.15);color:var(--muted);}
+.status-processing{background:rgba(59,130,246,.15);color:var(--blue);}
+.status-done{background:rgba(16,185,129,.15);color:var(--green);}
+.status-review{background:rgba(245,158,11,.15);color:var(--accent);}
+
+/* ── REPORT PREVIEW ── */
+.report-preview{background:#fff;color:#1a1a1a;border-radius:12px;padding:32px;font-family:'Heebo',sans-serif;direction:rtl;}
+.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1F2937;padding-bottom:16px;margin-bottom:20px;}
+.rpt-logo-area{font-size:20px;font-weight:900;color:#111;}
+.rpt-meta{text-align:left;font-size:12px;color:#555;line-height:1.8;}
+.rpt-section{margin-bottom:20px;}
+.rpt-section h3{font-size:13px;font-weight:800;color:#1F2937;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;}
+.rpt-row{display:flex;gap:8px;margin-bottom:6px;font-size:13px;}
+.rpt-label{color:#6b7280;font-weight:600;min-width:120px;flex-shrink:0;}
+.rpt-val{color:#111;font-weight:500;}
+.rpt-findings-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-top:8px;}
+.rpt-certainty{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;}
+.rpt-cert-low{background:#fee2e2;color:#dc2626;}
+.rpt-cert-medium{background:#fef3c7;color:#d97706;}
+.rpt-cert-high{background:#d1fae5;color:#059669;}
+.rpt-sig{border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;}
+.rpt-sig-block{text-align:center;}
+.rpt-sig-line{border-top:1px solid #374151;width:160px;margin:0 auto 6px;padding-top:6px;font-size:12px;color:#6b7280;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F2937;border:1px solid var(--primary3);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;}
+.toast.show{display:block;}
+
+/* ── SAVE BAR ── */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(3,7,18,.96);border-top:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);z-index:200;}
+.save-status{font-size:13px;color:var(--muted);}
+.save-status.saved{color:var(--green);}
+.save-status.unsaved{color:var(--accent);}
+
+/* ── PRINT STYLES ── */
+@media print{
+  body{background:#fff;color:#000;}
+  .sidebar,.save-bar,.stepper-wrap,.toast,#topbar,.btn-row,.no-print{display:none!important;}
+  .app{display:block;}
+  .main-wrap{display:block;}
+  main{padding:0;max-width:none;}
+  .form-section:not(#section-report){display:none!important;}
+  #section-report{display:block!important;}
+  .report-preview{box-shadow:none;border:none;}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  main{padding:16px 12px 100px;}
+  .fields-grid,.fields-grid.three{grid-template-columns:1fr;}
+  .stepper-wrap{gap:6px;}
+  .step-btn{padding:8px 12px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;" onerror="this.src='/assets/omda-icon.png'">
+      <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);" onerror="this.style.display='none'">
+    </a>
+  </div>
+  <nav class="sb-nav">
+    <a href="/app/dashboard.html"><span class="nav-icon">📊</span> דשבורד</a>
+    <a href="/app/reports.html"><span class="nav-icon">📄</span> דוחות</a>
+    <a href="/app/clients.html"><span class="nav-icon">👥</span> לקוחות</a>
+    <a href="/app/payments.html"><span class="nav-icon">💰</span> תשלומים</a>
+    <div class="sb-sep"></div>
+    <a href="/app/settings.html"><span class="nav-icon">⚙️</span> הגדרות</a>
+    <a href="/app/account-billing.html"><span class="nav-icon">💳</span> מנוי</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user-name" id="sidebarUser"></div>
+    <button class="btn-logout" onclick="doLogout()">🚪 התנתקות</button>
+  </div>
+</aside>
+
+<!-- ── Main wrap ── -->
+<div class="main-wrap">
+
+<div id="topbar">
+  <div class="tb-left">
+    <a href="/app/dashboard.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;" onerror="this.src='/assets/omda-icon.png'">
+    </a>
+    <div class="tb-page" id="topbarTitle">תיק איתור</div>
+  </div>
+  <div class="tb-right">
+    <span style="font-size:12px;color:var(--muted);" id="caseNumDisplay"></span>
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/app/dashboard.html'">← דשבורד</button>
+    <button class="btn btn-primary btn-sm" onclick="saveCase()">💾 שמור</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ── Stepper ── -->
+  <div class="stepper-wrap" id="stepperWrap">
+    <button class="step-btn active" id="step-btn-1" onclick="goSection(1)">
+      <span class="step-num">1</span> נתוני קריאה
+    </button>
+    <button class="step-btn" id="step-btn-2" onclick="goSection(2)">
+      <span class="step-num">2</span> בדיקות מקצועיות
+    </button>
+    <button class="step-btn" id="step-btn-3" onclick="goSection(3)">
+      <span class="step-num">3</span> ממצאים ומסקנות
+    </button>
+    <button class="step-btn" id="step-btn-4" onclick="goSection(4)">
+      <span class="step-num">4</span> דוח סיכום
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 1: נתוני קריאה                    -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="form-section" id="section-1">
+
+    <div class="form-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">💧 פרטי הקריאה</div>
+          <div class="card-sub">נתוני לקוח, כתובת, סוג נכס ומקור הפניה</div>
+        </div>
+        <div id="caseStatusBadge" class="status-badge status-draft">טיוטה</div>
+      </div>
+
+      <div class="sub-title">👤 פרטי לקוח ומזמין</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>מספר תיק</label><input type="text" id="f-caseNum" readonly placeholder="יופק אוטומטית"></div>
+        <div class="field"><label>תאריך קריאה</label><input type="date" id="f-date"></div>
+        <div class="field"><label>שם לקוח / מזמין</label><input type="text" id="f-clientName" placeholder="שם מלא"></div>
+        <div class="field"><label>איש קשר</label><input type="text" id="f-contact" placeholder="שם איש הקשר"></div>
+        <div class="field"><label>טלפון</label><input type="tel" id="f-phone" placeholder="050-0000000"></div>
+        <div class="field"><label>אימייל</label><input type="email" id="f-email" placeholder="email@example.com" dir="ltr"></div>
+      </div>
+
+      <div class="sub-title">🏠 פרטי הנכס</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>כתובת מלאה</label><input type="text" id="f-address" placeholder="רחוב ומספר"></div>
+        <div class="field"><label>עיר</label><input type="text" id="f-city" placeholder="עיר"></div>
+        <div class="field"><label>קומה / דירה</label><input type="text" id="f-floor" placeholder="קומה 3, דירה 8"></div>
+        <div class="field"><label>סוג נכס</label>
+          <select id="f-propertyType">
+            <option value="apartment">דירת מגורים</option>
+            <option value="house">בית פרטי</option>
+            <option value="building">בניין משותף</option>
+            <option value="commercial">מסחר / משרד</option>
+            <option value="public">מוסד / ציבורי</option>
+          </select>
+        </div>
+        <div class="field"><label>גיל הנכס</label><input type="text" id="f-propertyAge" placeholder="למשל: 12 שנים"></div>
+        <div class="field"><label>חברת ניהול / ועד בית</label><input type="text" id="f-management" placeholder="שם חברה / ועד"></div>
+      </div>
+
+      <div class="sub-title">📋 פרטי הקריאה</div>
+      <div class="fields-grid">
+        <div class="field"><label>מקור הפניה</label>
+          <select id="f-source">
+            <option value="direct">פנייה ישירה</option>
+            <option value="insurance">חברת ביטוח</option>
+            <option value="contractor">קבלן / ועד בית</option>
+            <option value="legal">עו"ד / שמאי</option>
+            <option value="other">אחר</option>
+          </select>
+        </div>
+        <div class="field"><label>חברת ביטוח</label><input type="text" id="f-insCompany" placeholder="שם חברת ביטוח (אם רלוונטי)"></div>
+        <div class="field"><label>מספר תביעה</label><input type="text" id="f-claimNum" placeholder="מספר תביעה"></div>
+        <div class="field"><label>דחיפות</label>
+          <select id="f-urgency">
+            <option value="normal">רגילה</option>
+            <option value="high">גבוהה</option>
+            <option value="immediate">מיידית</option>
+          </select>
+        </div>
+        <div class="field field-full"><label>תיאור הבעיה (ע"פ הלקוח)</label>
+          <textarea id="f-problem" placeholder="תאר את הבעיה כפי שדווחה על ידי הלקוח..."></textarea>
+        </div>
+        <div class="field"><label>אזור הבדיקה</label><input type="text" id="f-area" placeholder="לדוגמה: חדר רחצה, מטבח, קיר דרומי"></div>
+        <div class="field"><label>סטטוס תיק</label>
+          <select id="f-status" onchange="updateStatusBadge()">
+            <option value="draft">טיוטה</option>
+            <option value="scheduled">נקבע מועד</option>
+            <option value="processing">בבדיקה</option>
+            <option value="pending_docs">ממתין למסמכים</option>
+            <option value="report_prep">דוח בהכנה</option>
+            <option value="completed">הושלם</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-primary" onclick="goSection(2)">המשך לבדיקות ←</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 2: בדיקות מקצועיות                -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="form-section" id="section-2" style="display:none;">
+
+    <div class="form-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🔬 בדיקות מקצועיות</div>
+          <div class="card-sub">תיעוד שיטות הבדיקה, הציוד ומדידות שבוצעו באתר</div>
+        </div>
+      </div>
+
+      <div class="sub-title">🌡️ מצלמה תרמית</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>ביצוע בדיקה תרמית</label>
+          <select id="f-thermalDone">
+            <option value="yes">כן — בוצעה</option>
+            <option value="no">לא — לא בוצעה</option>
+            <option value="partial">חלקית</option>
+          </select>
+        </div>
+        <div class="field"><label>דגם מצלמה</label><input type="text" id="f-thermalModel" placeholder="לדוגמה: FLIR E60"></div>
+        <div class="field field-full"><label>ממצאים תרמיים</label>
+          <textarea id="f-thermal" placeholder="תאר ממצאים: חריגות טמפרטורה, אזורים חמים / קרים, דפוסים חשודים..."></textarea>
+        </div>
+        <div class="field"><label>טמפרטורה מרבית שנמדדה (°C)</label><input type="number" id="f-thermalMax" placeholder="לדוגמה: 28.5"></div>
+        <div class="field"><label>טמפרטורה רקע (°C)</label><input type="number" id="f-thermalBg" placeholder="לדוגמה: 22.0"></div>
+      </div>
+
+      <div class="sub-title">💦 מד לחות</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>דגם מד לחות</label><input type="text" id="f-moistureModel" placeholder="לדוגמה: Testo 606-2"></div>
+        <table class="meas-table" style="grid-column:1/-1;">
+          <thead><tr><th>מיקום</th><th>לחות (%)</th><th>הערה</th></tr></thead>
+          <tbody id="moistureRows">
+            <tr><td><div class="meas-row-label"><span class="meas-icon">💧</span> קיר ראשי</div></td><td><input type="number" id="m-wall1" placeholder="%" step="0.1"></td><td><input type="text" id="m-wall1-note" placeholder="הערה"></td></tr>
+            <tr><td><div class="meas-row-label"><span class="meas-icon">💧</span> קיר משני</div></td><td><input type="number" id="m-wall2" placeholder="%" step="0.1"></td><td><input type="text" id="m-wall2-note" placeholder="הערה"></td></tr>
+            <tr><td><div class="meas-row-label"><span class="meas-icon">🏠</span> תקרה</div></td><td><input type="number" id="m-ceiling" placeholder="%" step="0.1"></td><td><input type="text" id="m-ceiling-note" placeholder="הערה"></td></tr>
+            <tr><td><div class="meas-row-label"><span class="meas-icon">⬇️</span> רצפה</div></td><td><input type="number" id="m-floor" placeholder="%" step="0.1"></td><td><input type="text" id="m-floor-note" placeholder="הערה"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-title">🔊 אקוסטיקה ולחץ</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>בדיקת לחץ</label>
+          <select id="f-pressureDone">
+            <option value="no">לא בוצעה</option>
+            <option value="yes">כן — בוצעה</option>
+          </select>
+        </div>
+        <div class="field"><label>לחץ התחלתי (בר)</label><input type="number" id="f-pressureStart" placeholder="לדוגמה: 3.5" step="0.1"></div>
+        <div class="field"><label>לחץ סיום (בר)</label><input type="number" id="f-pressureEnd" placeholder="לדוגמה: 3.1" step="0.1"></div>
+        <div class="field"><label>משך הבדיקה</label><input type="text" id="f-pressureDuration" placeholder="לדוגמה: 30 דקות"></div>
+        <div class="field"><label>בדיקה אקוסטית</label>
+          <select id="f-acousticDone">
+            <option value="no">לא בוצעה</option>
+            <option value="yes">כן — בוצעה</option>
+          </select>
+        </div>
+        <div class="field field-full"><label>ממצאים אקוסטיים</label>
+          <textarea id="f-acoustic" placeholder="תאר: אות קולי, מיקום, עוצמה..."></textarea>
+        </div>
+      </div>
+
+      <div class="sub-title">⚗️ בדיקות נוספות</div>
+      <div class="fields-grid">
+        <div class="field"><label>בדיקת גז / טרייסר</label>
+          <select id="f-gasDone">
+            <option value="no">לא בוצעה</option>
+            <option value="yes">כן — בוצעה</option>
+            <option value="positive">חיובית</option>
+            <option value="negative">שלילית</option>
+          </select>
+        </div>
+        <div class="field"><label>סוג צנרת / מערכת</label>
+          <select id="f-pipeType">
+            <option value="">— בחר —</option>
+            <option value="sp">SP (מגולוון)</option>
+            <option value="copper">נחושת</option>
+            <option value="plastic">פלסטיק / PPR</option>
+            <option value="drain">ניקוז</option>
+            <option value="heating">חימום תת-רצפתי</option>
+            <option value="ac">מזגן / קירור</option>
+            <option value="pool">בריכה / ספא</option>
+            <option value="other">אחר</option>
+          </select>
+        </div>
+        <div class="field"><label>עומק הצנרת</label><input type="text" id="f-pipeDepth" placeholder="לדוגמה: מתחת לריצוף, 5 ס"מ"></div>
+        <div class="field"><label>גיל הצנרת</label><input type="text" id="f-pipeAge" placeholder="לדוגמה: כ-20 שנה"></div>
+        <div class="field field-full"><label>הערות כלליות לבדיקה</label>
+          <textarea id="f-inspNotes" placeholder="פרטים נוספים, תנאים, מגבלות, ציוד שימש..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print" style="display:flex;justify-content:space-between;gap:10px;">
+      <button class="btn btn-ghost" onclick="goSection(1)">→ חזרה</button>
+      <button class="btn btn-primary" onclick="goSection(3)">המשך לממצאים ←</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 3: ממצאים ומסקנות                 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="form-section" id="section-3" style="display:none;">
+
+    <div class="form-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🎯 ממצאים ומסקנה מקצועית</div>
+          <div class="card-sub">מקור הנזילה, רמת ודאות ונזק נלווה</div>
+        </div>
+      </div>
+
+      <div class="sub-title">💧 מקור הנזילה</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field"><label>סוג נזילה</label>
+          <select id="f-leakType">
+            <option value="water">מים — צנרת לחץ</option>
+            <option value="sewage">ביוב / ניקוז</option>
+            <option value="heating">חימום תת-רצפתי</option>
+            <option value="pool">בריכה / ג'קוזי</option>
+            <option value="roof">גג / ממסר</option>
+            <option value="ac">מזגן / קירור</option>
+            <option value="external">חדירת מי גשם</option>
+            <option value="other">אחר</option>
+          </select>
+        </div>
+        <div class="field"><label>מקור הנזילה המשוער</label>
+          <input type="text" id="f-leakSource" placeholder="לדוגמה: צנרת SP בקיר דרומי, פרק 2 אינץ'">
+        </div>
+        <div class="field"><label>מיקום מדויק</label>
+          <input type="text" id="f-leakLocation" placeholder="לדוגמה: קיר דרומי חדר רחצה, גובה 1.2 מ'">
+        </div>
+        <div class="field"><label>רדיוס חשד לנזקים</label>
+          <input type="text" id="f-damageRadius" placeholder="לדוגמה: דירות 3 ו-5 מתחת">
+        </div>
+        <div class="field field-full">
+          <label>רמת ודאות</label>
+          <div class="certainty-btns">
+            <button class="cert-btn low" id="cert-low" onclick="setCertainty('low')">נמוכה</button>
+            <button class="cert-btn medium" id="cert-medium" onclick="setCertainty('medium')">בינונית</button>
+            <button class="cert-btn high" id="cert-high" onclick="setCertainty('high')">גבוהה</button>
+          </div>
+          <input type="hidden" id="f-certainty" value="">
+        </div>
+      </div>
+
+      <div class="sub-title">🏚️ נזקים נלווים</div>
+      <div class="fields-grid" style="margin-bottom:20px;">
+        <div class="field field-full"><label>תיאור הנזק לנכס</label>
+          <textarea id="f-damage" placeholder="תאר נזקים: קצב נזק, רטיבות, עובש, הנמכת תקרה, נפילת טיח, נזק לריצוף..."></textarea>
+        </div>
+        <div class="field"><label>היקף הנזק המשוער</label>
+          <select id="f-damageScope">
+            <option value="minimal">מינימלי — עד ₪5,000</option>
+            <option value="medium">בינוני — ₪5,000–₪30,000</option>
+            <option value="large">גדול — ₪30,000–₪100,000</option>
+            <option value="major">נרחב — מעל ₪100,000</option>
+            <option value="unknown">לא ידוע — דרוש שמאי</option>
+          </select>
+        </div>
+        <div class="field"><label>נפגעים נוספים</label>
+          <input type="text" id="f-thirdParty" placeholder="לדוגמה: דירה 3, מחסן, חנות קומת קרקע">
+        </div>
+      </div>
+
+      <div class="sub-title">✅ המלצות לטיפול</div>
+      <div class="fields-grid">
+        <div class="field field-full"><label>פעולה מומלצת מיידית</label>
+          <textarea id="f-immediateAction" placeholder="פעולות שחייבות להיעשות מיידית..."></textarea>
+        </div>
+        <div class="field field-full"><label>המלצה לתיקון</label>
+          <textarea id="f-recommendation" placeholder="פירוט ההמלצה לתיקון הנזילה — חציבה, ריתוך, החלפת קטע..."></textarea>
+        </div>
+        <div class="field"><label>הפניה לגורם מקצועי</label>
+          <select id="f-referral">
+            <option value="none">אין צורך</option>
+            <option value="plumber">אינסטלטור מוסמך</option>
+            <option value="contractor">קבלן שיפוצים</option>
+            <option value="appraiser">שמאי נזק</option>
+            <option value="engineer">מהנדס קונסטרוקציה</option>
+            <option value="multiple">מספר גורמים</option>
+          </select>
+        </div>
+        <div class="field"><label>זמן תיקון משוער</label>
+          <input type="text" id="f-fixTime" placeholder="לדוגמה: 3–5 ימי עבודה">
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print" style="display:flex;justify-content:space-between;gap:10px;">
+      <button class="btn btn-ghost" onclick="goSection(2)">→ חזרה</button>
+      <button class="btn btn-primary" onclick="goSection(4)">המשך לדוח ←</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 4: דוח סיכום                      -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="form-section" id="section-4" style="display:none;">
+
+    <div class="form-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📄 דוח איתור נזילות</div>
+          <div class="card-sub">סיכום מקצועי, סגירת תיק והפקת דוח</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ הדפס</button>
+          <button class="btn btn-green btn-sm" onclick="closeCase()">✓ סגור תיק</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:20px;">
+        <label>סיכום מקצועי (לדוח)</label>
+        <textarea id="f-summary" rows="5" placeholder="תאר בצורה מקצועית ותמציתית: מהות הבדיקה, ממצאים עיקריים, מסקנה ומה מומלץ..."></textarea>
+      </div>
+
+      <div class="sub-title">הצהרת המאתר</div>
+      <div class="field" style="margin-bottom:24px;">
+        <textarea id="f-declaration" rows="3" placeholder="אני החתום מטה מצהיר כי הבדיקה בוצעה על ידי במקצועיות ובאמינות, תוך שימוש בציוד מוסמך, וכי הממצאים המפורטים בדוח זה מבוססים על בדיקה בפועל."></textarea>
+      </div>
+
+      <div id="reportPreviewContainer">
+        <div id="reportPreview" class="report-preview">
+          <!-- ינוצר דינמית -->
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print" style="display:flex;justify-content:space-between;gap:10px;margin-top:16px;">
+      <button class="btn btn-ghost" onclick="goSection(3)">→ חזרה</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="window.location.href='/app/payments.html?case='+currentCaseId">💰 תשלום</button>
+        <button class="btn btn-primary" onclick="saveCase()">💾 שמור דוח</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div><!-- /.main-wrap -->
+</div><!-- /.app -->
+
+<div class="save-bar no-print">
+  <div class="save-status" id="saveStatus">לא נשמר</div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-ghost btn-sm" onclick="saveCase()">💾 שמור</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// *** REPLACE WITH YOUR ACTUAL omda-itur FIREBASE CONFIG ***
+firebase.initializeApp({
+  apiKey: "AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI", authDomain: "omdan-leak.firebaseapp.com", projectId: "omdan-leak", storageBucket: "omdan-leak.firebasestorage.app", messagingSenderId: "979018499185", appId: "1:979018499185:web:1496303b1cd8a993bdc7d0", measurementId: "G-P62VFXD521"
+});
+const auth=firebase.auth(), db=firebase.firestore();
+let currentUser=null, currentCaseId=null, currentSection=1, certValue='';
+let profileData={};
+
+// ── Auth ──
+auth.onAuthStateChanged(async u=>{
+  if (!u) {
+  window.location.href = '/index.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+  return;
+}
+  currentUser=u;
+  const sb=document.getElementById('sidebarUser'); if(sb) sb.textContent=u.displayName||u.email;
+  // Load profile
+  try{
+    const snap=await db.collection('users').doc(u.uid).get();
+    if(snap.exists) profileData=snap.data()||{};
+  }catch(e){}
+  // Load or create case
+  const params=new URLSearchParams(window.location.search);
+  currentCaseId=params.get('case');
+  const viewMode=params.get('view')==='report';
+  const printMode=params.get('print')==='1';
+  if(currentCaseId){
+    await loadCase(currentCaseId);
+    if(viewMode||printMode){ goSection(4); if(printMode) setTimeout(()=>window.print(),800); }
+  } else {
+    currentCaseId=`leak_${Date.now()}`;
+    window.history.replaceState({},'',`/app/case.html?case=${currentCaseId}`);
+    document.getElementById('f-date').value=todayISO();
+    await generateCaseNum();
+  }
+  setSaveStatus('unsaved');
+});
+
+async function generateCaseNum(){
+  try{
+    const counterRef=db.collection('counters').doc('leakCases');
+    const num=await db.runTransaction(async t=>{
+      const snap=await t.get(counterRef);
+      const next=(snap.exists?snap.data().value:0)+1;
+      t.set(counterRef,{value:next});
+      return next;
+    });
+    const yr=new Date().getFullYear().toString().slice(-2);
+    const caseNum=`IL-${yr}-${String(num).padStart(4,'0')}`;
+    document.getElementById('f-caseNum').value=caseNum;
+    document.getElementById('caseNumDisplay').textContent=caseNum;
+  }catch(e){
+    const ts=Date.now().toString().slice(-6);
+    document.getElementById('f-caseNum').value=`IL-${ts}`;
+    document.getElementById('caseNumDisplay').textContent=`IL-${ts}`;
+  }
+}
+
+async function loadCase(id){
+  try{
+    const snap=await db.collection('leakCases').doc(id).get();
+    if(!snap.exists){window.location.href='/app/dashboard.html';return;}
+    const d=snap.data();
+    if(d.uid!==currentUser.uid){window.location.href='/app/dashboard.html';return;}
+    // Populate form
+    const s=d.state||{};
+    const cl=s.client||{}, ins=s.inspection||{}, fin=s.findings||{}, sum=s.summary||{};
+    setVal('f-caseNum',d.caseNum||id.slice(-8));
+    setVal('f-date',d.date||cl.date||'');
+    setVal('f-clientName',cl.name||'');
+    setVal('f-contact',cl.contact||'');
+    setVal('f-phone',cl.phone||'');
+    setVal('f-email',cl.email||'');
+    setVal('f-address',cl.address||'');
+    setVal('f-city',cl.city||'');
+    setVal('f-floor',cl.floor||'');
+    setVal('f-propertyType',cl.propertyType||'apartment');
+    setVal('f-propertyAge',cl.propertyAge||'');
+    setVal('f-management',cl.management||'');
+    setVal('f-source',cl.source||'direct');
+    setVal('f-insCompany',cl.insCompany||'');
+    setVal('f-claimNum',cl.claimNum||'');
+    setVal('f-urgency',cl.urgency||'normal');
+    setVal('f-problem',cl.problem||'');
+    setVal('f-area',cl.area||'');
+    setVal('f-status',d.status||'draft');
+    // inspection
+    setVal('f-thermalDone',ins.thermalDone||'yes');
+    setVal('f-thermalModel',ins.thermalModel||'');
+    setVal('f-thermal',ins.thermal||'');
+    setVal('f-thermalMax',ins.thermalMax||'');
+    setVal('f-thermalBg',ins.thermalBg||'');
+    setVal('f-moistureModel',ins.moistureModel||'');
+    setVal('m-wall1',ins.moistureWall1||'');
+    setVal('m-wall1-note',ins.moistureWall1Note||'');
+    setVal('m-wall2',ins.moistureWall2||'');
+    setVal('m-wall2-note',ins.moistureWall2Note||'');
+    setVal('m-ceiling',ins.moistureCeiling||'');
+    setVal('m-ceiling-note',ins.moistureCeilingNote||'');
+    setVal('m-floor',ins.moistureFloor||'');
+    setVal('m-floor-note',ins.moistureFloorNote||'');
+    setVal('f-pressureDone',ins.pressureDone||'no');
+    setVal('f-pressureStart',ins.pressureStart||'');
+    setVal('f-pressureEnd',ins.pressureEnd||'');
+    setVal('f-pressureDuration',ins.pressureDuration||'');
+    setVal('f-acousticDone',ins.acousticDone||'no');
+    setVal('f-acoustic',ins.acoustic||'');
+    setVal('f-gasDone',ins.gasDone||'no');
+    setVal('f-pipeType',ins.pipeType||'');
+    setVal('f-pipeDepth',ins.pipeDepth||'');
+    setVal('f-pipeAge',ins.pipeAge||'');
+    setVal('f-inspNotes',ins.notes||'');
+    // findings
+    setVal('f-leakType',fin.leakType||'water');
+    setVal('f-leakSource',fin.leakSource||'');
+    setVal('f-leakLocation',fin.leakLocation||'');
+    setVal('f-damageRadius',fin.damageRadius||'');
+    if(fin.certainty) setCertainty(fin.certainty);
+    setVal('f-damage',fin.damage||'');
+    setVal('f-damageScope',fin.damageScope||'medium');
+    setVal('f-thirdParty',fin.thirdParty||'');
+    setVal('f-immediateAction',fin.immediateAction||'');
+    setVal('f-recommendation',fin.recommendation||'');
+    setVal('f-referral',fin.referral||'none');
+    setVal('f-fixTime',fin.fixTime||'');
+    // summary
+    setVal('f-summary',sum.summary||'');
+    setVal('f-declaration',sum.declaration||'');
+    updateStatusBadge();
+    document.getElementById('caseNumDisplay').textContent=d.caseNum||id.slice(-8);
+    setSaveStatus('saved');
+  }catch(e){
+    showToast('שגיאה בטעינת תיק: '+e.message);
+  }
+}
+
+function buildState(){
+  return {
+    client:{
+      name:getVal('f-clientName'),contact:getVal('f-contact'),phone:getVal('f-phone'),
+      email:getVal('f-email'),address:getVal('f-address'),city:getVal('f-city'),
+      floor:getVal('f-floor'),propertyType:getVal('f-propertyType'),
+      propertyAge:getVal('f-propertyAge'),management:getVal('f-management'),
+      source:getVal('f-source'),insCompany:getVal('f-insCompany'),
+      claimNum:getVal('f-claimNum'),urgency:getVal('f-urgency'),
+      problem:getVal('f-problem'),area:getVal('f-area'),date:getVal('f-date'),
+    },
+    inspection:{
+      thermalDone:getVal('f-thermalDone'),thermalModel:getVal('f-thermalModel'),
+      thermal:getVal('f-thermal'),thermalMax:getVal('f-thermalMax'),thermalBg:getVal('f-thermalBg'),
+      moistureModel:getVal('f-moistureModel'),
+      moistureWall1:getVal('m-wall1'),moistureWall1Note:getVal('m-wall1-note'),
+      moistureWall2:getVal('m-wall2'),moistureWall2Note:getVal('m-wall2-note'),
+      moistureCeiling:getVal('m-ceiling'),moistureCeilingNote:getVal('m-ceiling-note'),
+      moistureFloor:getVal('m-floor'),moistureFloorNote:getVal('m-floor-note'),
+      pressureDone:getVal('f-pressureDone'),pressureStart:getVal('f-pressureStart'),
+      pressureEnd:getVal('f-pressureEnd'),pressureDuration:getVal('f-pressureDuration'),
+      acousticDone:getVal('f-acousticDone'),acoustic:getVal('f-acoustic'),
+      gasDone:getVal('f-gasDone'),pipeType:getVal('f-pipeType'),
+      pipeDepth:getVal('f-pipeDepth'),pipeAge:getVal('f-pipeAge'),notes:getVal('f-inspNotes'),
+    },
+    findings:{
+      leakType:getVal('f-leakType'),leakSource:getVal('f-leakSource'),
+      leakLocation:getVal('f-leakLocation'),damageRadius:getVal('f-damageRadius'),
+      certainty:certValue,damage:getVal('f-damage'),damageScope:getVal('f-damageScope'),
+      thirdParty:getVal('f-thirdParty'),immediateAction:getVal('f-immediateAction'),
+      recommendation:getVal('f-recommendation'),referral:getVal('f-referral'),fixTime:getVal('f-fixTime'),
+    },
+    summary:{
+      summary:getVal('f-summary'),declaration:getVal('f-declaration'),resolved:getVal('f-status')==='completed',
+    },
+  };
+}
+
+async function saveCase(){
+  setSaveStatus('saving');
+  try{
+    const state=buildState();
+    const caseData={
+      uid:currentUser.uid,
+      caseNum:getVal('f-caseNum'),
+      date:getVal('f-date'),
+      name:state.client.name,
+      status:getVal('f-status'),
+      state,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    };
+    await db.collection('leakCases').doc(currentCaseId).set(caseData,{merge:true});
+    setSaveStatus('saved');
+    showToast('✓ נשמר בהצלחה');
+    if(currentSection===4) renderReport();
+  }catch(e){
+    setSaveStatus('unsaved');
+    showToast('שגיאה בשמירה: '+e.message);
+  }
+}
+
+async function closeCase(){
+  document.getElementById('f-status').value='completed';
+  updateStatusBadge();
+  await saveCase();
+  showToast('✅ התיק נסגר בהצלחה');
+}
+
+// ── SECTIONS ──
+function goSection(n){
+  currentSection=n;
+  document.querySelectorAll('.form-section').forEach((el,i)=>{el.style.display=i+1===n?'block':'none';});
+  document.querySelectorAll('.step-btn').forEach((btn,i)=>{
+    btn.className='step-btn';
+    if(i+1===n) btn.classList.add('active');
+    else if(i+1<n) btn.classList.add('done');
+  });
+  if(n===4){saveCase();setTimeout(renderReport,300);}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── CERTAINTY ──
+function setCertainty(val){
+  certValue=val;
+  document.getElementById('f-certainty').value=val;
+  ['low','medium','high'].forEach(v=>{
+    const btn=document.getElementById(`cert-${v}`);
+    btn.classList.toggle('active',v===val);
+  });
+}
+
+// ── STATUS BADGE ──
+function updateStatusBadge(){
+  const s=getVal('f-status');
+  const badge=document.getElementById('caseStatusBadge');
+  if(!badge) return;
+  const map={draft:['status-draft','טיוטה'],scheduled:['status-processing','נקבע מועד'],processing:['status-processing','בבדיקה'],pending_docs:['status-review','ממתין למסמכים'],report_prep:['status-review','דוח בהכנה'],completed:['status-done','הושלם']};
+  const[cls,lbl]=map[s]||['status-draft','טיוטה'];
+  badge.className=`status-badge ${cls}`;
+  badge.textContent=lbl;
+}
+
+// ── REPORT RENDERER ──
+function renderReport(){
+  const s=buildState();
+  const cl=s.client, ins=s.inspection, fin=s.findings, sum=s.summary;
+  const caseNum=getVal('f-caseNum');
+  const today=new Date().toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
+  const leakTypeHe={water:'מים — צנרת לחץ',sewage:'ביוב / ניקוז',heating:'חימום תת-רצפתי',pool:'בריכה / ג\'קוזי',roof:'גג / ממסר',ac:'מזגן / קירור',external:'חדירת מי גשם',other:'אחר'};
+  const certHe={low:'נמוכה',medium:'בינונית',high:'גבוהה'};
+  const certCls={low:'rpt-cert-low',medium:'rpt-cert-medium',high:'rpt-cert-high'};
+  const profName=profileData.nameHe||profileData.fullName||'___________';
+  const profTitle=profileData.title||'מאתר נזילות מוסמך';
+  const profLicense=profileData.license||'';
+  const profPhone=profileData.phone||'';
+  const profAddress=profileData.address||'';
+  const sigHtml=profileData.signature?`<img src="${profileData.signature}" style="max-height:50px;max-width:160px;display:block;margin:0 auto 6px;">`:
+    `<div style="height:50px;border-bottom:1px dashed #374151;margin-bottom:6px;"></div>`;
+
+  // Measurements table
+  const measRows=[
+    {label:'קיר ראשי',val:ins.moistureWall1,note:ins.moistureWall1Note},
+    {label:'קיר משני',val:ins.moistureWall2,note:ins.moistureWall2Note},
+    {label:'תקרה',val:ins.moistureCeiling,note:ins.moistureCeilingNote},
+    {label:'רצפה',val:ins.moistureFloor,note:ins.moistureFloorNote},
+  ].filter(r=>r.val);
+
+  document.getElementById('reportPreview').innerHTML=`
+<div class="rpt-header">
+  <div class="rpt-logo-area">
+    ${profileData.logoImageData?`<img src="${profileData.logoImageData}" style="max-height:60px;max-width:160px;object-fit:contain;display:block;">`:
+    profileData.logoLetters?`<div style="width:56px;height:56px;border-radius:12px;background:${profileData.logoColor||'#F59E0B'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${profileData.logoTextColor||'#111'};">${profileData.logoLetters}</div>`:
+    `<div style="font-size:18px;font-weight:900;color:#111;">OMDA איתור</div>`}
+    <div style="margin-top:8px;font-size:13px;font-weight:700;color:#374151;">${profName}</div>
+    <div style="font-size:12px;color:#6b7280;">${profTitle}${profLicense?` · רישיון ${profLicense}`:''}</div>
+    ${profPhone?`<div style="font-size:12px;color:#6b7280;">${profPhone}</div>`:''}
+    ${profAddress?`<div style="font-size:12px;color:#6b7280;">${profAddress}</div>`:''}
+  </div>
+  <div class="rpt-meta">
+    <div><strong>דוח איתור נזילות</strong></div>
+    <div>מספר תיק: <strong>${caseNum}</strong></div>
+    <div>תאריך: ${today}</div>
+    ${cl.claimNum?`<div>מס' תביעה: ${cl.claimNum}</div>`:''}
+    ${cl.insCompany?`<div>חברת ביטוח: ${cl.insCompany}</div>`:''}
+  </div>
+</div>
+
+<div class="rpt-section">
+  <h3>פרטי המזמין והנכס</h3>
+  <div class="rpt-row"><span class="rpt-label">שם לקוח:</span><span class="rpt-val">${cl.name||'—'}</span></div>
+  <div class="rpt-row"><span class="rpt-label">כתובת:</span><span class="rpt-val">${[cl.address,cl.city,cl.floor].filter(Boolean).join(', ')||'—'}</span></div>
+  <div class="rpt-row"><span class="rpt-label">סוג נכס:</span><span class="rpt-val">${({apartment:'דירת מגורים',house:'בית פרטי',building:'בניין משותף',commercial:'מסחר / משרד',public:'מוסד / ציבורי'})[cl.propertyType]||cl.propertyType||'—'}</span></div>
+  ${cl.problem?`<div class="rpt-row"><span class="rpt-label">תיאור הבעיה:</span><span class="rpt-val">${cl.problem}</span></div>`:''}
+  <div class="rpt-row"><span class="rpt-label">אזור בדיקה:</span><span class="rpt-val">${cl.area||'—'}</span></div>
+</div>
+
+<div class="rpt-section">
+  <h3>שיטות בדיקה וממצאים</h3>
+  ${ins.thermal||ins.thermalDone==='yes'?`<div class="rpt-row"><span class="rpt-label">מצלמה תרמית:</span><span class="rpt-val">${ins.thermal||'בוצעה'}</span></div>`:''}
+  ${ins.thermalMax?`<div class="rpt-row"><span class="rpt-label">טמפ' מרבית שנמדדה:</span><span class="rpt-val">${ins.thermalMax}°C (רקע: ${ins.thermalBg||'—'}°C)</span></div>`:''}
+  ${measRows.length?`
+  <div style="margin:8px 0;">מדידות לחות:</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead><tr style="background:#f3f4f6;"><th style="padding:6px 10px;text-align:right;">מיקום</th><th style="padding:6px 10px;text-align:right;">לחות (%)</th><th style="padding:6px 10px;text-align:right;">הערה</th></tr></thead>
+    <tbody>${measRows.map(r=>`<tr><td style="padding:6px 10px;border-bottom:1px solid #e5e7eb;">${r.label}</td><td style="padding:6px 10px;border-bottom:1px solid #e5e7eb;font-weight:700;color:${Number(r.val)>70?'#dc2626':'#059669'};">${r.val}%</td><td style="padding:6px 10px;border-bottom:1px solid #e5e7eb;">${r.note||'—'}</td></tr>`).join('')}</tbody>
+  </table>`:''}
+  ${ins.pressureDone==='yes'?`<div class="rpt-row" style="margin-top:8px;"><span class="rpt-label">בדיקת לחץ:</span><span class="rpt-val">לחץ התחלתי ${ins.pressureStart||'—'} בר, לחץ סיום ${ins.pressureEnd||'—'} בר, משך ${ins.pressureDuration||'—'}</span></div>`:''}
+  ${ins.acoustic?`<div class="rpt-row"><span class="rpt-label">אקוסטיקה:</span><span class="rpt-val">${ins.acoustic}</span></div>`:''}
+  ${ins.gasDone==='positive'?`<div class="rpt-row"><span class="rpt-label">בדיקת גז/טרייסר:</span><span class="rpt-val" style="color:#dc2626;">תגובה חיובית</span></div>`:''}
+  ${ins.pipeType?`<div class="rpt-row"><span class="rpt-label">סוג צנרת:</span><span class="rpt-val">${ins.pipeType}</span></div>`:''}
+</div>
+
+<div class="rpt-section">
+  <h3>ממצאים ומסקנה מקצועית</h3>
+  <div class="rpt-findings-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:14px;font-weight:800;">מקור הנזילה: ${fin.leakSource||'לא ידוע'}</div>
+      ${fin.certainty?`<span class="rpt-certainty ${certCls[fin.certainty]||'rpt-cert-medium'}">ודאות ${certHe[fin.certainty]||fin.certainty}</span>`:''}
+    </div>
+    <div style="font-size:13px;color:#374151;line-height:1.7;">
+      ${fin.leakType?`<strong>סוג נזילה:</strong> ${leakTypeHe[fin.leakType]||fin.leakType}<br>`:''}
+      ${fin.leakLocation?`<strong>מיקום:</strong> ${fin.leakLocation}<br>`:''}
+      ${fin.damageRadius?`<strong>השפעה על:</strong> ${fin.damageRadius}<br>`:''}
+    </div>
+  </div>
+  ${fin.damage?`<div class="rpt-row" style="margin-top:12px;"><span class="rpt-label">נזקים נלווים:</span><span class="rpt-val">${fin.damage}</span></div>`:''}
+  ${fin.thirdParty?`<div class="rpt-row"><span class="rpt-label">נפגעים נוספים:</span><span class="rpt-val">${fin.thirdParty}</span></div>`:''}
+</div>
+
+<div class="rpt-section">
+  <h3>המלצות</h3>
+  ${fin.immediateAction?`<div class="rpt-row"><span class="rpt-label">פעולה מיידית:</span><span class="rpt-val">${fin.immediateAction}</span></div>`:''}
+  ${fin.recommendation?`<div class="rpt-row"><span class="rpt-label">המלצה לתיקון:</span><span class="rpt-val">${fin.recommendation}</span></div>`:''}
+  ${fin.fixTime?`<div class="rpt-row"><span class="rpt-label">זמן תיקון:</span><span class="rpt-val">${fin.fixTime}</span></div>`:''}
+</div>
+
+${sum.summary?`<div class="rpt-section"><h3>סיכום מקצועי</h3><p style="font-size:13px;line-height:1.8;color:#1a1a1a;">${sum.summary}</p></div>`:''}
+
+<div class="rpt-sig">
+  <div class="rpt-sig-block">
+    ${sigHtml}
+    <div style="font-size:12px;font-weight:700;color:#374151;">${profName}</div>
+    <div style="font-size:11px;color:#6b7280;">${profTitle}</div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;text-align:left;">
+    <div>תאריך: ${today}</div>
+    ${sum.declaration?`<div style="font-size:11px;max-width:280px;line-height:1.5;margin-top:8px;">${sum.declaration}</div>`:''}
+  </div>
+</div>
+`;
+}
+
+// ── HELPERS ──
+function getVal(id){const el=document.getElementById(id);return el?el.value:'';}
+function setVal(id,v){const el=document.getElementById(id);if(el&&v!==undefined) el.value=v;}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setSaveStatus(s){const el=document.getElementById('saveStatus');el.className='save-status';if(s==='saved'){el.textContent='✓ נשמר';el.classList.add('saved');}else if(s==='saving'){el.textContent='שומר...';}else{el.textContent='שינויים לא נשמרו';el.classList.add('unsaved');}}
+function doLogout(){auth.signOut().then(()=>window.location.href='/');}
+
+// Auto-save on change (debounced)
+let _saveTimer=null;
+document.addEventListener('input',()=>{setSaveStatus('unsaved');clearTimeout(_saveTimer);_saveTimer=setTimeout(saveCase,4000);});
+document.addEventListener('change',()=>{setSaveStatus('unsaved');});
+// Ctrl+S
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveCase();}});
+</script>
+
+<style>
+.omdan-footer{display:none;}
+@media print{
+  .omdan-footer,.save-bar,.stepper-wrap,.toast,#topbar,.sb-logo,.sidebar,.mob-nav,.btn-row,.no-print{display:none!important;}
+}
+</style>
+
+<!-- Mobile Bottom Nav -->
+<nav style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--primary);border-top:1px solid var(--border);padding:8px 0;grid-template-columns:repeat(4,1fr);" id="mobNav">
+  <a href="/app/dashboard.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;color:var(--muted);font-size:9px;font-weight:600;text-decoration:none;">
+    <span style="font-size:20px;">📊</span>דשבורד
+  </a>
+  <a href="/app/reports.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;color:var(--muted);font-size:9px;font-weight:600;text-decoration:none;">
+    <span style="font-size:20px;">📄</span>דוחות
+  </a>
+  <button onclick="saveCase()" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;color:var(--accent);font-size:9px;font-weight:600;background:none;border:none;cursor:pointer;font-family:'Heebo',sans-serif;">
+    <span style="font-size:20px;">💾</span>שמור
+  </button>
+  <a href="/app/settings.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;color:var(--muted);font-size:9px;font-weight:600;text-decoration:none;">
+    <span style="font-size:20px;">⚙️</span>הגדרות
+  </a>
+</nav>
+<style>@media(max-width:768px){#mobNav{display:grid!important;}}</style>
+</body>
+</html>

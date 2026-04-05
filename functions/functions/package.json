@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "amir-leak-functions": "file:.."
+  }
+}
