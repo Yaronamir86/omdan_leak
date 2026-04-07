@@ -32,10 +32,11 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-logout{width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
 .btn-logout:hover{background:rgba(239,68,68,.18);}
 
-#topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
-.tb-left{display:flex;align-items:center;gap:10px;}
-.tb-page{font-size:13px;font-weight:700;color:var(--muted);}
-.tb-right{display:flex;align-items:center;gap:8px;}
+#topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;position:sticky;top:0;z-index:100;}
+.tb-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.tb-page{font-size:15px;font-weight:800;color:var(--text);white-space:nowrap;}
+.tb-case-num{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50vw;}
+.tb-right{display:none !important;}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:12px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;transition:all .18s;text-decoration:none;}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 3px 12px rgba(33,150,243,.3);}
@@ -102,12 +103,19 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 /* Photos */
 .photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:8px;}
 .photo-thumb{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--primary2);border:1px solid var(--border);}
-.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
 .photo-label{font-size:10px;color:var(--muted);padding:4px 8px;background:rgba(0,0,0,.6);position:absolute;bottom:0;left:0;right:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.photo-del{position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(239,68,68,.85);border:none;border-radius:50%;color:#fff;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.photo-del{position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(239,68,68,.85);border:none;border-radius:50%;color:#fff;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:4;}
 .photo-upload-btn{aspect-ratio:4/3;border-radius:10px;border:2px dashed var(--border);background:var(--primary2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .18s;color:var(--muted);font-size:12px;font-weight:600;}
 .photo-upload-btn:hover{border-color:var(--accent);color:var(--accent);}
 .photo-upload-btn .icon{font-size:28px;}
+.photo-thumb.placeholder,.photo-add-tile{display:flex;align-items:center;justify-content:center;border:2px dashed var(--border);background:rgba(255,255,255,.02);cursor:pointer;transition:all .18s;text-decoration:none;}
+.photo-thumb.placeholder:hover,.photo-add-tile:hover{border-color:var(--accent);color:var(--accent);}
+.photo-thumb.placeholder::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.015),rgba(255,255,255,.03));pointer-events:none;}
+.ph-inner{text-align:center;color:var(--muted);font-size:11px;font-weight:700;line-height:1.4;position:relative;z-index:1;}
+.ph-inner span{font-size:21px;display:block;margin-bottom:2px;color:var(--accent2);}
+.photo-thumb.has-markup::after{content:'✎';position:absolute;bottom:4px;right:4px;background:rgba(17,24,39,.8);border:1px solid rgba(255,255,255,.12);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;z-index:3;}
+.photo-open-hint{position:absolute;right:4px;top:4px;background:rgba(17,24,39,.75);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;z-index:2;pointer-events:none;}
 
 /* Tools */
 .tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
@@ -152,9 +160,24 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 .insp-row-wrap:last-child{margin-bottom:0;}
 .insp-row-main{display:grid;grid-template-columns:28px 160px 1fr 1fr;gap:14px;align-items:start;margin-bottom:10px;}
 .insp-row-photos{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;padding-right:32px;}
-.insp-row-photos .photo-thumb{width:90px;height:68px;aspect-ratio:unset;}
+.insp-row-photos .photo-thumb,.insp-row-photos .photo-add-tile{width:90px;height:68px;aspect-ratio:unset;flex-shrink:0;}
 .insp-row-photos .photo-upload-btn{width:90px;height:68px;aspect-ratio:unset;font-size:11px;gap:3px;}
 .insp-row-photos .photo-upload-btn .icon{font-size:18px;}
+
+.insp-acc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;}
+.insp-acc-title{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.insp-acc-name{font-size:13px;font-weight:800;color:var(--text);}
+.insp-acc-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.insp-photo-count{font-size:11px;color:var(--muted);}
+.insp-acc-chevron{width:28px;height:28px;border-radius:999px;border:1px solid var(--primary3);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;transition:transform .18s ease,color .18s ease,border-color .18s ease;background:rgba(255,255,255,.02);}
+.insp-row-wrap.open .insp-acc-chevron{transform:rotate(180deg);color:var(--accent);border-color:var(--accent);}
+.insp-acc-body{margin-top:12px;}
+.editor-more-wrap{position:relative;}
+.editor-more-menu{display:none;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.editor-more-wrap.open .editor-more-menu{display:flex;}
+.editor-btn.is-mobile-primary{display:none;}
+.editor-btn.is-mobile-more{display:inline-flex;}
+.editor-more-toggle{display:none;}
 
 @media(max-width:900px){
   .form-row-2{grid-template-columns:1fr;}
@@ -163,11 +186,132 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 @media(max-width:768px){
   .sidebar{display:none;}
   main{padding:16px 12px 100px;}
+  #topbar{padding:10px 12px;min-height:52px;}
+  .tb-page{font-size:14px;}
+  .tb-case-num{font-size:11px;max-width:42vw;}
   .fields-grid,.fields-grid.three{grid-template-columns:1fr;}
   .stepper-wrap{gap:4px;}
   .step-btn .step-label{display:none;}
+  .insp-row-wrap{padding:12px;}
   .insp-row-main{grid-template-columns:1fr;}
+  .insp-row-wrap:not(.open) .insp-acc-body{display:none;}
+  .insp-acc-name{font-size:14px;}
+  .insp-acc-meta{gap:6px;}
+  .insp-row-photos{padding-right:0;}
+  .editor-btn.is-mobile-primary{display:inline-flex;}
+  .editor-btn.is-mobile-more{display:none;}
+  .editor-more-toggle{display:inline-flex;}
 }
+
+/* Image editor */
+.img-editor-modal{display:none;position:fixed;inset:0;background:rgba(3,7,18,.9);z-index:12000;align-items:center;justify-content:center;padding:20px;}
+.img-editor-shell{width:min(1180px,96vw);max-height:92vh;display:grid;grid-template-columns:300px 1fr;gap:16px;}
+.img-editor-panel,.img-editor-stage{background:#111827;border:1px solid var(--border);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+.img-editor-panel{padding:16px;overflow:auto;}
+.img-editor-stage{padding:14px;display:flex;flex-direction:column;min-height:0;}
+.img-editor-title{font-size:15px;font-weight:800;margin-bottom:4px;}
+.img-editor-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.editor-group{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.editor-group:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.editor-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.editor-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:12px;border:1px solid var(--primary3);background:var(--primary2);color:var(--text);font:700 12px 'Heebo',sans-serif;cursor:pointer;transition:all .18s;}
+.editor-btn:hover{border-color:var(--accent);color:var(--accent);}
+.editor-btn.active{border-color:var(--accent);background:rgba(33,150,243,.12);color:var(--accent);}
+.editor-swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;}
+.editor-swatch{width:100%;aspect-ratio:1;border-radius:12px;border:2px solid transparent;cursor:pointer;}
+.editor-swatch.active{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.18);}
+.editor-range{width:100%;}
+.editor-stage-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.editor-stage-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.editor-canvas-wrap{flex:1;min-height:0;height:100%;max-height:calc(92vh - 170px);background:#030712;border:1px solid var(--border);border-radius:14px;overflow:auto;display:flex;align-items:center;justify-content:center;padding:18px;position:relative;}
+#editorCanvas{display:block;max-width:none;background:#0b1220;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:crosshair;}
+.editor-meta{font-size:11px;color:var(--muted);}
+.editor-small-label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;}
+.editor-inline-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.editor-help{font-size:11px;color:var(--muted);line-height:1.6;}
+@media(max-width:960px){
+  .img-editor-shell{grid-template-columns:1fr;max-height:96vh;}
+  .img-editor-panel{order:2;}
+  .img-editor-stage{order:1;min-height:50vh;}
+}
+@media(max-width:768px){
+  .img-editor-modal{
+    padding:0;
+    align-items:stretch;
+    justify-content:stretch;
+  }
+  .img-editor-shell{
+    width:100vw;
+    height:100dvh;
+    max-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .img-editor-stage{
+    order:1;
+    flex:1 1 auto;
+    min-height:0;
+    border-radius:0;
+    border-left:none;
+    border-right:none;
+    border-top:none;
+    padding:10px;
+  }
+  .editor-stage-top{
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .editor-stage-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+  .editor-stage-actions .btn{
+    flex:1 1 0;
+    justify-content:center;
+  }
+  .editor-canvas-wrap{
+    max-height:none;
+    padding:10px;
+    border-radius:12px 12px 0 0;
+  }
+  .img-editor-panel{
+    order:2;
+    flex:0 0 auto;
+    max-height:38dvh;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    border-radius:18px 18px 0 0;
+    border-left:none;
+    border-right:none;
+    border-bottom:none;
+    padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+  .img-editor-title{font-size:14px;}
+  .img-editor-sub,.editor-help,.editor-meta,.editor-small-label{font-size:11px;}
+  .editor-toolbar,
+  .editor-inline-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:2px;
+  }
+  .editor-toolbar::-webkit-scrollbar,
+  .editor-inline-actions::-webkit-scrollbar{display:none;}
+  .editor-btn{
+    flex:0 0 auto;
+    min-height:40px;
+    white-space:nowrap;
+    padding:9px 12px;
+  }
+  .editor-swatches{
+    grid-template-columns:repeat(5,minmax(42px,1fr));
+    gap:8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -200,13 +344,9 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 <div id="topbar">
   <div class="tb-left">
     <div class="tb-page" id="topbarTitle">תיק איתור</div>
+    <div class="tb-case-num" id="caseNumDisplay"></div>
   </div>
-  <div class="tb-right">
-    <span style="font-size:12px;color:var(--muted);" id="caseNumDisplay"></span>
-    <div id="caseStatusBadge" class="status-badge no-print status-draft">טיוטה</div>
-    <button class="btn btn-ghost btn-sm no-print" onclick="window.location.href='/app/dashboard.html'">← דשבורד</button>
-    <button class="btn btn-primary btn-sm no-print" onclick="saveCase()">💾 שמור</button>
-  </div>
+  <div class="tb-right"></div>
 </div>
 
 <main>
@@ -388,6 +528,83 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 </div><!-- main-wrap -->
 </div><!-- app -->
 
+
+<div id="imgEditorModal" class="img-editor-modal no-print">
+  <div class="img-editor-shell">
+    <div class="img-editor-panel">
+      <div class="img-editor-title">עורך סימונים לתמונה</div>
+      <div class="img-editor-sub">חצים, עיגולים, זום, צבעים, עובי קו, Undo / Redo וסיבוב חץ</div>
+
+      <div class="editor-group">
+        <span class="editor-small-label">כלי סימון</span>
+        <div class="editor-toolbar">
+          <button type="button" class="editor-btn active" id="tool-arrow" onclick="setEditorTool('arrow')">↗️ חץ</button>
+          <button type="button" class="editor-btn" id="tool-circle" onclick="setEditorTool('circle')">⭕ עיגול</button>
+        </div>
+        <div class="editor-help" style="margin-top:10px;">גרור על התמונה כדי להוסיף סימון. בחץ אפשר לבחור סימון ולסובב אותו.</div>
+      </div>
+
+      <div class="editor-group">
+        <span class="editor-small-label">צבע סימון</span>
+        <div class="editor-swatches" id="editorSwatches"></div>
+      </div>
+
+      <div class="editor-group">
+        <label class="editor-small-label" for="editorLineWidth">עובי קו</label>
+        <input id="editorLineWidth" class="editor-range" type="range" min="2" max="18" step="1" value="10" oninput="setEditorLineWidth(this.value)">
+        <div class="editor-meta"><span id="editorLineWidthValue">10</span> פיקסלים</div>
+      </div>
+
+      <div class="editor-group">
+        <span class="editor-small-label">פעולות</span>
+        <div class="editor-inline-actions">
+          <button type="button" class="editor-btn is-mobile-primary" onclick="undoEditor()">↶ Undo</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="redoEditor()">↷ Redo</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="deleteSelectedAnnotation()">🗑️ מחק</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="resetEditorZoom()">🔎 איפוס זום</button>
+          <div class="editor-more-wrap" id="editorMoreWrap">
+            <button type="button" class="editor-btn editor-more-toggle" onclick="toggleEditorMore()">⋯ עוד</button>
+            <div class="editor-more-menu">
+              <button type="button" class="editor-btn is-mobile-more" onclick="nudgeEditorZoom(-10)">− הקטן</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="nudgeEditorZoom(10)">+ הגדל</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="resetEditorZoom()">איפוס זום</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="editSelectedAnnotationText()">✏️ טקסט</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="deleteSelectedAnnotation()">🗑️ מחק סימון</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="undoEditor()">↶ Undo</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="redoEditor()">↷ Redo</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="clearEditorAnnotations()">🧹 נקה הכל</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-group">
+        <label class="editor-small-label" for="editorZoom">זום</label>
+        <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
+      </div>
+    </div>
+
+    <div class="img-editor-stage">
+      <div class="editor-stage-top">
+        <div>
+          <div class="img-editor-title" style="margin:0;">תצוגת עריכה</div>
+          <div class="editor-meta" id="editorMeta">אין תמונה פתוחה</div>
+        </div>
+        <div class="editor-stage-actions">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="closeEditor()">סגור</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="saveEditedImage()">שמור לתמונה</button>
+        </div>
+      </div>
+      <div class="editor-canvas-wrap" id="editorCanvasWrap">
+        <canvas id="editorCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="save-bar no-print">
   <div class="save-status" id="saveStatus">לא נשמר</div>
   <div style="display:flex;gap:8px;">
@@ -444,6 +661,7 @@ auth.onAuthStateChanged(async u=>{
     if(snap.exists) profileData=snap.data()||{};
   }catch(e){}
   populateStaticBanners();
+  ensurePhotoShapeDefaults();
   renderInspRows();
   // Load or create case
   const params=new URLSearchParams(window.location.search);
@@ -557,7 +775,7 @@ async function loadCase(id){
     // ── Restore inspection data + new fields ──
     const si=s.inspection||{};
     INSP_TYPES.forEach(t=>{
-      if(si[t.id]) inspData[t.id]={status:si[t.id].status||'',notes:si[t.id].notes||'',photos:si[t.id].photos||[]};
+      if(si[t.id]) inspData[t.id]={status:si[t.id].status||'',notes:si[t.id].notes||'',photos:(si[t.id].photos||[]).map(ph=>({data:ph.data,originalData:ph.originalData||ph.data,name:ph.name||'photo',annotated:!!ph.annotated,annotations:Array.isArray(ph.annotations)?ph.annotations.map(a=>JSON.parse(JSON.stringify(a))):[]}))};
     });
     renderInspRows();
     // Restore text fields added to new structure
@@ -595,12 +813,12 @@ function buildState(){
 async function saveCase(){
   setSaveStatus('saving');
   try{
-    const state=buildState();
+    const state=sanitizeForFirestore(buildState());
     const caseData={
       uid:currentUser.uid,
       caseNum:getVal('f-caseNum'),
       date:getVal('f-date'),
-      name:state.client.name,
+      name:state.client?.name || '',
       status:getVal('f-status'),
       state,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
@@ -641,30 +859,75 @@ function populateStaticBanners(){
 function renderInspRows(){
   const wrap=document.getElementById('inspRowsWrap');
   if(!wrap) return;
+  const isMobile=window.innerWidth<=768;
   wrap.innerHTML=INSP_TYPES.map(t=>{
     const d=inspData[t.id];
     const opts=INSP_STATUS_OPTIONS.map(o=>`<option value="${o.value}"${d.status===o.value?' selected':''}>${o.label}</option>`).join('');
-    const thumbs=d.photos.map((ph,i)=>`<div class="photo-thumb" style="width:86px;height:64px;aspect-ratio:unset;flex-shrink:0;"><img src="${ph.data}" style="width:100%;height:100%;object-fit:cover;"><button class="photo-del" onclick="removeInspPhoto('${t.id}',${i})">×</button></div>`).join('');
-    return `<div class="insp-row-wrap" id="insp-row-${t.id}">
-      <div class="insp-row-main">
-        <div style="font-size:18px;text-align:center;padding-top:8px;">${t.icon}</div>
-        <div style="font-size:13px;font-weight:700;padding-top:10px;">${t.name}</div>
-        <select onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();" id="insp-status-${t.id}"
-          style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;">${opts}</select>
-        <textarea placeholder="הערות, פרטים, מדידות..." onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
-          id="insp-notes-${t.id}"
-          style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:58px;">${d.notes}</textarea>
+    const maxSlots=4;
+    const photoCount=d.photos.length;
+    const statusLabel=INSP_STATUS_OPTIONS.find(o=>o.value===d.status)?.label || 'לא בוצעה';
+    const thumbs=d.photos.map((ph,i)=>`
+      <div class="photo-thumb ${ph.annotated?'has-markup':''}" title="לחץ לפתיחת עורך סימונים">
+        <span class="photo-open-hint">ערוך</span>
+        <img src="${ph.data}" style="width:100%;height:100%;object-fit:cover;" onclick="openEditor('${t.id}',${i})">
+        <button class="photo-del" type="button" onclick="event.stopPropagation();removeInspPhoto('${t.id}',${i})">×</button>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;padding-right:50px;padding-top:4px;">
-        ${thumbs}
-        <label style="width:86px;height:64px;border-radius:10px;border:2px dashed var(--border);background:var(--primary2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;flex-shrink:0;" for="insp-file-${t.id}">
-          <span style="font-size:18px;">📷</span><span>הוסף</span>
-        </label>
-        <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+    `).join('');
+    const placeholders=Array.from({length:Math.max(0,maxSlots-d.photos.length)}).map((_,slot)=>`
+      <label class="photo-thumb placeholder" for="insp-file-${t.id}" title="הוסף תמונה">
+        <div class="ph-inner"><span>＋</span><small>הוסף תמונה</small></div>
+      </label>
+    `).join('');
+    const addTile=`<label class="photo-add-tile" for="insp-file-${t.id}" title="הוסף עוד תמונות">
+      <div class="ph-inner"><span>📷</span><small>הוסף</small></div>
+    </label>`;
+    return `<div class="insp-row-wrap ${!isMobile || d.openMobile ? 'open' : ''}" id="insp-row-${t.id}">
+      <div class="insp-acc-head" ${isMobile ? `onclick="toggleInspAccordion('${t.id}')"` : ''}>
+        <div class="insp-acc-title">
+          <div style="font-size:18px;text-align:center;">${t.icon}</div>
+          <div class="insp-acc-name">${t.name}</div>
+        </div>
+        <div class="insp-acc-meta">
+          <span class="status-pill ${getInspStatusClass(d.status)}">${statusLabel}</span>
+          <span class="insp-photo-count">${photoCount} תמונות</span>
+          ${isMobile ? '<span class="insp-acc-chevron">⌄</span>' : ''}
+        </div>
+      </div>
+      <div class="insp-acc-body">
+        <div class="insp-row-main">
+          <div style="font-size:18px;text-align:center;padding-top:8px;display:${isMobile?'none':'block'};">${t.icon}</div>
+          <div style="font-size:13px;font-weight:700;padding-top:10px;display:${isMobile?'none':'block'};">${t.name}</div>
+          <select onclick="event.stopPropagation()" onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();renderInspRows();" id="insp-status-${t.id}"
+            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;">${opts}</select>
+          <textarea placeholder="הערות, פרטים, מדידות..." onclick="event.stopPropagation()" onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
+            id="insp-notes-${t.id}"
+            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:58px;">${d.notes}</textarea>
+        </div>
+        <div class="insp-row-photos" onclick="event.stopPropagation()">
+          ${thumbs}
+          ${placeholders}
+          ${addTile}
+          <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+        </div>
       </div>
     </div>`;
   }).join('');
   updateAutoTools();
+}
+
+function getInspStatusClass(status){
+  if(status==='ok' || status==='no_finding') return 's-done';
+  if(status==='fail' || status==='anomaly') return 's-fail';
+  if(status==='partial') return 's-partial';
+  return 's-na';
+}
+
+function toggleInspAccordion(typeId){
+  if(window.innerWidth>768) return;
+  const row=inspData[typeId];
+  if(!row) return;
+  row.openMobile=!row.openMobile;
+  renderInspRows();
 }
 
 // ── Auto-tools ──
@@ -693,12 +956,538 @@ function updateAutoTools(){
 function handleInspPhoto(typeId,input){
   Array.from(input.files).forEach(file=>{
     const r=new FileReader();
-    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,name:file.name}); renderInspRows(); setSaveStatus('unsaved'); };
+    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,originalData:e.target.result,name:file.name,annotated:false,annotations:[]}); renderInspRows(); setSaveStatus('unsaved'); };
     r.readAsDataURL(file);
   });
   input.value='';
 }
 function removeInspPhoto(typeId,i){ inspData[typeId].photos.splice(i,1); renderInspRows(); setSaveStatus('unsaved'); }
+
+
+// ── Image editor / annotations ──
+const EDITOR_COLORS=['#EF4444','#F59E0B','#FDE047','#22C55E','#38BDF8'];
+let editorCanvas=null, editorCtx=null, editorBaseImage=null;
+let editorCurrentTypeId=null, editorCurrentPhotoIndex=null;
+let editorCurrentTool='arrow', editorCurrentColor=EDITOR_COLORS[0], editorCurrentLineWidth=10, editorZoom=1;
+let editorAnnotations=[], editorRedoStack=[], editorSelectedIndex=-1;
+let editorIsDrawing=false, editorDragStart=null, editorPreviewAnnotation=null;
+let editorDragMode=null, editorPointerStart=null, editorMoved=false;
+
+function ensurePhotoShapeDefaults(){
+  Object.values(inspData).forEach(item=>{
+    item.photos=(item.photos||[]).map(ph=>({
+      data:ph.data,
+      originalData:ph.originalData || ph.data,
+      name:ph.name||'photo',
+      annotated:!!ph.annotated,
+      annotations:Array.isArray(ph.annotations) ? ph.annotations.map(a=>JSON.parse(JSON.stringify(a))) : []
+    }));
+  });
+}
+
+function initEditorUi(){
+  const swatches=document.getElementById('editorSwatches');
+  if(swatches && !swatches.dataset.ready){
+    swatches.dataset.ready='1';
+    swatches.innerHTML=EDITOR_COLORS.map(color=>`<button type="button" class="editor-swatch" style="background:${color};" onclick="setEditorColor('${color}')"></button>`).join('');
+  }
+  setEditorColor(editorCurrentColor);
+  setEditorTool('arrow');
+  setEditorLineWidth(editorCurrentLineWidth);
+
+  editorCanvas=document.getElementById('editorCanvas');
+  if(editorCanvas && !editorCanvas.dataset.bound){
+    editorCanvas.dataset.bound='1';
+    editorCtx=editorCanvas.getContext('2d');
+
+    editorCanvas.addEventListener('mousedown',onEditorPointerDown);
+    editorCanvas.addEventListener('mousemove',onEditorPointerMove);
+    window.addEventListener('mouseup',onEditorPointerUp);
+
+    editorCanvas.addEventListener('touchstart',onEditorPointerDown,{passive:false});
+    editorCanvas.addEventListener('touchmove',onEditorPointerMove,{passive:false});
+    window.addEventListener('touchend',onEditorPointerUp,{passive:false});
+  }
+}
+
+function openEditor(typeId,index){
+  initEditorUi();
+  ensurePhotoShapeDefaults();
+  editorCurrentTypeId=typeId;
+  editorCurrentPhotoIndex=index;
+  editorRedoStack=[];
+  editorSelectedIndex=-1;
+  editorPreviewAnnotation=null;
+  editorDragMode=null;
+  editorPointerStart=null;
+  editorMoved=false;
+  editorZoom=1;
+  const zoomEl=document.getElementById('editorZoom');
+  if(zoomEl) zoomEl.value=100;
+  applyEditorZoom();
+
+  const moreWrap=document.getElementById('editorMoreWrap');
+  if(moreWrap) moreWrap.classList.remove('open');
+
+  const ph=inspData[typeId].photos[index];
+  editorAnnotations=(Array.isArray(ph.annotations) ? ph.annotations : []).map(a=>JSON.parse(JSON.stringify(a)));
+  const img=new Image();
+  img.onload=()=>{
+    editorBaseImage=img;
+    editorCanvas.width=img.naturalWidth || img.width;
+    editorCanvas.height=img.naturalHeight || img.height;
+    redrawEditorCanvas();
+    document.getElementById('imgEditorModal').style.display='flex';
+    document.getElementById('editorMeta').textContent=`${INSP_TYPES.find(t=>t.id===typeId)?.name || 'בדיקה'} · תמונה ${index+1}`;
+    requestAnimationFrame(()=>{
+      fitEditorToViewport();
+      requestAnimationFrame(fitEditorToViewport);
+    });
+  };
+  img.src=ph.originalData || ph.data;
+}
+
+function toggleEditorMore(){
+  const wrap=document.getElementById('editorMoreWrap');
+  if(wrap) wrap.classList.toggle('open');
+}
+
+function closeEditor(){
+  const modal=document.getElementById('imgEditorModal');
+  if(modal) modal.style.display='none';
+  const moreWrap=document.getElementById('editorMoreWrap');
+  if(moreWrap) moreWrap.classList.remove('open');
+  editorCurrentTypeId=null;
+  editorCurrentPhotoIndex=null;
+  editorAnnotations=[];
+  editorRedoStack=[];
+  editorSelectedIndex=-1;
+  editorPreviewAnnotation=null;
+  editorIsDrawing=false;
+  editorDragMode=null;
+  editorPointerStart=null;
+  editorMoved=false;
+}
+
+function setEditorTool(tool){
+  editorCurrentTool=tool;
+  ['arrow','circle'].forEach(t=>{
+    const el=document.getElementById(`tool-${t}`);
+    if(el) el.classList.toggle('active', t===tool);
+  });
+}
+
+function setEditorColor(color){
+  editorCurrentColor=color;
+  document.querySelectorAll('.editor-swatch').forEach(el=>{
+    el.classList.toggle('active', normalizeColor(el.style.backgroundColor)===normalizeColor(color));
+  });
+  if(editorSelectedIndex>-1 && editorAnnotations[editorSelectedIndex]){
+    editorAnnotations[editorSelectedIndex].color=color;
+    if(editorAnnotations[editorSelectedIndex].label) editorAnnotations[editorSelectedIndex].label.color=color;
+    redrawEditorCanvas();
+  }
+}
+
+function setEditorLineWidth(val){
+  editorCurrentLineWidth=Number(val)||10;
+  const label=document.getElementById('editorLineWidthValue');
+  if(label) label.textContent=editorCurrentLineWidth;
+  if(editorSelectedIndex>-1 && editorAnnotations[editorSelectedIndex]){
+    editorAnnotations[editorSelectedIndex].lineWidth=editorCurrentLineWidth;
+    redrawEditorCanvas();
+  }
+}
+
+function setEditorZoom(val){
+  editorZoom=Math.max(0.1, Math.min(3, Number(val)/100));
+  applyEditorZoom();
+}
+
+function fitEditorToViewport(){
+  const wrap=document.getElementById('editorCanvasWrap');
+  const input=document.getElementById('editorZoom');
+  if(!wrap || !editorCanvas || !editorCanvas.width || !editorCanvas.height) return;
+
+  const wrapStyle=getComputedStyle(wrap);
+  const padX=(parseFloat(wrapStyle.paddingLeft)||0)+(parseFloat(wrapStyle.paddingRight)||0);
+  const padY=(parseFloat(wrapStyle.paddingTop)||0)+(parseFloat(wrapStyle.paddingBottom)||0);
+
+  const availableW=Math.max(120, wrap.clientWidth - padX - 8);
+  const availableH=Math.max(120, wrap.clientHeight - padY - 8);
+
+  const fitScale=Math.min(availableW / editorCanvas.width, availableH / editorCanvas.height, 1);
+  const fitPercent=Math.max(10, Math.min(300, Math.floor(fitScale * 100)));
+
+  if(input) input.value=String(fitPercent);
+  editorZoom=fitPercent / 100;
+  applyEditorZoom();
+
+  wrap.scrollTop=0;
+  wrap.scrollLeft=0;
+}
+
+function nudgeEditorZoom(delta){
+  const input=document.getElementById('editorZoom');
+  if(!input) return;
+  input.value=Math.max(Number(input.min), Math.min(Number(input.max), Number(input.value)+delta));
+  setEditorZoom(input.value);
+}
+
+function resetEditorZoom(){
+  const input=document.getElementById('editorZoom');
+  if(input) input.value=100;
+  setEditorZoom(100);
+}
+
+function applyEditorZoom(){
+  if(!editorCanvas || !editorCanvas.width || !editorCanvas.height) return;
+  editorCanvas.style.width=`${Math.max(1, Math.round(editorCanvas.width * editorZoom))}px`;
+  editorCanvas.style.height=`${Math.max(1, Math.round(editorCanvas.height * editorZoom))}px`;
+}
+
+function normalizeColor(c){
+  return String(c||'').replace(/\s+/g,'').toLowerCase();
+}
+
+function getCanvasCoords(evt){
+  if(!editorCanvas) return {x:0,y:0};
+  const rect=editorCanvas.getBoundingClientRect();
+  const touch=evt.touches?.[0] || evt.changedTouches?.[0];
+  const clientX=touch ? touch.clientX : evt.clientX;
+  const clientY=touch ? touch.clientY : evt.clientY;
+  const scaleX=editorCanvas.width / rect.width;
+  const scaleY=editorCanvas.height / rect.height;
+  return {x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY};
+}
+
+function onEditorPointerDown(evt){
+  if(!editorCanvas || !editorBaseImage) return;
+  evt.preventDefault();
+  const pt=getCanvasCoords(evt);
+  const hit=findAnnotationHit(pt.x, pt.y);
+  editorPointerStart=pt;
+  editorMoved=false;
+
+  if(hit!==-1){
+    editorSelectedIndex=hit;
+    editorDragMode='move';
+    editorDragStart={x:pt.x,y:pt.y};
+    redrawEditorCanvas();
+    return;
+  }
+
+  editorSelectedIndex=-1;
+  editorIsDrawing=true;
+  editorDragMode='create';
+  editorDragStart=pt;
+  editorPreviewAnnotation=createAnnotationFromDrag(pt,pt);
+  redrawEditorCanvas();
+}
+
+function onEditorPointerMove(evt){
+  if(!editorDragMode || !editorDragStart) return;
+  evt.preventDefault();
+  const pt=getCanvasCoords(evt);
+  if(Math.hypot(pt.x-editorDragStart.x, pt.y-editorDragStart.y)>3) editorMoved=true;
+
+  if(editorDragMode==='move' && editorSelectedIndex>-1){
+    const dx=pt.x-editorDragStart.x;
+    const dy=pt.y-editorDragStart.y;
+    moveAnnotation(editorAnnotations[editorSelectedIndex], dx, dy);
+    editorDragStart=pt;
+    redrawEditorCanvas();
+    return;
+  }
+
+  if(editorDragMode==='create' && editorIsDrawing){
+    editorPreviewAnnotation=createAnnotationFromDrag(editorPointerStart, pt);
+    redrawEditorCanvas();
+  }
+}
+
+function onEditorPointerUp(evt){
+  if(!editorDragMode) return;
+  evt.preventDefault();
+  const pt=getCanvasCoords(evt);
+
+  if(editorDragMode==='move'){
+    editorDragMode=null;
+    editorDragStart=null;
+    redrawEditorCanvas();
+    return;
+  }
+
+  if(editorDragMode==='create' && editorIsDrawing && editorPointerStart){
+    const ann=createAnnotationFromDrag(editorPointerStart, pt);
+    editorIsDrawing=false;
+    editorDragMode=null;
+    editorDragStart=null;
+    editorPreviewAnnotation=null;
+    if(isAnnotationMeaningful(ann)){
+      maybeAttachLabelToAnnotation(ann);
+      editorAnnotations.push(ann);
+      editorRedoStack=[];
+      editorSelectedIndex=editorAnnotations.length-1;
+    }
+    redrawEditorCanvas();
+  }
+}
+
+function moveAnnotation(ann, dx, dy){
+  if(!ann) return;
+  if(ann.tool==='circle'){
+    ann.cx+=dx; ann.cy+=dy;
+    if(ann.label){ ann.label.x+=dx; ann.label.y+=dy; }
+    return;
+  }
+  ann.x1+=dx; ann.y1+=dy; ann.x2+=dx; ann.y2+=dy;
+  if(ann.label){ ann.label.x+=dx; ann.label.y+=dy; }
+}
+
+function maybeAttachLabelToAnnotation(ann){
+  const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');
+  if(!text) return;
+  ann.label={
+    text:text.trim(),
+    x:ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12),
+    y:ann.tool==='circle' ? ann.cy : ann.y2,
+    color:ann.color
+  };
+}
+
+function createAnnotationFromDrag(start,end){
+  if(editorCurrentTool==='circle'){
+    const cx=(start.x+end.x)/2;
+    const cy=(start.y+end.y)/2;
+    const rx=Math.abs(end.x-start.x)/2;
+    const ry=Math.abs(end.y-start.y)/2;
+    return {tool:'circle',cx,cy,rx,ry,color:editorCurrentColor,lineWidth:editorCurrentLineWidth};
+  }
+  return {tool:'arrow',x1:start.x,y1:start.y,x2:end.x,y2:end.y,color:editorCurrentColor,lineWidth:editorCurrentLineWidth};
+}
+
+function isAnnotationMeaningful(ann){
+  if(!ann) return false;
+  if(ann.tool==='circle') return ann.rx>8 && ann.ry>8;
+  return Math.hypot(ann.x2-ann.x1, ann.y2-ann.y1)>12;
+}
+
+function findAnnotationHit(x,y){
+  for(let i=editorAnnotations.length-1;i>=0;i--){
+    const ann=editorAnnotations[i];
+    if(ann.label?.text){
+      const labelW=Math.max(80, ann.label.text.length*12)+20;
+      const labelH=32;
+      const lx=ann.label.x-labelW;
+      const ly=ann.label.y-labelH/2;
+      if(x>=lx && x<=lx+labelW && y>=ly && y<=ly+labelH) return i;
+    }
+    if(ann.tool==='circle'){
+      const dx=(x-ann.cx)/(ann.rx||1);
+      const dy=(y-ann.cy)/(ann.ry||1);
+      const dist=Math.abs((dx*dx+dy*dy)-1);
+      if(dist<0.22 || (dx*dx+dy*dy)<=1) return i;
+    }else{
+      const d=distanceToSegment(x,y,ann.x1,ann.y1,ann.x2,ann.y2);
+      if(d<=Math.max(12, ann.lineWidth+8)) return i;
+    }
+  }
+  return -1;
+}
+
+function distanceToSegment(px,py,x1,y1,x2,y2){
+  const dx=x2-x1, dy=y2-y1;
+  if(dx===0 && dy===0) return Math.hypot(px-x1,py-y1);
+  const t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/(dx*dx+dy*dy)));
+  const sx=x1+t*dx, sy=y1+t*dy;
+  return Math.hypot(px-sx, py-sy);
+}
+
+function redrawEditorCanvas(){
+  if(!editorCtx || !editorCanvas || !editorBaseImage) return;
+  editorCtx.clearRect(0,0,editorCanvas.width,editorCanvas.height);
+  editorCtx.drawImage(editorBaseImage,0,0,editorCanvas.width,editorCanvas.height);
+  editorAnnotations.forEach((ann,index)=>drawAnnotation(ann,index===editorSelectedIndex));
+  if(editorPreviewAnnotation) drawAnnotation(editorPreviewAnnotation,false,true);
+}
+
+function drawAnnotation(ann,isSelected=false,isPreview=false){
+  if(!editorCtx || !ann) return;
+  editorCtx.save();
+  editorCtx.strokeStyle=ann.color;
+  editorCtx.fillStyle=ann.color;
+  editorCtx.lineWidth=ann.lineWidth;
+  editorCtx.globalAlpha=isPreview ? 0.7 : 1;
+  if(ann.tool==='circle'){
+    editorCtx.beginPath();
+    editorCtx.ellipse(ann.cx,ann.cy,Math.max(ann.rx,1),Math.max(ann.ry,1),0,0,Math.PI*2);
+    editorCtx.stroke();
+  }else{
+    drawArrowShape(ann);
+  }
+  drawAnnotationLabel(ann, isSelected);
+  if(isSelected) drawSelectionBox(ann);
+  editorCtx.restore();
+}
+
+function drawArrowShape(ann){
+  const headLength=Math.max(12, ann.lineWidth*4);
+  const angle=Math.atan2(ann.y2-ann.y1, ann.x2-ann.x1);
+  editorCtx.beginPath();
+  editorCtx.moveTo(ann.x1,ann.y1);
+  editorCtx.lineTo(ann.x2,ann.y2);
+  editorCtx.stroke();
+
+  editorCtx.beginPath();
+  editorCtx.moveTo(ann.x2,ann.y2);
+  editorCtx.lineTo(ann.x2-headLength*Math.cos(angle-Math.PI/7), ann.y2-headLength*Math.sin(angle-Math.PI/7));
+  editorCtx.lineTo(ann.x2-headLength*Math.cos(angle+Math.PI/7), ann.y2-headLength*Math.sin(angle+Math.PI/7));
+  editorCtx.closePath();
+  editorCtx.fill();
+}
+function drawAnnotationLabel(ann, isSelected=false){
+  if(!ann.label?.text) return;
+  editorCtx.save();
+  editorCtx.font='700 22px Heebo, Arial, sans-serif';
+  editorCtx.textAlign='right';
+  editorCtx.textBaseline='middle';
+  const text=ann.label.text;
+  const metrics=editorCtx.measureText(text);
+  const width=Math.ceil(metrics.width)+20;
+  const height=32;
+  const x=ann.label.x;
+  const y=ann.label.y;
+  editorCtx.fillStyle='rgba(17,24,39,.78)';
+  editorCtx.strokeStyle=isSelected ? '#FFFFFF' : 'rgba(255,255,255,.18)';
+  editorCtx.lineWidth=1.2;
+  roundRect(editorCtx, x-width, y-height/2, width, height, 10);
+  editorCtx.fill();
+  editorCtx.stroke();
+  editorCtx.fillStyle=ann.label.color || ann.color;
+  editorCtx.fillText(text, x-10, y+1);
+  editorCtx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawSelectionBox(ann){
+  editorCtx.save();
+  editorCtx.setLineDash([8,6]);
+  editorCtx.strokeStyle='#FFFFFF';
+  editorCtx.lineWidth=1.5;
+  const b=getAnnotationBounds(ann);
+  editorCtx.strokeRect(b.x-6,b.y-6,b.w+12,b.h+12);
+  editorCtx.restore();
+}
+
+function getAnnotationBounds(ann){
+  let base;
+  if(ann.tool==='circle'){
+    base={x:ann.cx-ann.rx,y:ann.cy-ann.ry,w:ann.rx*2,h:ann.ry*2};
+  } else {
+    base={x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};
+  }
+  if(ann.label?.text){
+    const labelW=Math.max(80, ann.label.text.length*12)+20;
+    const labelH=32;
+    const lx=ann.label.x-labelW;
+    const ly=ann.label.y-labelH/2;
+    const minX=Math.min(base.x,lx), minY=Math.min(base.y,ly);
+    const maxX=Math.max(base.x+base.w,lx+labelW), maxY=Math.max(base.y+base.h,ly+labelH);
+    return {x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+  }
+  return base;
+}
+
+function rotateSelectedArrow(delta){
+  if(editorSelectedIndex<0) return;
+  const ann=editorAnnotations[editorSelectedIndex];
+  if(!ann || ann.tool!=='arrow') return;
+  const angle=Math.atan2(ann.y2-ann.y1,ann.x2-ann.x1)+(delta*Math.PI/180);
+  const len=Math.hypot(ann.x2-ann.x1,ann.y2-ann.y1);
+  ann.x2=ann.x1+Math.cos(angle)*len;
+  ann.y2=ann.y1+Math.sin(angle)*len;
+  redrawEditorCanvas();
+}
+
+function undoEditor(){
+  if(!editorAnnotations.length) return;
+  const ann=editorAnnotations.pop();
+  editorRedoStack.push(JSON.parse(JSON.stringify(ann)));
+  editorSelectedIndex=editorAnnotations.length-1;
+  redrawEditorCanvas();
+}
+
+function redoEditor(){
+  if(!editorRedoStack.length) return;
+  const ann=editorRedoStack.pop();
+  editorAnnotations.push(JSON.parse(JSON.stringify(ann)));
+  editorSelectedIndex=editorAnnotations.length-1;
+  redrawEditorCanvas();
+}
+
+function clearEditorAnnotations(){
+  if(!editorAnnotations.length) return;
+  editorRedoStack.push(...editorAnnotations.map(a=>JSON.parse(JSON.stringify(a))));
+  editorAnnotations=[];
+  editorSelectedIndex=-1;
+  redrawEditorCanvas();
+}
+
+function deleteSelectedAnnotation(){
+  if(editorSelectedIndex<0) return;
+  editorRedoStack.push(JSON.parse(JSON.stringify(editorAnnotations[editorSelectedIndex])));
+  editorAnnotations.splice(editorSelectedIndex,1);
+  editorSelectedIndex=Math.min(editorSelectedIndex, editorAnnotations.length-1);
+  redrawEditorCanvas();
+}
+
+function editSelectedAnnotationText(){
+  if(editorSelectedIndex<0) return;
+  const ann=editorAnnotations[editorSelectedIndex];
+  const current=ann.label?.text || '';
+  const next=window.prompt('ערוך טקסט ליד הסימון. להשאיר ריק כדי למחוק.', current);
+  if(next===null) return;
+  if(!next.trim()){
+    delete ann.label;
+  } else {
+    ann.label={
+      text:next.trim(),
+      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12)),
+      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y2),
+      color:ann.color
+    };
+  }
+  redrawEditorCanvas();
+}
+
+function saveEditedImage(){
+  if(editorCurrentTypeId==null || editorCurrentPhotoIndex==null || !editorCanvas) return;
+  const currentPhoto=inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex];
+  const originalData=currentPhoto.originalData || currentPhoto.data;
+  const newData=editorCanvas.toDataURL('image/jpeg',0.92);
+  inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex]={
+    ...currentPhoto,
+    data:newData,
+    originalData,
+    annotations:editorAnnotations.map(a=>JSON.parse(JSON.stringify(a))),
+    annotated:editorAnnotations.length>0
+  };
+  renderInspRows();
+  setSaveStatus('unsaved');
+  showToast(editorAnnotations.length ? '✓ התמונה והסימונים נשמרו' : '✓ הסימונים הוסרו והתמונה עודכנה');
+  closeEditor();
+}
+
 
 // ── Auto-fill findings ──
 function autoFillFindings(){
@@ -745,6 +1534,23 @@ window.handleInspPhoto=handleInspPhoto;
 window.removeInspPhoto=removeInspPhoto;
 window.updateStatusBadge=updateStatusBadge;
 window.doLogout=doLogout;
+window.openEditor=openEditor;
+window.closeEditor=closeEditor;
+window.setEditorTool=setEditorTool;
+window.setEditorColor=setEditorColor;
+window.setEditorLineWidth=setEditorLineWidth;
+window.setEditorZoom=setEditorZoom;
+window.nudgeEditorZoom=nudgeEditorZoom;
+window.resetEditorZoom=resetEditorZoom;
+window.rotateSelectedArrow=rotateSelectedArrow;
+window.undoEditor=undoEditor;
+window.redoEditor=redoEditor;
+window.clearEditorAnnotations=clearEditorAnnotations;
+window.deleteSelectedAnnotation=deleteSelectedAnnotation;
+window.editSelectedAnnotationText=editSelectedAnnotationText;
+window.saveEditedImage=saveEditedImage;
+window.toggleInspAccordion=toggleInspAccordion;
+window.toggleEditorMore=toggleEditorMore;
 
 // ── CERTAINTY ──
 function setCertainty(val){
@@ -921,6 +1727,35 @@ ${customEnd}
 }
 
 
+
+function sanitizeForFirestore(value){
+  if(value === undefined || value === null) return null;
+
+  if(typeof value === 'number'){
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if(typeof value === 'string' || typeof value === 'boolean'){
+    return value;
+  }
+
+  if(Array.isArray(value)){
+    return value.map(item => sanitizeForFirestore(item));
+  }
+
+  if(typeof value === 'object'){
+    const out = {};
+    Object.entries(value).forEach(([key, val]) => {
+      if(typeof val === 'function') return;
+      const cleanVal = sanitizeForFirestore(val);
+      if(cleanVal !== undefined) out[key] = cleanVal;
+    });
+    return out;
+  }
+
+  return null;
+}
+
 function getVal(id){const el=document.getElementById(id);return el?el.value:'';}
 function setVal(id,v){const el=document.getElementById(id);if(el&&v!==undefined) el.value=v;}
 function todayISO(){return new Date().toISOString().split('T')[0];}
@@ -935,7 +1770,18 @@ let _saveTimer=null;
 document.addEventListener('input',()=>{setSaveStatus('unsaved');clearTimeout(_saveTimer);_saveTimer=setTimeout(saveCase,4000);});
 document.addEventListener('change',()=>{setSaveStatus('unsaved');});
 // Ctrl+S
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveCase();}});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveCase();}
+  if(e.key==='Escape' && document.getElementById('imgEditorModal')?.style.display==='flex') closeEditor();
+});
+document.getElementById('imgEditorModal')?.addEventListener('click',e=>{ if(e.target.id==='imgEditorModal') closeEditor(); });
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('imgEditorModal')?.style.display==='flex'){
+    fitEditorToViewport();
+  }
+});
+
 </script>
 
 <style>

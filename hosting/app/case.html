@@ -32,9 +32,10 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-logout{width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
 .btn-logout:hover{background:rgba(239,68,68,.18);}
 
-#topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
-.tb-left{display:flex;align-items:center;gap:10px;}
-.tb-page{font-size:13px;font-weight:700;color:var(--muted);}
+#topbar{background:var(--primary);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:center;height:56px;position:sticky;top:0;z-index:100;}
+.tb-left{display:flex;align-items:center;gap:8px;}
+.tb-page{font-size:14px;font-weight:800;color:var(--text);width:100%;text-align:center;display:block;}
+.tb-case-num{font-size:13px;color:var(--accent2);font-weight:800;}
 .tb-right{display:flex;align-items:center;gap:8px;}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:12px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;transition:all .18s;text-decoration:none;}
@@ -163,6 +164,21 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 .insp-row-photos .photo-upload-btn{width:90px;height:68px;aspect-ratio:unset;font-size:11px;gap:3px;}
 .insp-row-photos .photo-upload-btn .icon{font-size:18px;}
 
+.insp-acc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;}
+.insp-acc-title{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.insp-acc-name{font-size:13px;font-weight:800;color:var(--text);}
+.insp-acc-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.insp-photo-count{font-size:11px;color:var(--muted);}
+.insp-acc-chevron{width:28px;height:28px;border-radius:999px;border:1px solid var(--primary3);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;transition:transform .18s ease,color .18s ease,border-color .18s ease;background:rgba(255,255,255,.02);}
+.insp-row-wrap.open .insp-acc-chevron{transform:rotate(180deg);color:var(--accent);border-color:var(--accent);}
+.insp-acc-body{margin-top:12px;}
+.editor-more-wrap{position:relative;}
+.editor-more-menu{display:none;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.editor-more-wrap.open .editor-more-menu{display:flex;}
+.editor-btn.is-mobile-primary{display:none;}
+.editor-btn.is-mobile-more{display:inline-flex;}
+.editor-more-toggle{display:none;}
+
 @media(max-width:900px){
   .form-row-2{grid-template-columns:1fr;}
   .insp-row-main{grid-template-columns:32px 1fr 1fr;}
@@ -173,7 +189,33 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   .fields-grid,.fields-grid.three{grid-template-columns:1fr;}
   .stepper-wrap{gap:4px;}
   .step-btn .step-label{display:none;}
+  .insp-row-wrap{padding:12px;}
   .insp-row-main{grid-template-columns:1fr;}
+  .insp-row-wrap:not(.open) .insp-acc-body{display:none;}
+  .insp-acc-name{font-size:14px;}
+  .insp-acc-meta{gap:6px;}
+  .insp-row-photos{padding-right:0;}
+  .editor-btn.is-mobile-primary{display:inline-flex;}
+  .editor-btn.is-mobile-more{display:none;}
+  .editor-more-toggle{display:inline-flex;}
+
+  #topbar{
+    justify-content:center;
+    padding:0 12px;
+    min-height:52px;
+  }
+  #topbar .tb-left{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+    gap:6px;
+  }
+  #topbar .tb-page{
+    font-size:15px;
+    font-weight:800;
+    color:var(--text);
+  }
+
 }
 
 /* Image editor */
@@ -315,14 +357,8 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 
 <div class="main-wrap">
 <div id="topbar">
-  <div class="tb-left">
-    <div class="tb-page" id="topbarTitle">תיק איתור</div>
-  </div>
-  <div class="tb-right">
-    <span style="font-size:12px;color:var(--muted);" id="caseNumDisplay"></span>
-    <div id="caseStatusBadge" class="status-badge no-print status-draft">טיוטה</div>
-    <button class="btn btn-ghost btn-sm no-print" onclick="window.location.href='/app/dashboard.html'">← דשבורד</button>
-    <button class="btn btn-primary btn-sm no-print" onclick="saveCase()">💾 שמור</button>
+  <div class="tb-left" style="width:100%;display:flex;justify-content:center;align-items:center;">
+    <div class="tb-page" id="topbarTitle">תיק איתור <span class="tb-case-num" id="caseNumDisplay"></span></div>
   </div>
 </div>
 
@@ -483,7 +519,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 </div>
 
 <!-- ══ SECTION 4: דוח סופי ══ -->
-<div class="form-section" id="section-4" style="display:none;">
+<div class="form-section" id="section-4" style="display:none;" id="section-report">
   <div class="form-card no-print">
     <div class="card-header">
       <div><div class="card-title">📄 דוח סופי</div><div class="card-sub">תצוגה מקדימה + הדפסה / שמירה</div></div>
@@ -533,26 +569,33 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
       </div>
 
       <div class="editor-group">
-        <label class="editor-small-label" for="editorZoom">זום</label>
-        <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
+        <span class="editor-small-label">פעולות</span>
         <div class="editor-inline-actions">
-          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(-10)">− הקטן</button>
-          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(10)">+ הגדל</button>
-          <button type="button" class="editor-btn" onclick="resetEditorZoom()">איפוס זום</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="undoEditor()">↶ Undo</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="redoEditor()">↷ Redo</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="deleteSelectedAnnotation()">🗑️ מחק</button>
+          <button type="button" class="editor-btn is-mobile-primary" onclick="resetEditorZoom()">🔎 איפוס זום</button>
+          <div class="editor-more-wrap" id="editorMoreWrap">
+            <button type="button" class="editor-btn editor-more-toggle" onclick="toggleEditorMore()">⋯ עוד</button>
+            <div class="editor-more-menu">
+              <button type="button" class="editor-btn is-mobile-more" onclick="nudgeEditorZoom(-10)">− הקטן</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="nudgeEditorZoom(10)">+ הגדל</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="resetEditorZoom()">איפוס זום</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="editSelectedAnnotationText()">✏️ טקסט</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="deleteSelectedAnnotation()">🗑️ מחק סימון</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="undoEditor()">↶ Undo</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="redoEditor()">↷ Redo</button>
+              <button type="button" class="editor-btn is-mobile-more" onclick="clearEditorAnnotations()">🧹 נקה הכל</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="editor-group">
-        <span class="editor-small-label">ניהול סימונים</span>
-        <div class="editor-inline-actions">
-          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
-          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
-          <button type="button" class="editor-btn" onclick="editSelectedAnnotationText()">✏️ טקסט</button>
-          <button type="button" class="editor-btn" onclick="deleteSelectedAnnotation()">🗑️ מחק סימון</button>
-          <button type="button" class="editor-btn" onclick="undoEditor()">↶ Undo</button>
-          <button type="button" class="editor-btn" onclick="redoEditor()">↷ Redo</button>
-          <button type="button" class="editor-btn" onclick="clearEditorAnnotations()">🧹 נקה הכל</button>
-        </div>
+        <label class="editor-small-label" for="editorZoom">זום</label>
+        <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
       </div>
     </div>
 
@@ -829,10 +872,13 @@ function populateStaticBanners(){
 function renderInspRows(){
   const wrap=document.getElementById('inspRowsWrap');
   if(!wrap) return;
+  const isMobile=window.innerWidth<=768;
   wrap.innerHTML=INSP_TYPES.map(t=>{
     const d=inspData[t.id];
     const opts=INSP_STATUS_OPTIONS.map(o=>`<option value="${o.value}"${d.status===o.value?' selected':''}>${o.label}</option>`).join('');
     const maxSlots=4;
+    const photoCount=d.photos.length;
+    const statusLabel=INSP_STATUS_OPTIONS.find(o=>o.value===d.status)?.label || 'לא בוצעה';
     const thumbs=d.photos.map((ph,i)=>`
       <div class="photo-thumb ${ph.annotated?'has-markup':''}" title="לחץ לפתיחת עורך סימונים">
         <span class="photo-open-hint">ערוך</span>
@@ -848,25 +894,53 @@ function renderInspRows(){
     const addTile=`<label class="photo-add-tile" for="insp-file-${t.id}" title="הוסף עוד תמונות">
       <div class="ph-inner"><span>📷</span><small>הוסף</small></div>
     </label>`;
-    return `<div class="insp-row-wrap" id="insp-row-${t.id}">
-      <div class="insp-row-main">
-        <div style="font-size:18px;text-align:center;padding-top:8px;">${t.icon}</div>
-        <div style="font-size:13px;font-weight:700;padding-top:10px;">${t.name}</div>
-        <select onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();" id="insp-status-${t.id}"
-          style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;">${opts}</select>
-        <textarea placeholder="הערות, פרטים, מדידות..." onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
-          id="insp-notes-${t.id}"
-          style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:58px;">${d.notes}</textarea>
+    return `<div class="insp-row-wrap ${!isMobile || d.openMobile ? 'open' : ''}" id="insp-row-${t.id}">
+      <div class="insp-acc-head" ${isMobile ? `onclick="toggleInspAccordion('${t.id}')"` : ''}>
+        <div class="insp-acc-title">
+          <div style="font-size:18px;text-align:center;">${t.icon}</div>
+          <div class="insp-acc-name">${t.name}</div>
+        </div>
+        <div class="insp-acc-meta">
+          <span class="status-pill ${getInspStatusClass(d.status)}">${statusLabel}</span>
+          <span class="insp-photo-count">${photoCount} תמונות</span>
+          ${isMobile ? '<span class="insp-acc-chevron">⌄</span>' : ''}
+        </div>
       </div>
-      <div class="insp-row-photos">
-        ${thumbs}
-        ${placeholders}
-        ${addTile}
-        <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+      <div class="insp-acc-body">
+        <div class="insp-row-main">
+          <div style="font-size:18px;text-align:center;padding-top:8px;display:${isMobile?'none':'block'};">${t.icon}</div>
+          <div style="font-size:13px;font-weight:700;padding-top:10px;display:${isMobile?'none':'block'};">${t.name}</div>
+          <select onclick="event.stopPropagation()" onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();renderInspRows();" id="insp-status-${t.id}"
+            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;">${opts}</select>
+          <textarea placeholder="הערות, פרטים, מדידות..." onclick="event.stopPropagation()" onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
+            id="insp-notes-${t.id}"
+            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:58px;">${d.notes}</textarea>
+        </div>
+        <div class="insp-row-photos" onclick="event.stopPropagation()">
+          ${thumbs}
+          ${placeholders}
+          ${addTile}
+          <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+        </div>
       </div>
     </div>`;
   }).join('');
   updateAutoTools();
+}
+
+function getInspStatusClass(status){
+  if(status==='ok' || status==='no_finding') return 's-done';
+  if(status==='fail' || status==='anomaly') return 's-fail';
+  if(status==='partial') return 's-partial';
+  return 's-na';
+}
+
+function toggleInspAccordion(typeId){
+  if(window.innerWidth>768) return;
+  const row=inspData[typeId];
+  if(!row) return;
+  row.openMobile=!row.openMobile;
+  renderInspRows();
 }
 
 // ── Auto-tools ──
@@ -891,32 +965,11 @@ function updateAutoTools(){
   else if(disc) disc.style.display='none';
 }
 
-// ── Image compression ──
-function compressImage(dataUrl, maxW=1200, quality=0.72){
-  return new Promise(resolve=>{
-    const img=new Image();
-    img.onload=()=>{
-      const scale=Math.min(1, maxW/Math.max(img.width, img.height));
-      const w=Math.round(img.width*scale), h=Math.round(img.height*scale);
-      const c=document.createElement('canvas');
-      c.width=w; c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      resolve(c.toDataURL('image/jpeg', quality));
-    };
-    img.onerror=()=>resolve(dataUrl); // fallback
-    img.src=dataUrl;
-  });
-}
-
 // ── Photo handlers ──
 function handleInspPhoto(typeId,input){
   Array.from(input.files).forEach(file=>{
     const r=new FileReader();
-    r.onload=async e=>{
-      const compressed=await compressImage(e.target.result);
-      inspData[typeId].photos.push({data:compressed,originalData:compressed,name:file.name,annotated:false,annotations:[]});
-      renderInspRows(); setSaveStatus('unsaved');
-    };
+    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,originalData:e.target.result,name:file.name,annotated:false,annotations:[]}); renderInspRows(); setSaveStatus('unsaved'); };
     r.readAsDataURL(file);
   });
   input.value='';
@@ -986,6 +1039,9 @@ function openEditor(typeId,index){
   if(zoomEl) zoomEl.value=100;
   applyEditorZoom();
 
+  const moreWrap=document.getElementById('editorMoreWrap');
+  if(moreWrap) moreWrap.classList.remove('open');
+
   const ph=inspData[typeId].photos[index];
   editorAnnotations=(Array.isArray(ph.annotations) ? ph.annotations : []).map(a=>JSON.parse(JSON.stringify(a)));
   const img=new Image();
@@ -1004,9 +1060,16 @@ function openEditor(typeId,index){
   img.src=ph.originalData || ph.data;
 }
 
+function toggleEditorMore(){
+  const wrap=document.getElementById('editorMoreWrap');
+  if(wrap) wrap.classList.toggle('open');
+}
+
 function closeEditor(){
   const modal=document.getElementById('imgEditorModal');
   if(modal) modal.style.display='none';
+  const moreWrap=document.getElementById('editorMoreWrap');
+  if(moreWrap) moreWrap.classList.remove('open');
   editorCurrentTypeId=null;
   editorCurrentPhotoIndex=null;
   editorAnnotations=[];
@@ -1198,18 +1261,12 @@ function moveAnnotation(ann, dx, dy){
 function maybeAttachLabelToAnnotation(ann){
   const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');
   if(!text) return;
-  // מיקום: צד הזנב של החץ (x1,y1) או מחוץ לעיגול
-  let lx, ly;
-  if(ann.tool==='circle'){
-    // מחוץ לעיגול — ימין אם יש מקום, אחרת שמאל
-    lx = ann.cx + ann.rx + 14;
-    ly = ann.cy;
-  } else {
-    // צד הזנב (x1,y1) — הצד הרחוק מהחץ
-    lx = ann.x1 + 14;
-    ly = ann.y1;
-  }
-  ann.label={ text:text.trim(), x:lx, y:ly, color:ann.color };
+  ann.label={
+    text:text.trim(),
+    x:ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12),
+    y:ann.tool==='circle' ? ann.cy : ann.y2,
+    color:ann.color
+  };
 }
 
 function createAnnotationFromDrag(start,end){
@@ -1233,9 +1290,9 @@ function findAnnotationHit(x,y){
   for(let i=editorAnnotations.length-1;i>=0;i--){
     const ann=editorAnnotations[i];
     if(ann.label?.text){
-      const labelW=Math.max(40, ann.label.text.length*7)+12;
-      const labelH=22;
-      const lx=ann.label.x;
+      const labelW=Math.max(80, ann.label.text.length*12)+20;
+      const labelH=32;
+      const lx=ann.label.x-labelW;
       const ly=ann.label.y-labelH/2;
       if(x>=lx && x<=lx+labelW && y>=ly && y<=ly+labelH) return i;
     }
@@ -1305,30 +1362,23 @@ function drawArrowShape(ann){
 function drawAnnotationLabel(ann, isSelected=false){
   if(!ann.label?.text) return;
   editorCtx.save();
-  const FONT_SIZE=32;
-  editorCtx.font=`700 ${FONT_SIZE}px Heebo, Arial, sans-serif`;
-  editorCtx.textAlign='left';
+  editorCtx.font='700 22px Heebo, Arial, sans-serif';
+  editorCtx.textAlign='right';
   editorCtx.textBaseline='middle';
   const text=ann.label.text;
   const metrics=editorCtx.measureText(text);
-  const cW=editorCanvas.width, cH=editorCanvas.height;
-  // מיקום בסיס
-  let tx=ann.label.x;
-  let ty=ann.label.y;
-  // מניעת גלישה
-  const textW=Math.ceil(metrics.width);
-  if(tx+textW > cW-2) tx=cW-textW-4;
-  if(tx < 2) tx=2;
-  if(ty < FONT_SIZE) ty=FONT_SIZE;
-  if(ty > cH-4) ty=cH-4;
-  // צל לקריאות ללא רקע
-  editorCtx.shadowColor='rgba(0,0,0,0.85)';
-  editorCtx.shadowBlur=4;
-  editorCtx.shadowOffsetX=1;
-  editorCtx.shadowOffsetY=1;
-  // טקסט ללא רקע
+  const width=Math.ceil(metrics.width)+20;
+  const height=32;
+  const x=ann.label.x;
+  const y=ann.label.y;
+  editorCtx.fillStyle='rgba(17,24,39,.78)';
+  editorCtx.strokeStyle=isSelected ? '#FFFFFF' : 'rgba(255,255,255,.18)';
+  editorCtx.lineWidth=1.2;
+  roundRect(editorCtx, x-width, y-height/2, width, height, 10);
+  editorCtx.fill();
+  editorCtx.stroke();
   editorCtx.fillStyle=ann.label.color || ann.color;
-  editorCtx.fillText(text, tx, ty);
+  editorCtx.fillText(text, x-10, y+1);
   editorCtx.restore();
 }
 
@@ -1360,9 +1410,9 @@ function getAnnotationBounds(ann){
     base={x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};
   }
   if(ann.label?.text){
-    const labelW=Math.max(40, ann.label.text.length*7)+12;
-    const labelH=22;
-    const lx=ann.label.x;
+    const labelW=Math.max(80, ann.label.text.length*12)+20;
+    const labelH=32;
+    const lx=ann.label.x-labelW;
     const ly=ann.label.y-labelH/2;
     const minX=Math.min(base.x,lx), minY=Math.min(base.y,ly);
     const maxX=Math.max(base.x+base.w,lx+labelW), maxY=Math.max(base.y+base.h,ly+labelH);
@@ -1425,8 +1475,8 @@ function editSelectedAnnotationText(){
   } else {
     ann.label={
       text:next.trim(),
-      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+14) : (ann.x1+14)),
-      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y1),
+      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12)),
+      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y2),
       color:ann.color
     };
   }
@@ -1437,7 +1487,7 @@ function saveEditedImage(){
   if(editorCurrentTypeId==null || editorCurrentPhotoIndex==null || !editorCanvas) return;
   const currentPhoto=inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex];
   const originalData=currentPhoto.originalData || currentPhoto.data;
-  const newData=editorCanvas.toDataURL('image/jpeg',0.75);
+  const newData=editorCanvas.toDataURL('image/jpeg',0.92);
   inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex]={
     ...currentPhoto,
     data:newData,
@@ -1512,6 +1562,8 @@ window.clearEditorAnnotations=clearEditorAnnotations;
 window.deleteSelectedAnnotation=deleteSelectedAnnotation;
 window.editSelectedAnnotationText=editSelectedAnnotationText;
 window.saveEditedImage=saveEditedImage;
+window.toggleInspAccordion=toggleInspAccordion;
+window.toggleEditorMore=toggleEditorMore;
 
 // ── CERTAINTY ──
 function setCertainty(val){
