@@ -3,12 +3,10 @@ rules_version='2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users — owner only
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Billing — owner read + create trial, updates via Functions only
     match /billing/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null
@@ -18,13 +16,11 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Checkout Sessions — authenticated read
     match /checkoutSessions/{sessionId} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
-    // Leak Cases — owner only
     match /leakCases/{caseId} {
       allow read, update, delete: if request.auth != null
         && request.auth.uid == resource.data.uid;
@@ -32,7 +28,6 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.uid;
     }
 
-    // Leak Payments — owner-scoped
     match /leakPayments/{paymentId} {
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.uid;
@@ -40,25 +35,22 @@ service cloud.firestore {
         && request.auth.uid == resource.data.uid;
     }
 
-    // Payments (Cardcom billing) — owner read only
     match /payments/{paymentId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.uid;
       allow write: if false;
     }
 
-    // Counters — read only
+    // Counters — authenticated read + write (for case numbering)
     match /counters/{doc} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow write: if request.auth != null;
     }
 
-    // System config — read only
     match /system/{doc} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
-    // Deny all else
     match /{document=**} {
       allow read, write: if false;
     }

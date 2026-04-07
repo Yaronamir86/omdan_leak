@@ -3,104 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMDA איתור | הגדרות</title>
+<title>OMDA | הגדרות</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+// Firebase Storage no longer used — signature and logo stored as base64 in Firestore
 
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyAo5atj2i8RgevguKGR662-IQnjl1R45yI",
-  authDomain:"omdan-leak.firebaseapp.com",
-  projectId:"omdan-leak",
-  storageBucket:"omdan-leak.firebasestorage.app",
-  messagingSenderId:"979018499185",
-  appId:"1:979018499185:web:1496303b1cd8a993bdc7d0",
-  measurementId:"G-P62VFXD521"
+const app  = initializeApp({
+  apiKey:"AIzaSyCkhNhUHWLAf6G45nIH1wIZeE-rGQFrwgM",
+  authDomain:"omdan-property.firebaseapp.com",
+  projectId:"omdan-property",
+  storageBucket:"omdan-property.firebasestorage.app",
+  messagingSenderId:"1028931108038",
+  appId:"1:1028931108038:web:01731ca2a152b700ea6bc7"
 });
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+// storage removed — using Firestore base64
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-let authChecked = false;
-
-auth.onAuthStateChanged(async u => {
-  if (authChecked) return;
-  authChecked = true;
-
-  if (!u) {
-    setTimeout(() => {
-      if (!firebase.auth().currentUser) {
-        window.location.href = '/index.html?redirect=' + encodeURIComponent('/app/settings.html');
-      }
-    }, 300);
-    return;
-  }
-
-  window._currentUser = u;
-  document.getElementById('userEmail').textContent = u.email;
-
-  try {
-    const userRef = db.collection('users').doc(u.uid);
-    const snap = await userRef.get();
-    const data = snap.exists ? (snap.data() || {}) : {};
-
+onAuthStateChanged(auth, async user => {
+  if(!user){ window.location.href='../index.html'; return; }
+  window._currentUser = user;
+  document.getElementById('userEmail').textContent = user.email;
+  // Load profile + onboarding state
+  try{
+    const userRef = doc(db,'users',user.uid);
+    const snap = await getDoc(userRef);
+    const data = snap.exists() ? (snap.data() || {}) : {};
     window._settingsOnboarding = {
       completed: data.onboardingCompleted === true,
       step: data.onboardingStep || 'dashboard',
       active: false
     };
-
-    if (snap.exists) loadProfile(data);
-
-    if (!('onboardingStep' in data) || !('onboardingCompleted' in data)) {
-      await userRef.set({
+    if(snap.exists()) loadProfile(data);
+    if(!('onboardingStep' in data) || !('onboardingCompleted' in data)){
+      await setDoc(userRef, {
         onboardingCompleted: window._settingsOnboarding.completed,
         onboardingStep: window._settingsOnboarding.step,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+        updatedAt: serverTimestamp()
+      }, { merge:true });
     }
-
-    if (window._settingsOnboarding && window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
-  setTimeout(() => {
-    if (window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
-      maybeStartSettingsOnboarding();
-    }
-  }, 220);
-}
-  } catch (e) {
-    console.error(e);
-  }
+    setTimeout(maybeStartSettingsOnboarding, 220);
+  }catch(e){ console.error(e); }
 });
 
 window._saveProfile = async (data) => {
   const uid = window._currentUser?.uid;
-  if (!uid) throw new Error('לא מחובר');
-  await db.collection('users').doc(uid).set({
-    ...data,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
+  if(!uid) throw new Error('לא מחובר');
+  await setDoc(doc(db,'users',uid), {...data, updatedAt: serverTimestamp()}, {merge:true});
 };
 
 window._uploadLogo = async (dataUrl) => {
+  // Store as base64 in Firestore instead of Firebase Storage (avoids CORS)
   const uid = window._currentUser?.uid;
-  if (!uid) throw new Error('לא מחובר');
+  if(!uid) throw new Error('לא מחובר');
+  // dataUrl is already base64 — return as-is, saveProfile stores it in Firestore
   return dataUrl;
 };
 
 window._uploadSig = async (dataUrl) => {
+  // Store as base64 in Firestore instead of Firebase Storage (avoids CORS)
   const uid = window._currentUser?.uid;
-  if (!uid) throw new Error('לא מחובר');
+  if(!uid) throw new Error('לא מחובר');
+  // dataUrl is already base64 — return as-is, saveProfile stores it in Firestore
   return dataUrl;
 };
 
-window._doLogout = async () => {
-  await auth.signOut();
-  window.location.href = '../index.html';
-};
+window._doLogout = async () => { await signOut(auth); window.location.href='../index.html'; };
 
 function cleanupSettingsOnboarding() {
   const overlay = document.getElementById('settingsObOverlay');
@@ -118,12 +93,13 @@ function cleanupSettingsOnboarding() {
     .forEach(el => el.classList.remove('ob-highlight', 'ob-spotlight', 'ob-spotlight-soft'));
 }
 </script>
+
 <style>
 :root{
   --bg:#030712;--surface:#0d1117;--surface2:#111827;--surface3:#1a2332;
   --border:#1f2937;--border2:#374151;
   --text:#f9fafb;--muted:#9ca3af;--subtle:#6b7280;
-  --accent:#2196F3;--accent2:#fde68a;
+  --accent:#f59e0b;--accent2:#fde68a;
   --blue:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;
   --r:12px;--shadow:0 4px 24px rgba(0,0,0,.5);
 }
@@ -147,33 +123,22 @@ body::before{
 .main{flex:1;padding:32px 40px 100px;max-width:1280px;}
 
 /* ── Settings 2-column layout ── */
-.settings-layout{
+/* ── Settings grid rows ── */
+.sg-row{
   display:grid;
-  grid-template-columns:minmax(320px,420px) minmax(0,1fr);
+  grid-template-columns:1fr 1fr;
   gap:24px;
-  align-items:start;
+  margin-bottom:24px;
+  align-items:stretch;
 }
-.settings-right{
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-  position:sticky;
-  top:20px;
-  height:fit-content;
-}
-.settings-left{
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-  min-width:0;
-}
-
+.sg-row .section{margin-bottom:0;}
+.sg-row-full{margin-bottom:24px;}
+.sg-row-full .section{margin-bottom:0;}
 
 @media(max-width:768px){
   .sidebar{display:none;}
   .main{padding:20px 16px;max-width:none;}
-  .settings-layout{grid-template-columns:1fr;gap:20px;}
-  .settings-right{position:static;}
+  .sg-row{grid-template-columns:1fr;}
 }
 
 /* ── Sidebar ── */
@@ -365,7 +330,7 @@ body::before{
 .save-status.saved{color:var(--green);}
 .save-status.saving{color:var(--accent);}
 .btn-save{
-  padding:11px 28px;background:linear-gradient(135deg,#2196F3,#1565C0);
+  padding:11px 28px;background:linear-gradient(135deg,#f59e0b,#d97706);
   border:none;border-radius:10px;color:#0f1117;font-size:14px;font-weight:800;
   font-family:'Heebo',sans-serif;cursor:pointer;transition:opacity .2s;
 }
@@ -411,7 +376,7 @@ body::before{
   margin: 8px 0;
 }
 
-/* 2. sub-sections (פרטי מאתר נזילות / פרטי משרד) */
+/* 2. sub-sections (פרטי שמאי / פרטי משרד) */
 .sub-section-title {
   font-size: 11px; font-weight: 800; color: var(--subtle);
   text-transform: uppercase; letter-spacing: .08em;
@@ -707,7 +672,7 @@ body.ob-lock{overflow:hidden;}
 <body>
 <div id="mob-topbar" style="display:none;background:#111827;border-bottom:1px solid #1F2937;padding:0 16px;height:52px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;">
   <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-    <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
+    <img src="/assets/omda-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/omda-logo.png" alt="OMDA רכוש" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
     <div style="line-height:1.1;">
       
       
@@ -734,7 +699,7 @@ body.ob-lock{overflow:hidden;}
 <aside class="sidebar">
   <div class="sb-logo">
     <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
-      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
+      <img src="/assets/omda-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/omda-logo.png" alt="OMDA רכוש" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
       <div style="line-height:1.15;">
         
         
@@ -782,218 +747,253 @@ body.ob-lock{overflow:hidden;}
     <p class="page-sub">הפרטים יופיעו בכל הדוחות שלך</p>
   </div>
 
-  <div class="settings-layout">
-    <div class="settings-right">
+  <!-- ROW 1: פרטים אישיים | פרטי יצירת קשר -->
+  <div class="sg-row">
 
-  <!-- ══ SECTION 1: Logo ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title"><span class="icon">🎨</span> לוגו</div>
-    </div>
-    <div class="section-body">
-      <div class="logo-builder">
-        <div class="logo-preview-wrap">
-          <div class="logo-preview active-logo" id="logoPreview" onclick="document.getElementById('logoFileInput').click()">
-            <span id="logoInitialsDisplay"></span>
-            <div class="logo-overlay">📷</div>
-          </div>
-          <span class="logo-active-label">✓ לוגו פעיל</span>
+    <!-- פרטים אישיים -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">👤</span> פרטים אישיים</div>
+      </div>
+      <div class="section-body">
+        <div class="sub-section-title">👤 פרטי השמאי</div>
+        <div class="fields-grid" style="margin-bottom:24px;">
+          <div class="field"><label>שם מלא (עברית)</label><input type="text" id="nameHe" placeholder="ישראל ישראלי"></div>
+          <div class="field"><label>שם מלא (אנגלית)</label><input type="text" id="nameEn" placeholder="Israel Israeli" dir="ltr"></div>
+          <div class="field"><label>תואר מקצועי</label><input type="text" id="title" placeholder="שמאי רכוש"></div>
+          <div class="field"><label>מספר רישיון</label><input type="text" id="license" placeholder="12345"></div>
         </div>
-        <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+        <div class="sub-section-title">🏢 פרטי המשרד</div>
+        <div class="fields-grid">
+          <div class="field"><label>עיר</label><input type="text" id="city" placeholder="תל אביב"></div>
+          <div class="field"><label>כתובת מלאה</label><input type="text" id="address" placeholder="רחוב הרצל 1, תל אביב"></div>
+          <div class="field"><label>ע.מ / ח.פ</label><input type="text" id="vat" placeholder="033571290" dir="ltr"></div>
+        </div>
+      </div>
+    </div>
 
-        <div class="logo-controls">
-          <div class="logo-tabs">
-            <button class="logo-tab active" onclick="switchLogoTab('initials',this)">אותיות</button>
-            <button class="logo-tab" onclick="switchLogoTab('upload',this)">תמונה</button>
-          </div>
+    <!-- פרטי יצירת קשר -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📞</span> פרטי יצירת קשר</div>
+      </div>
+      <div class="section-body">
+        <div class="fields-grid">
+          <div class="field"><label>טלפון</label><input type="tel" id="phone" placeholder="050-0000000"></div>
+          <div class="field"><label>פקס</label><input type="tel" id="fax" placeholder="03-0000000"></div>
+          <div class="field"><label>אימייל</label><input type="email" id="email" placeholder="your@email.com" dir="ltr"></div>
+          <div class="field"><label>אתר אינטרנט</label><input type="url" id="website" placeholder="https://yoursite.com" dir="ltr"></div>
+          <div class="field"><label>לינקדאין</label><input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." dir="ltr"></div>
+          <div class="field"><label>פייסבוק / אינסטגרם</label><input type="url" id="social" placeholder="https://..." dir="ltr"></div>
+        </div>
+      </div>
+    </div>
 
-          <div class="logo-tab-content active" id="logoTab-initials">
-            <div class="logo-initials-input">
-              <input type="text" id="logoInitials" maxlength="3" placeholder="YA"
-                style="width:70px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px;font-weight:900;text-align:center;outline:none;font-family:'Heebo',sans-serif;"
-                oninput="updateLogoPreview()">
+  </div><!-- /ROW 1 -->
+
+  <!-- ROW 2: לוגו | חתימה דיגיטלית -->
+  <div class="sg-row">
+
+    <!-- לוגו -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">🎨</span> לוגו</div>
+      </div>
+      <div class="section-body">
+        <div class="logo-builder">
+          <div class="logo-preview-wrap">
+            <div class="logo-preview active-logo" id="logoPreview" onclick="document.getElementById('logoFileInput').click()">
+              <span id="logoInitialsDisplay"></span>
+              <div class="logo-overlay">📷</div>
             </div>
-            <div style="font-size:11px;color:var(--subtle);margin-top:6px;">עד 3 תווים — ראשי תיבות מהשם</div>
-            <div class="color-swatches" id="logoColorSwatches">
-              <div class="swatch active" style="background:#2196F3" onclick="setLogoColor('#2196F3','#0f1117',this)"></div>
-              <div class="swatch" style="background:#3b82f6" onclick="setLogoColor('#3b82f6','#fff',this)"></div>
-              <div class="swatch" style="background:#10b981" onclick="setLogoColor('#10b981','#fff',this)"></div>
-              <div class="swatch" style="background:#ef4444" onclick="setLogoColor('#ef4444','#fff',this)"></div>
-              <div class="swatch" style="background:#8b5cf6" onclick="setLogoColor('#8b5cf6','#fff',this)"></div>
-              <div class="swatch" style="background:#ec4899" onclick="setLogoColor('#ec4899','#fff',this)"></div>
-              <div class="swatch" style="background:#f97316" onclick="setLogoColor('#f97316','#fff',this)"></div>
-              <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#2196F3',this)"></div>
+            <span class="logo-active-label">✓ לוגו פעיל</span>
+          </div>
+          <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+          <div class="logo-controls">
+            <div class="logo-tabs">
+              <button class="logo-tab active" onclick="switchLogoTab('initials',this)">אותיות</button>
+              <button class="logo-tab" onclick="switchLogoTab('upload',this)">תמונה</button>
+            </div>
+            <div class="logo-tab-content active" id="logoTab-initials">
+              <div class="logo-initials-input">
+                <input type="text" id="logoInitials" maxlength="3" placeholder="YA"
+                  style="width:70px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px;font-weight:900;text-align:center;outline:none;font-family:'Heebo',sans-serif;"
+                  oninput="updateLogoPreview()">
+              </div>
+              <div style="font-size:11px;color:var(--subtle);margin-top:6px;">עד 3 תווים — ראשי תיבות מהשם</div>
+              <div class="color-swatches" id="logoColorSwatches">
+                <div class="swatch active" style="background:#f59e0b" onclick="setLogoColor('#f59e0b','#0f1117',this)"></div>
+                <div class="swatch" style="background:#3b82f6" onclick="setLogoColor('#3b82f6','#fff',this)"></div>
+                <div class="swatch" style="background:#10b981" onclick="setLogoColor('#10b981','#fff',this)"></div>
+                <div class="swatch" style="background:#ef4444" onclick="setLogoColor('#ef4444','#fff',this)"></div>
+                <div class="swatch" style="background:#8b5cf6" onclick="setLogoColor('#8b5cf6','#fff',this)"></div>
+                <div class="swatch" style="background:#ec4899" onclick="setLogoColor('#ec4899','#fff',this)"></div>
+                <div class="swatch" style="background:#f97316" onclick="setLogoColor('#f97316','#fff',this)"></div>
+                <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#f59e0b',this)"></div>
+              </div>
+            </div>
+            <div class="logo-tab-content" id="logoTab-upload">
+              <button class="btn-sm" onclick="document.getElementById('logoFileInput').click()">📁 בחר תמונה</button>
+              <div class="field-hint" style="margin-top:8px;">PNG / JPG / SVG — מומלץ ריבוע 200×200</div>
+              <button class="btn-sm danger" style="margin-top:8px;" onclick="clearLogoImage()">🗑️ הסר תמונה</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="logo-tab-content" id="logoTab-upload">
-            <button class="btn-sm" onclick="document.getElementById('logoFileInput').click()">📁 בחר תמונה</button>
-            <div class="field-hint" style="margin-top:8px;">PNG / JPG / SVG — מומלץ ריבוע 200×200</div>
-            <button class="btn-sm danger" style="margin-top:8px;" onclick="clearLogoImage()">🗑️ הסר תמונה</button>
+    <!-- חתימה דיגיטלית -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">✍️</span> חתימה דיגיטלית</div>
+      </div>
+      <div class="section-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">חתום עם האצבע (מובייל) או העכבר — תופיע בתחתית הדוח</div>
+        <div class="sig-wrap">
+          <canvas id="sigCanvas" class="sig-canvas" width="700" height="120"></canvas>
+        </div>
+        <div class="sig-actions" style="align-items:center;">
+          <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+            <span style="font-size:11px;color:var(--muted);">צבע:</span>
+            <button onclick="setSigColor('#111827',this)" title="שחור"
+              style="width:26px;height:26px;border-radius:50%;background:#111827;border:2px solid #374151;cursor:pointer;"></button>
+            <button onclick="setSigColor('#1d4ed8',this)" title="כחול"
+              style="width:26px;height:26px;border-radius:50%;background:#1d4ed8;border:2px solid #3b82f6;cursor:pointer;"></button>
+          </div>
+          <button class="btn-sm" onclick="clearSignature()">🗑️ נקה</button>
+          <button class="btn-sm" onclick="saveSignaturePreview()">💾 שמור</button>
+          <span id="sigStatus" style="font-size:12px;color:var(--muted);align-self:center;"></span>
+        </div>
+        <div class="sig-saved-indicator" id="sigSavedBadge">✓ חתימה שמורה</div>
+        <div class="sig-preview-wrap" id="sigPreviewWrap">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">תצוגה מקדימה:</div>
+          <img id="sigPreview" class="sig-preview-img" style="display:block;max-height:52px;">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ROW 2 -->
+
+  <!-- ROW 3: שבלונות ברירת מחדל — full width -->
+  <div class="sg-row-full">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📋</span> שבלונות ברירת מחדל</div>
+        <span style="font-size:11px;color:var(--muted);">נתמלאים אוטומטית בכל תיק חדש</span>
+      </div>
+      <div class="section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+          <div>
+            <div class="sub-section-title">🔤 ברירות מחדל לשדות</div>
+            <div id="fieldDefaultsList" class="templates-list" style="margin-bottom:10px;"></div>
+            <div id="fieldDefaultsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
+              <div class="empty-icon">🔤</div>
+              <div class="empty-title">אין ברירות מחדל עדיין</div>
+              <div class="empty-sub">הגדר ערכים שיתמלאו אוטומטית<br>בכל תיק חדש</div>
+              <button class="empty-cta" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל</button>
+            </div>
+            <button class="add-template-btn" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל לשדה</button>
+          </div>
+          <div>
+            <div class="sub-section-title">📝 קטעי טקסט קבועים</div>
+            <div id="textSnippetsList" class="templates-list" style="margin-bottom:10px;"></div>
+            <div id="textSnippetsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
+              <div class="empty-icon">📝</div>
+              <div class="empty-title">אין קטעי טקסט עדיין</div>
+              <div class="empty-sub">הוסף נוסחאות ופסקאות<br>שחוזרות בדוחות שלך</div>
+              <button class="empty-cta" onclick="openTemplateModal('text')">+ הוסף קטע טקסט</button>
+            </div>
+            <button class="add-template-btn" onclick="openTemplateModal('text')">+ הוסף קטע טקסט קבוע</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- /ROW 3 -->
 
-  <!-- ══ SECTION 2: Personal details ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title"><span class="icon">👤</span> פרטים אישיים</div>
-    </div>
-    <div class="section-body">
-      <!-- פרטי מאתר נזילות -->
-      <div class="sub-section-title">👤 פרטי המאתר</div>
-      <div class="fields-grid" style="margin-bottom:24px;">
-        <div class="field">
-          <label>שם מלא (עברית)</label>
-          <input type="text" id="nameHe" placeholder="ישראל ישראלי">
-        </div>
-        <div class="field">
-          <label>שם מלא (אנגלית)</label>
-          <input type="text" id="nameEn" placeholder="Israel Israeli" dir="ltr">
-        </div>
-        <div class="field">
-          <label>תואר מקצועי</label>
-          <input type="text" id="title" placeholder="מאתר נזילות">
-        </div>
-        <div class="field">
-          <label>מספר רישיון</label>
-          <input type="text" id="license" placeholder="12345">
-        </div>
+  <!-- ROW 3: הצהרה, השכלה וניסיון — full width -->
+  <div class="sg-row-full">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📜</span> הצהרה, השכלה וניסיון</div>
+        <span style="font-size:11px;color:var(--muted);">נמשך אוטומטית לכל תיק חדש</span>
       </div>
-      <!-- פרטי משרד -->
-      <div class="sub-section-title">🏢 פרטי המשרד</div>
-      <div class="fields-grid">
-        <div class="field">
-          <label>עיר</label>
-          <input type="text" id="city" placeholder="תל אביב">
-        </div>
-        <div class="field">
-          <label>כתובת מלאה</label>
-          <input type="text" id="address" placeholder="רחוב הרצל 1, תל אביב">
+      <div class="section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+          <div>
+            <div class="sub-section-title" style="margin-bottom:12px;">📋 הצהרת שמאי</div>
+            <div class="field">
+              <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
+              <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעת זו נערכה על ידי באופן מקצועי, עצמאי ובלתי תלוי..."></textarea>
+            </div>
+          </div>
+          <div>
+            <div class="sub-section-title" style="margin-bottom:12px;">🎓 השכלה וניסיון</div>
+            <div class="field">
+              <label>פרטי השכלה וניסיון — יופיע בתחילת הדוח</label>
+              <textarea id="education" rows="8" placeholder="* בעל תואר ראשון בכלכלה ומנהל עסקים...&#10;* רישיון שמאי רכוש מספר...&#10;* שנות ניסיון בתחום שמאות הרכוש..."></textarea>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- /ROW 3 -->
 
-    </div>
+  <!-- ROW 4: פרקים מותאמים אישית -->
+  <div class="sg-row">
 
-    <div class="settings-left">
-
-  <!-- ══ SECTION 3: Contact ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title"><span class="icon">📞</span> פרטי יצירת קשר</div>
-    </div>
-    <div class="section-body">
-      <div class="fields-grid">
-        <div class="field">
-          <label>טלפון</label>
-          <input type="tel" id="phone" placeholder="050-0000000">
+    <!-- פרק מותאם 1 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 1</div>
+        <span class="section-badge">אופציונלי</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <div class="field" style="margin-bottom:14px;">
+          <label>כותרת הפרק</label>
+          <input type="text" id="custom1Title" placeholder="לדוגמה: הערות כלליות / תנאים">
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label>תוכן הפרק</label>
+          <textarea id="custom1Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
         </div>
         <div class="field">
-          <label>פקס</label>
-          <input type="tel" id="fax" placeholder="03-0000000">
+          <label>מיקום הפרק בדוח</label>
+          <select id="custom1Position">
+            <option value="after_details">אחרי פרטים אישיים — בתחילת הדוח</option>
+            <option value="end">בסוף הדוח — לפני עמוד תודה</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- פרק מותאם 2 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 2</div>
+        <span class="section-badge">אופציונלי</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <div class="field" style="margin-bottom:14px;">
+          <label>כותרת הפרק</label>
+          <input type="text" id="custom2Title" placeholder="לדוגמה: תנאי תשלום / אחריות">
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label>תוכן הפרק</label>
+          <textarea id="custom2Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
         </div>
         <div class="field">
-          <label>אימייל</label>
-          <input type="email" id="email" placeholder="your@email.com" dir="ltr">
-        </div>
-        <div class="field">
-          <label>אתר אינטרנט</label>
-          <input type="url" id="website" placeholder="https://yoursite.com" dir="ltr">
-        </div>
-        <div class="field">
-          <label>לינקדאין</label>
-          <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." dir="ltr">
-        </div>
-        <div class="field">
-          <label>פייסבוק / אינסטגרם</label>
-          <input type="url" id="social" placeholder="https://..." dir="ltr">
+          <label>מיקום הפרק בדוח</label>
+          <select id="custom2Position">
+            <option value="end">בסוף הדוח — לפני עמוד תודה</option>
+            <option value="after_details">אחרי פרטים אישיים — בתחילת הדוח</option>
+          </select>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══ SECTION 4: Digital Signature ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title"><span class="icon">✍️</span> חתימה דיגיטלית</div>
-    </div>
-    <div class="section-body">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">חתום עם האצבע (מובייל) או העכבר — תופיע בתחתית הדוח</div>
-      <div class="sig-wrap">
-        <canvas id="sigCanvas" class="sig-canvas" width="700" height="120"></canvas>
-
-      </div>
-      <div class="sig-actions" style="align-items:center;">
-        <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
-          <span style="font-size:11px;color:var(--muted);">צבע:</span>
-          <button onclick="setSigColor('#111827',this)" title="שחור"
-            style="width:26px;height:26px;border-radius:50%;background:#111827;border:2px solid #374151;cursor:pointer;"></button>
-          <button onclick="setSigColor('#1d4ed8',this)" title="כחול"
-            style="width:26px;height:26px;border-radius:50%;background:#1d4ed8;border:2px solid #3b82f6;cursor:pointer;"></button>
-        </div>
-        <button class="btn-sm" onclick="clearSignature()">🗑️ נקה</button>
-        <button class="btn-sm" onclick="saveSignaturePreview()">💾 שמור</button>
-        <span id="sigStatus" style="font-size:12px;color:var(--muted);align-self:center;"></span>
-      </div>
-      <!-- אינדיקציה + preview -->
-      <div class="sig-saved-indicator" id="sigSavedBadge">✓ חתימה שמורה</div>
-      <div class="sig-preview-wrap" id="sigPreviewWrap">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">תצוגה מקדימה:</div>
-        <img id="sigPreview" class="sig-preview-img" style="display:block;max-height:52px;">
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ SECTION 5: Templates ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">
-        <span class="icon">📋</span> שבלונות ברירת מחדל
-      </div>
-    </div>
-    <div class="section-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7;">
-        הגדר ערכים שיתמלאו <strong style="color:var(--text);">אוטומטית בכל תיק חדש</strong> —
-        חסוך זמן על שדות שחוזרים על עצמם כמו שם חברת ביטוח, עיר, תנאי בסיס ועוד.
-      </p>
-
-      <!-- Field defaults -->
-      <div class="sub-section-title">🔤 ברירות מחדל לשדות</div>
-      <div id="fieldDefaultsList" class="templates-list" style="margin-bottom:10px;"></div>
-      <div id="fieldDefaultsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
-        <div class="empty-icon">🔤</div>
-        <div class="empty-title">אין ברירות מחדל עדיין</div>
-        <div class="empty-sub">הגדר ערכים שיתמלאו אוטומטית<br>בכל תיק חדש</div>
-        <button class="empty-cta" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל</button>
-      </div>
-      <button class="add-template-btn" onclick="openTemplateModal('field')">
-        + הוסף ברירת מחדל לשדה
-      </button>
-
-      <div style="height:28px;border-top:1px solid var(--border);margin:20px 0 0;"></div>
-
-      <!-- Text snippets -->
-      <div class="sub-section-title" style="margin-top:4px;">📝 קטעי טקסט קבועים</div>
-      <div id="textSnippetsList" class="templates-list" style="margin-bottom:10px;"></div>
-      <div id="textSnippetsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
-        <div class="empty-icon">📝</div>
-        <div class="empty-title">אין קטעי טקסט עדיין</div>
-        <div class="empty-sub">הוסף נוסחאות ופסקאות<br>שחוזרות בדוחות שלך</div>
-        <button class="empty-cta" onclick="openTemplateModal('text')">+ הוסף קטע טקסט</button>
-      </div>
-      <button class="add-template-btn" onclick="openTemplateModal('text')">
-        + הוסף קטע טקסט קבוע
-      </button>
-    </div>
-  </div>
-
-
-    </div>
-  </div>
+  </div><!-- /ROW 4 -->
 
 </main>
 
@@ -1040,13 +1040,13 @@ body.ob-lock{overflow:hidden;}
       <div class="field" style="margin-bottom:14px;">
         <label>שדה</label>
         <select id="tFieldKey">
-          <option value="client.insCompany">חברת ביטוח</option>
-          <option value="client.claimNum">מספר תביעה</option>
-          <option value="findings.leakType">סוג נזילה</option>
-          <option value="client.city">עיר הנכס</option>
-          <option value="client.propertyType">סוג נכס</option>
-          <option value="findings.fixTime">זמן תיקון</option>
-          <option value="summary.declaration">הצהרת מאתר</option>
+          <option value="insurance.company">חברת ביטוח</option>
+          <option value="insurance.policyNum">מספר פוליסה</option>
+          <option value="event.eventType">סוג אירוע</option>
+          <option value="circ.waterOrigin">מקור מים</option>
+          <option value="base.city">עיר הנכס</option>
+          <option value="property.type">סוג נכס</option>
+          <option value="summary.rehabTime">זמן שיקום</option>
         </select>
       </div>
       <div class="field">
@@ -1066,7 +1066,7 @@ body.ob-lock{overflow:hidden;}
           <option value="circ">נסיבות האירוע</option>
           <option value="findings">ממצאים כלליים</option>
           <option value="summary">סיכום והמלצות</option>
-          <option value="event.appraiserDeclaration">הצהרת מאתר נזילות</option>
+          <option value="event.appraiserDeclaration">הצהרת שמאי</option>
         </select>
       </div>
       <div class="field">
@@ -1089,7 +1089,7 @@ body.ob-lock{overflow:hidden;}
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
-let logoColor     = '#2196F3';
+let logoColor     = '#f59e0b';
 let logoTextColor = '#0f1117';
 let logoMode      = 'initials'; // 'initials' | 'upload'
 let logoImageUrl  = null;       // uploaded image URL
@@ -1157,6 +1157,13 @@ function loadProfile(p){
   if(p.textSnippets)  textSnippets  = p.textSnippets;
   renderTemplates();
 
+  // new fields
+  set('vat', p.vat || '');
+  set('declaration', p.declaration || '');
+  set('education',   p.education   || '');
+  if(p.custom1){ set('custom1Title', p.custom1.title||''); set('custom1Body', p.custom1.body||''); set('custom1Position', p.custom1.position||'end'); }
+  if(p.custom2){ set('custom2Title', p.custom2.title||''); set('custom2Body', p.custom2.body||''); set('custom2Position', p.custom2.position||'end'); }
+
   setSaveStatus('saved');
 }
 
@@ -1176,8 +1183,8 @@ function updateLogoPreview(){
     preview.style.background = '';
   } else {
     preview.style.background = logoColor || '#1a2332';
-    preview.style.color = logoTextColor || '#2196F3';
-    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#2196F3'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
+    preview.style.color = logoTextColor || '#f59e0b';
+    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#f59e0b'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
   }
 }
 
@@ -1308,13 +1315,13 @@ function saveSignaturePreview(){
 // TEMPLATES
 // ══════════════════════════════════════════════════
 const FIELD_LABELS = {
-  'client.insCompany':'חברת ביטוח','client.claimNum':'מספר תביעה',
-  'findings.leakType':'סוג נזילה','client.city':'עיר הנכס',
-  'client.propertyType':'סוג נכס','findings.fixTime':'זמן תיקון','summary.declaration':'הצהרת מאתר'
+  'insurance.company':'חברת ביטוח','insurance.policyNum':'מספר פוליסה',
+  'event.eventType':'סוג אירוע','circ.waterOrigin':'מקור מים',
+  'base.city':'עיר הנכס','property.type':'סוג נכס','summary.rehabTime':'זמן שיקום'
 };
 const SECTION_LABELS = {
   'circ':'נסיבות האירוע','findings':'ממצאים','summary':'סיכום',
-  'event.appraiserDeclaration':'הצהרת מאתר נזילות'
+  'event.appraiserDeclaration':'הצהרת שמאי'
 };
 
 function renderTemplates(){
@@ -1425,7 +1432,12 @@ async function saveAll(){
       logoMode, logoColor, logoTextColor,
       reportTheme: currentReportTheme,
       logoInitials: v('logoInitials') || '',
-      fieldDefaults, textSnippets
+      fieldDefaults, textSnippets,
+      vat:         v('vat'),
+      declaration: v('declaration'),
+      education:   v('education'),
+      custom1:{ title:v('custom1Title'), body:v('custom1Body'), position:v('custom1Position')||'end' },
+      custom2:{ title:v('custom2Title'), body:v('custom2Body'), position:v('custom2Position')||'end' },
     };
 
     // Save logo image as base64 in Firestore (field: logoImageData)
@@ -1522,22 +1534,22 @@ function renderThemeGrid(){
     const sel = currentReportTheme === key;
     return `<div onclick="selectTheme('${key}')" style="
       cursor:pointer;border-radius:10px;overflow:hidden;
-      border:2px solid ${sel ? '#2196F3' : 'rgba(255,255,255,.1)'};
+      border:2px solid ${sel ? '#f59e0b' : 'rgba(255,255,255,.1)'};
       transition:all .2s;display:flex;flex-direction:column;
     ">
       <div style="background:${t.rptBg};padding:8px;direction:rtl;flex:1;">
         <div style="border-bottom:2px solid ${t.headerBorder};padding-bottom:4px;margin-bottom:5px;text-align:center;">
-          <div style="font-size:8px;font-weight:900;color:${t.headerBorder};">מאתר נזילות</div>
+          <div style="font-size:8px;font-weight:900;color:${t.headerBorder};">שמאי רכוש</div>
         </div>
         <div style="font-size:7px;font-weight:800;color:${t.h3Color};border-bottom:1px solid ${t.thBg};padding-bottom:2px;margin-bottom:4px;">מהות הבקשה</div>
-        <div style="font-size:6px;color:#374151;line-height:1.4;margin-bottom:5px;">ח"מ התבקש לערוך חוות דעת מאתר נזילותת...</div>
+        <div style="font-size:6px;color:#374151;line-height:1.4;margin-bottom:5px;">ח"מ התבקש לערוך חוות דעת שמאית...</div>
         <table style="width:100%;border-collapse:collapse;font-size:6px;">
           <tr style="background:${t.thBg};"><th style="padding:2px 4px;text-align:right;color:${t.h3Color};border:1px solid rgba(0,0,0,.1);">תיאור</th><th style="padding:2px 4px;color:${t.h3Color};border:1px solid rgba(0,0,0,.1);">סה"כ</th></tr>
           <tr><td style="padding:2px 4px;border:1px solid rgba(0,0,0,.07);">תיקון טיח</td><td style="padding:2px 4px;border:1px solid rgba(0,0,0,.07);color:${t.accentColor};font-weight:700;">₪3,200</td></tr>
           <tr style="background:${t.summaryBg};"><td style="padding:2px 4px;font-weight:800;">סה"כ</td><td style="padding:2px 4px;font-weight:800;color:${t.accentColor};">₪8,500</td></tr>
         </table>
       </div>
-      <div style="background:${sel?'#2196F3':'#1F2937'};padding:5px;text-align:center;">
+      <div style="background:${sel?'#f59e0b':'#1F2937'};padding:5px;text-align:center;">
         <span style="font-size:11px;font-weight:700;color:${sel?'#000':'#F9FAFB'};">${t.emoji} ${t.name}</span>
       </div>
     </div>`;
@@ -1563,7 +1575,7 @@ document.addEventListener('DOMContentLoaded', ()=> renderThemeGrid());
 // ══════════════════════════════════════════════════
 const settingsOnboardingSteps = [
   {
-    target: '.settings-right .section:nth-of-type(1)',
+    target: '.sg-row:nth-of-type(1) .section:nth-child(1)',
     placement: 'right',
     step: 'שלב 1',
     chip: 'זהות ויזואלית',
@@ -1573,17 +1585,17 @@ const settingsOnboardingSteps = [
     nextLabel: 'המשך'
   },
   {
-    target: '.settings-right .section:nth-of-type(2)',
+    target: '.sg-row:nth-of-type(2) .section:nth-child(1)',
     placement: 'right',
     step: 'שלב 2',
     chip: 'פרטים מקצועיים',
     title: 'הפרטים שיופיעו בכל דוח',
     text: 'שם, תואר, רישיון ופרטי משרד — כולם ייכנסו אוטומטית לדוח הסופי.',
-    bullets: ['פרטי המאתר — שם, תואר, רישיון.', 'פרטי המשרד — עיר, כתובת.', 'פרטי קשר — טלפון, אימייל.'],
+    bullets: ['פרטי השמאי — שם, תואר, רישיון.', 'פרטי המשרד — עיר, כתובת.', 'פרטי קשר — טלפון, אימייל.'],
     nextLabel: 'המשך'
   },
   {
-    target: '.settings-left .section:nth-of-type(2)',
+    target: '.sg-row:nth-of-type(2) .section:nth-child(2)',
     placement: 'left',
     step: 'שלב 3',
     chip: 'חתימה דיגיטלית',
@@ -1608,19 +1620,14 @@ const settingsOnboardingSteps = [
 let settingsOnboardingIndex = 0;
 
 function maybeStartSettingsOnboarding(){
-  const url = new URL(window.location.href);
-  const forced = url.searchParams.get('onboarding') === 'profile-setup';
+  const params = new URLSearchParams(window.location.search);
+  const forced = params.get('onboarding') === 'profile-setup';
   if(window._settingsOnboarding?.completed === true) return;
   if(!forced && window._settingsOnboarding?.step !== 'settings') return;
   if(window._settingsOnboarding?.active) return;
 
   window._settingsOnboarding.active = true;
   document.body.classList.add('ob-lock');
-
-  if (forced) {
-    url.searchParams.delete('onboarding');
-    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
-  }
 
   const overlay = document.getElementById('settingsOnboardingOverlay');
   const card = document.getElementById('settingsOnboardingCard');
@@ -1817,14 +1824,10 @@ function showSettingsOnboardingStep(index){
 async function nextSettingsOnboardingStep(){
   const current = settingsOnboardingSteps[settingsOnboardingIndex];
   if(current?.final){
+    // שמור + עבור לדשבורד לשלב הבא
     try{
       await saveAll();
       if(window._currentUser?.uid && window._settingsOnboarding){
-        await window._saveProfile({
-          onboardingCompleted: false,
-          onboardingStep: 'first_case'
-        });
-        window._settingsOnboarding.completed = false;
         window._settingsOnboarding.step = 'first_case';
       }
     }catch(e){ console.warn('settings onboarding save:', e); }
@@ -1854,15 +1857,9 @@ async function skipSettingsOnboarding() {
     if (window._settingsOnboarding) {
       window._settingsOnboarding.completed = true;
       window._settingsOnboarding.step = 'done';
-      window._settingsOnboarding.active = false;
     }
   }catch(e){
     console.error('skipSettingsOnboarding', e);
-  }
-  const url = new URL(window.location.href);
-  if (url.searchParams.has('onboarding')) {
-    url.searchParams.delete('onboarding');
-    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
   }
   closeSettingsOnboarding();
 }
@@ -1909,7 +1906,7 @@ document.addEventListener('keydown', e=>{
 <style>
 .omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
 .omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#2196F3;}
+.omdan-footer a:hover{color:#f59e0b;}
 
 
 
@@ -1933,7 +1930,7 @@ document.addEventListener('keydown', e=>{
   padding:4px;color:#9CA3AF;font-family:'Heebo',sans-serif;font-size:9px;font-weight:600;
   background:none;border:none;cursor:pointer;text-decoration:none;transition:color .15s;}
 .settings-mob-nav a:hover,.settings-mob-nav button:hover{color:#F9FAFB;}
-.settings-mob-nav a.active{color:#2196F3;}
+.settings-mob-nav a.active{color:#F59E0B;}
 @media(max-width:768px){.settings-mob-nav{display:grid;}.app{padding-bottom:72px;}}
 </style>
 <nav class="settings-mob-nav">
