@@ -202,7 +202,6 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 .editor-small-label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;}
 .editor-inline-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
 .editor-help{font-size:11px;color:var(--muted);line-height:1.6;}
-.editor-mobile-quick,.editor-mobile-advanced-toggle{display:none;}
 @media(max-width:960px){
   .img-editor-shell{grid-template-columns:1fr;max-height:96vh;}
   .img-editor-panel{order:2;}
@@ -263,43 +262,6 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   }
   .img-editor-title{font-size:14px;}
   .img-editor-sub,.editor-help,.editor-meta,.editor-small-label{font-size:11px;}
-  .editor-mobile-quick{
-    display:grid;
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:8px;
-    margin-bottom:10px;
-  }
-  .editor-mobile-quick .editor-btn{
-    min-height:48px;
-    padding:10px 8px;
-    font-size:11px;
-    border-radius:14px;
-    flex-direction:column;
-    gap:3px;
-  }
-  .editor-mobile-quick .editor-btn .mobile-icon{
-    font-size:17px;
-    line-height:1;
-  }
-  .editor-mobile-quick .editor-btn.more-open{
-    border-color:var(--accent);
-    color:var(--accent);
-    background:rgba(33,150,243,.12);
-  }
-  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-mobile-advanced{
-    display:none;
-  }
-  .img-editor-panel[data-mobile-advanced="expanded"] .editor-mobile-advanced{
-    display:block;
-  }
-  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-group--tool,
-  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-group--help{
-    display:none;
-  }
-  .img-editor-panel[data-mobile-advanced="expanded"] .editor-group--tool,
-  .img-editor-panel[data-mobile-advanced="expanded"] .editor-group--help{
-    display:block;
-  }
   .editor-toolbar,
   .editor-inline-actions{
     display:flex;
@@ -313,13 +275,12 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   .editor-inline-actions::-webkit-scrollbar{display:none;}
   .editor-btn{
     flex:0 0 auto;
-    min-height:44px;
+    min-height:40px;
     white-space:nowrap;
-    padding:10px 14px;
-    font-size:12px;
+    padding:9px 12px;
   }
   .editor-swatches{
-    grid-template-columns:repeat(5,minmax(44px,1fr));
+    grid-template-columns:repeat(5,minmax(42px,1fr));
     gap:8px;
   }
 }
@@ -547,59 +508,50 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 
 <div id="imgEditorModal" class="img-editor-modal no-print">
   <div class="img-editor-shell">
-    <div class="img-editor-panel" id="imgEditorPanel" data-mobile-advanced="collapsed">
+    <div class="img-editor-panel">
       <div class="img-editor-title">עורך סימונים לתמונה</div>
       <div class="img-editor-sub">חצים, עיגולים, זום, צבעים, עובי קו, Undo / Redo וסיבוב חץ</div>
 
-      <div class="editor-mobile-quick">
-        <button type="button" class="editor-btn active" id="tool-arrow-mobile" onclick="setEditorTool('arrow')"><span class="mobile-icon">↗️</span><span>חץ</span></button>
-        <button type="button" class="editor-btn" id="tool-circle-mobile" onclick="setEditorTool('circle')"><span class="mobile-icon">⭕</span><span>עיגול</span></button>
-        <button type="button" class="editor-btn" onclick="undoEditor()"><span class="mobile-icon">↶</span><span>Undo</span></button>
-        <button type="button" class="editor-btn" onclick="redoEditor()"><span class="mobile-icon">↷</span><span>Redo</span></button>
-        <button type="button" class="editor-btn" id="editorMoreBtn" onclick="toggleEditorAdvanced()"><span class="mobile-icon">⋯</span><span>עוד</span></button>
+      <div class="editor-group">
+        <span class="editor-small-label">כלי סימון</span>
+        <div class="editor-toolbar">
+          <button type="button" class="editor-btn active" id="tool-arrow" onclick="setEditorTool('arrow')">↗️ חץ</button>
+          <button type="button" class="editor-btn" id="tool-circle" onclick="setEditorTool('circle')">⭕ עיגול</button>
+        </div>
+        <div class="editor-help" style="margin-top:10px;">גרור על התמונה כדי להוסיף סימון. בחץ אפשר לבחור סימון ולסובב אותו.</div>
       </div>
 
-      <div class="editor-mobile-advanced">
-        <div class="editor-group editor-group--tool">
-          <span class="editor-small-label">כלי סימון</span>
-          <div class="editor-toolbar">
-            <button type="button" class="editor-btn active" id="tool-arrow" onclick="setEditorTool('arrow')">↗️ חץ</button>
-            <button type="button" class="editor-btn" id="tool-circle" onclick="setEditorTool('circle')">⭕ עיגול</button>
-          </div>
-        </div>
+      <div class="editor-group">
+        <span class="editor-small-label">צבע סימון</span>
+        <div class="editor-swatches" id="editorSwatches"></div>
+      </div>
 
-        <div class="editor-group editor-group--help">
-          <div class="editor-help">גרור על התמונה כדי להוסיף סימון. בחץ אפשר לבחור סימון ולסובב אותו.</div>
-        </div>
+      <div class="editor-group">
+        <label class="editor-small-label" for="editorLineWidth">עובי קו</label>
+        <input id="editorLineWidth" class="editor-range" type="range" min="2" max="18" step="1" value="10" oninput="setEditorLineWidth(this.value)">
+        <div class="editor-meta"><span id="editorLineWidthValue">10</span> פיקסלים</div>
+      </div>
 
-        <div class="editor-group">
-          <span class="editor-small-label">צבע סימון</span>
-          <div class="editor-swatches" id="editorSwatches"></div>
+      <div class="editor-group">
+        <label class="editor-small-label" for="editorZoom">זום</label>
+        <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
+        <div class="editor-inline-actions">
+          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(-10)">− הקטן</button>
+          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(10)">+ הגדל</button>
+          <button type="button" class="editor-btn" onclick="resetEditorZoom()">איפוס זום</button>
         </div>
+      </div>
 
-        <div class="editor-group">
-          <label class="editor-small-label" for="editorLineWidth">עובי קו</label>
-          <input id="editorLineWidth" class="editor-range" type="range" min="2" max="14" step="1" value="4" oninput="setEditorLineWidth(this.value)">
-          <div class="editor-meta"><span id="editorLineWidthValue">4</span> פיקסלים</div>
-        </div>
-
-        <div class="editor-group">
-          <label class="editor-small-label" for="editorZoom">זום</label>
-          <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
-          <div class="editor-inline-actions">
-            <button type="button" class="editor-btn" onclick="nudgeEditorZoom(-10)">− הקטן</button>
-            <button type="button" class="editor-btn" onclick="nudgeEditorZoom(10)">+ הגדל</button>
-            <button type="button" class="editor-btn" onclick="resetEditorZoom()">איפוס זום</button>
-          </div>
-        </div>
-
-        <div class="editor-group">
-          <span class="editor-small-label">ניהול סימונים</span>
-          <div class="editor-inline-actions">
-            <button type="button" class="editor-btn" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
-            <button type="button" class="editor-btn" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
-            <button type="button" class="editor-btn" onclick="clearEditorAnnotations()">🗑️ נקה הכל</button>
-          </div>
+      <div class="editor-group">
+        <span class="editor-small-label">ניהול סימונים</span>
+        <div class="editor-inline-actions">
+          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
+          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
+          <button type="button" class="editor-btn" onclick="editSelectedAnnotationText()">✏️ טקסט</button>
+          <button type="button" class="editor-btn" onclick="deleteSelectedAnnotation()">🗑️ מחק סימון</button>
+          <button type="button" class="editor-btn" onclick="undoEditor()">↶ Undo</button>
+          <button type="button" class="editor-btn" onclick="redoEditor()">↷ Redo</button>
+          <button type="button" class="editor-btn" onclick="clearEditorAnnotations()">🧹 נקה הכל</button>
         </div>
       </div>
     </div>
@@ -793,7 +745,7 @@ async function loadCase(id){
     // ── Restore inspection data + new fields ──
     const si=s.inspection||{};
     INSP_TYPES.forEach(t=>{
-      if(si[t.id]) inspData[t.id]={status:si[t.id].status||'',notes:si[t.id].notes||'',photos:(si[t.id].photos||[]).map(ph=>({data:ph.data,name:ph.name||'photo',annotated:!!ph.annotated}))};
+      if(si[t.id]) inspData[t.id]={status:si[t.id].status||'',notes:si[t.id].notes||'',photos:(si[t.id].photos||[]).map(ph=>({data:ph.data,originalData:ph.originalData||ph.data,name:ph.name||'photo',annotated:!!ph.annotated,annotations:Array.isArray(ph.annotations)?ph.annotations.map(a=>JSON.parse(JSON.stringify(a))):[]}))};
     });
     renderInspRows();
     // Restore text fields added to new structure
@@ -943,7 +895,7 @@ function updateAutoTools(){
 function handleInspPhoto(typeId,input){
   Array.from(input.files).forEach(file=>{
     const r=new FileReader();
-    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,name:file.name,annotated:false}); renderInspRows(); setSaveStatus('unsaved'); };
+    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,originalData:e.target.result,name:file.name,annotated:false,annotations:[]}); renderInspRows(); setSaveStatus('unsaved'); };
     r.readAsDataURL(file);
   });
   input.value='';
@@ -955,49 +907,19 @@ function removeInspPhoto(typeId,i){ inspData[typeId].photos.splice(i,1); renderI
 const EDITOR_COLORS=['#EF4444','#F59E0B','#FDE047','#22C55E','#38BDF8'];
 let editorCanvas=null, editorCtx=null, editorBaseImage=null;
 let editorCurrentTypeId=null, editorCurrentPhotoIndex=null;
-let editorCurrentTool='arrow', editorCurrentColor=EDITOR_COLORS[0], editorCurrentLineWidth=4, editorZoom=1;
+let editorCurrentTool='arrow', editorCurrentColor=EDITOR_COLORS[0], editorCurrentLineWidth=10, editorZoom=1;
 let editorAnnotations=[], editorRedoStack=[], editorSelectedIndex=-1;
 let editorIsDrawing=false, editorDragStart=null, editorPreviewAnnotation=null;
-let editorMobileAdvanced=false;
-
-function isMobileEditorView(){
-  return window.matchMedia('(max-width: 768px)').matches;
-}
-
-function vibrateLight(ms=10){
-  try{
-    if(navigator.vibrate) navigator.vibrate(ms);
-  }catch(e){}
-}
-
-function syncEditorMobileState(forceExpanded=null){
-  const panel=document.getElementById('imgEditorPanel');
-  const moreBtn=document.getElementById('editorMoreBtn');
-  if(!panel) return;
-  if(!isMobileEditorView()){
-    panel.dataset.mobileAdvanced='expanded';
-    if(moreBtn) moreBtn.classList.remove('more-open');
-    return;
-  }
-  if(forceExpanded!==null) editorMobileAdvanced=!!forceExpanded;
-  panel.dataset.mobileAdvanced=editorMobileAdvanced ? 'expanded' : 'collapsed';
-  if(moreBtn) moreBtn.classList.toggle('more-open', editorMobileAdvanced);
-}
-
-function toggleEditorAdvanced(forceValue=null){
-  if(!isMobileEditorView()) return;
-  editorMobileAdvanced = forceValue===null ? !editorMobileAdvanced : !!forceValue;
-  syncEditorMobileState(editorMobileAdvanced);
-  vibrateLight(8);
-}
-
+let editorDragMode=null, editorPointerStart=null, editorMoved=false;
 
 function ensurePhotoShapeDefaults(){
   Object.values(inspData).forEach(item=>{
     item.photos=(item.photos||[]).map(ph=>({
       data:ph.data,
+      originalData:ph.originalData || ph.data,
       name:ph.name||'photo',
-      annotated:!!ph.annotated
+      annotated:!!ph.annotated,
+      annotations:Array.isArray(ph.annotations) ? ph.annotations.map(a=>JSON.parse(JSON.stringify(a))) : []
     }));
   });
 }
@@ -1011,7 +933,6 @@ function initEditorUi(){
   setEditorColor(editorCurrentColor);
   setEditorTool('arrow');
   setEditorLineWidth(editorCurrentLineWidth);
-  syncEditorMobileState(false);
 
   editorCanvas=document.getElementById('editorCanvas');
   if(editorCanvas && !editorCanvas.dataset.bound){
@@ -1020,6 +941,7 @@ function initEditorUi(){
 
     editorCanvas.addEventListener('mousedown',onEditorPointerDown);
     editorCanvas.addEventListener('mousemove',onEditorPointerMove);
+    editorCanvas.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('mouseup',onEditorPointerUp);
 
     editorCanvas.addEventListener('touchstart',onEditorPointerDown,{passive:false});
@@ -1033,16 +955,19 @@ function openEditor(typeId,index){
   ensurePhotoShapeDefaults();
   editorCurrentTypeId=typeId;
   editorCurrentPhotoIndex=index;
-  editorAnnotations=[];
   editorRedoStack=[];
   editorSelectedIndex=-1;
   editorPreviewAnnotation=null;
+  editorDragMode=null;
+  editorPointerStart=null;
+  editorMoved=false;
   editorZoom=1;
   const zoomEl=document.getElementById('editorZoom');
   if(zoomEl) zoomEl.value=100;
   applyEditorZoom();
 
   const ph=inspData[typeId].photos[index];
+  editorAnnotations=(Array.isArray(ph.annotations) ? ph.annotations : []).map(a=>JSON.parse(JSON.stringify(a)));
   const img=new Image();
   img.onload=()=>{
     editorBaseImage=img;
@@ -1051,14 +976,12 @@ function openEditor(typeId,index){
     redrawEditorCanvas();
     document.getElementById('imgEditorModal').style.display='flex';
     document.getElementById('editorMeta').textContent=`${INSP_TYPES.find(t=>t.id===typeId)?.name || 'בדיקה'} · תמונה ${index+1}`;
-    editorMobileAdvanced=false;
-    syncEditorMobileState(false);
     requestAnimationFrame(()=>{
       fitEditorToViewport();
       requestAnimationFrame(fitEditorToViewport);
     });
   };
-  img.src=ph.data;
+  img.src=ph.originalData || ph.data;
 }
 
 function closeEditor(){
@@ -1071,17 +994,17 @@ function closeEditor(){
   editorSelectedIndex=-1;
   editorPreviewAnnotation=null;
   editorIsDrawing=false;
+  editorDragMode=null;
+  editorPointerStart=null;
+  editorMoved=false;
 }
 
 function setEditorTool(tool){
   editorCurrentTool=tool;
   ['arrow','circle'].forEach(t=>{
     const el=document.getElementById(`tool-${t}`);
-    const mobileEl=document.getElementById(`tool-${t}-mobile`);
     if(el) el.classList.toggle('active', t===tool);
-    if(mobileEl) mobileEl.classList.toggle('active', t===tool);
   });
-  vibrateLight(8);
 }
 
 function setEditorColor(color){
@@ -1089,12 +1012,21 @@ function setEditorColor(color){
   document.querySelectorAll('.editor-swatch').forEach(el=>{
     el.classList.toggle('active', normalizeColor(el.style.backgroundColor)===normalizeColor(color));
   });
+  if(editorSelectedIndex>-1 && editorAnnotations[editorSelectedIndex]){
+    editorAnnotations[editorSelectedIndex].color=color;
+    if(editorAnnotations[editorSelectedIndex].label) editorAnnotations[editorSelectedIndex].label.color=color;
+    redrawEditorCanvas();
+  }
 }
 
 function setEditorLineWidth(val){
-  editorCurrentLineWidth=Number(val)||4;
+  editorCurrentLineWidth=Number(val)||10;
   const label=document.getElementById('editorLineWidthValue');
   if(label) label.textContent=editorCurrentLineWidth;
+  if(editorSelectedIndex>-1 && editorAnnotations[editorSelectedIndex]){
+    editorAnnotations[editorSelectedIndex].lineWidth=editorCurrentLineWidth;
+    redrawEditorCanvas();
+  }
 }
 
 function setEditorZoom(val){
@@ -1164,41 +1096,94 @@ function onEditorPointerDown(evt){
   evt.preventDefault();
   const pt=getCanvasCoords(evt);
   const hit=findAnnotationHit(pt.x, pt.y);
+  editorPointerStart=pt;
+  editorMoved=false;
+
   if(hit!==-1){
     editorSelectedIndex=hit;
+    editorDragMode='move';
+    editorDragStart={x:pt.x,y:pt.y};
     redrawEditorCanvas();
     return;
   }
+
   editorSelectedIndex=-1;
   editorIsDrawing=true;
+  editorDragMode='create';
   editorDragStart=pt;
   editorPreviewAnnotation=createAnnotationFromDrag(pt,pt);
   redrawEditorCanvas();
 }
 
 function onEditorPointerMove(evt){
-  if(!editorIsDrawing || !editorDragStart) return;
+  if(!editorDragMode || !editorDragStart) return;
   evt.preventDefault();
   const pt=getCanvasCoords(evt);
-  editorPreviewAnnotation=createAnnotationFromDrag(editorDragStart, pt);
-  redrawEditorCanvas();
+  if(Math.hypot(pt.x-editorDragStart.x, pt.y-editorDragStart.y)>3) editorMoved=true;
+
+  if(editorDragMode==='move' && editorSelectedIndex>-1){
+    const dx=pt.x-editorDragStart.x;
+    const dy=pt.y-editorDragStart.y;
+    moveAnnotation(editorAnnotations[editorSelectedIndex], dx, dy);
+    editorDragStart=pt;
+    redrawEditorCanvas();
+    return;
+  }
+
+  if(editorDragMode==='create' && editorIsDrawing){
+    editorPreviewAnnotation=createAnnotationFromDrag(editorPointerStart, pt);
+    redrawEditorCanvas();
+  }
 }
 
 function onEditorPointerUp(evt){
-  if(!editorIsDrawing || !editorDragStart) return;
+  if(!editorDragMode) return;
   evt.preventDefault();
   const pt=getCanvasCoords(evt);
-  const ann=createAnnotationFromDrag(editorDragStart, pt);
-  editorIsDrawing=false;
-  editorDragStart=null;
-  editorPreviewAnnotation=null;
-  if(isAnnotationMeaningful(ann)){
-    editorAnnotations.push(ann);
-    editorRedoStack=[];
-    editorSelectedIndex=editorAnnotations.length-1;
-    vibrateLight(12);
+
+  if(editorDragMode==='move'){
+    editorDragMode=null;
+    editorDragStart=null;
+    redrawEditorCanvas();
+    return;
   }
-  redrawEditorCanvas();
+
+  if(editorDragMode==='create' && editorIsDrawing && editorPointerStart){
+    const ann=createAnnotationFromDrag(editorPointerStart, pt);
+    editorIsDrawing=false;
+    editorDragMode=null;
+    editorDragStart=null;
+    editorPreviewAnnotation=null;
+    if(isAnnotationMeaningful(ann)){
+      maybeAttachLabelToAnnotation(ann);
+      editorAnnotations.push(ann);
+      editorRedoStack=[];
+      editorSelectedIndex=editorAnnotations.length-1;
+    }
+    redrawEditorCanvas();
+  }
+}
+
+function moveAnnotation(ann, dx, dy){
+  if(!ann) return;
+  if(ann.tool==='circle'){
+    ann.cx+=dx; ann.cy+=dy;
+    if(ann.label){ ann.label.x+=dx; ann.label.y+=dy; }
+    return;
+  }
+  ann.x1+=dx; ann.y1+=dy; ann.x2+=dx; ann.y2+=dy;
+  if(ann.label){ ann.label.x+=dx; ann.label.y+=dy; }
+}
+
+function maybeAttachLabelToAnnotation(ann){
+  const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');
+  if(!text) return;
+  ann.label={
+    text:text.trim(),
+    x:ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12),
+    y:ann.tool==='circle' ? ann.cy : ann.y2,
+    color:ann.color
+  };
 }
 
 function createAnnotationFromDrag(start,end){
@@ -1218,19 +1203,78 @@ function isAnnotationMeaningful(ann){
   return Math.hypot(ann.x2-ann.x1, ann.y2-ann.y1)>12;
 }
 
-function findAnnotationHit(x,y){
-  for(let i=editorAnnotations.length-1;i>=0;i--){
-    const ann=editorAnnotations[i];
-    if(ann.tool==='circle'){
-      const dx=(x-ann.cx)/(ann.rx||1);
-      const dy=(y-ann.cy)/(ann.ry||1);
-      const dist=Math.abs((dx*dx+dy*dy)-1);
-      if(dist<0.22) return i;
-    }else{
-      const d=distanceToSegment(x,y,ann.x1,ann.y1,ann.x2,ann.y2);
-      if(d<=Math.max(10, ann.lineWidth+6)) return i;
+function findAnnotationHit(x, y) {
+  for (let i = editorAnnotations.length - 1; i >= 0; i--) {
+    const ann = editorAnnotations[i];
+
+    // 1) פגיעה על תיבת הטקסט
+    if (ann.label?.text) {
+      const scale = editorCanvas.width / editorCanvas.clientWidth;
+      const fontSize = 18 * scale;
+      const offset = 12 * scale;
+      const pad = 8 * scale;
+
+      editorCtx.save();
+      editorCtx.font = `700 ${fontSize}px Heebo, Arial, sans-serif`;
+      const metrics = editorCtx.measureText(ann.label.text);
+      const textWidth = metrics.width;
+      editorCtx.restore();
+
+      const baseX = ann.tool === 'arrow'
+        ? (ann.x1 ?? ann.label.x ?? 0)
+        : (ann.label.x ?? 0);
+
+      const baseY = ann.tool === 'arrow'
+        ? (ann.y1 ?? ann.label.y ?? 0)
+        : (ann.label.y ?? 0);
+
+      let drawX = baseX - offset;
+      let align = 'right';
+
+      const leftEdgeIfRightAlign = drawX - textWidth;
+      if (leftEdgeIfRightAlign < pad) {
+        drawX = baseX + offset;
+        align = 'left';
+      }
+
+      if (align === 'left' && drawX + textWidth > editorCanvas.width - pad) {
+        drawX = editorCanvas.width - pad - textWidth;
+      }
+
+      if (align === 'right' && drawX > editorCanvas.width - pad) {
+        drawX = editorCanvas.width - pad;
+      }
+
+      let drawY = baseY;
+      const minY = pad + fontSize / 2;
+      const maxY = editorCanvas.height - pad - fontSize / 2;
+      drawY = Math.max(minY, Math.min(drawY, maxY));
+
+      const box = {
+        left: align === 'right' ? drawX - textWidth - 6 * scale : drawX - 6 * scale,
+        right: align === 'right' ? drawX + 6 * scale : drawX + textWidth + 6 * scale,
+        top: drawY - fontSize / 2 - 6 * scale,
+        bottom: drawY + fontSize / 2 + 6 * scale
+      };
+
+      if (x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
+        return i;
+      }
+    }
+
+    // 2) פגיעה על העיגול
+    if (ann.tool === 'circle') {
+      const dx = (x - ann.cx) / (ann.rx || 1);
+      const dy = (y - ann.cy) / (ann.ry || 1);
+      const dist = Math.abs((dx * dx + dy * dy) - 1);
+      if (dist < 0.22) return i;
+    } else {
+      // 3) פגיעה על קו החץ
+      const d = distanceToSegment(x, y, ann.x1, ann.y1, ann.x2, ann.y2);
+      if (d <= Math.max(10, (ann.lineWidth || 1) + 6)) return i;
     }
   }
+
   return -1;
 }
 
@@ -1261,16 +1305,16 @@ function drawAnnotation(ann,isSelected=false,isPreview=false){
     editorCtx.beginPath();
     editorCtx.ellipse(ann.cx,ann.cy,Math.max(ann.rx,1),Math.max(ann.ry,1),0,0,Math.PI*2);
     editorCtx.stroke();
-    if(isSelected) drawSelectionBox(ann);
   }else{
     drawArrowShape(ann);
-    if(isSelected) drawSelectionBox(ann);
   }
+  drawAnnotationLabel(ann, isSelected);
+  if(isSelected) drawSelectionBox(ann);
   editorCtx.restore();
 }
 
 function drawArrowShape(ann){
-  const headLength=Math.max(12, ann.lineWidth*4);
+  const headLength=Math.max(20, ann.lineWidth*8);
   const angle=Math.atan2(ann.y2-ann.y1, ann.x2-ann.x1);
   editorCtx.beginPath();
   editorCtx.moveTo(ann.x1,ann.y1);
@@ -1285,6 +1329,77 @@ function drawArrowShape(ann){
   editorCtx.fill();
 }
 
+function drawAnnotationLabel(ann, isSelected = false) {
+  if (!ann?.label?.text) return;
+
+  const text = ann.label.text;
+  const scale = editorCanvas.width / editorCanvas.clientWidth;
+
+  editorCtx.save();
+
+  const fontSize = 18 * scale;
+  const offset = 12 * scale;
+  const pad = 8 * scale;
+
+  editorCtx.font = `700 ${fontSize}px Heebo, Arial, sans-serif`;
+  editorCtx.textBaseline = 'middle';
+
+  const metrics = editorCtx.measureText(text);
+  const textWidth = metrics.width;
+
+  const baseX = ann.tool === 'arrow'
+    ? (ann.x1 ?? ann.label.x ?? 0)
+    : (ann.label.x ?? 0);
+
+  const baseY = ann.tool === 'arrow'
+    ? (ann.y1 ?? ann.label.y ?? 0)
+    : (ann.label.y ?? 0);
+
+  let drawX = baseX - offset;
+  let align = 'right';
+
+  const leftEdgeIfRightAlign = drawX - textWidth;
+  if (leftEdgeIfRightAlign < pad) {
+    drawX = baseX + offset;
+    align = 'left';
+  }
+
+  if (align === 'left' && drawX + textWidth > editorCanvas.width - pad) {
+    drawX = editorCanvas.width - pad - textWidth;
+  }
+
+  if (align === 'right' && drawX > editorCanvas.width - pad) {
+    drawX = editorCanvas.width - pad;
+  }
+
+  let drawY = baseY;
+  const minY = pad + fontSize / 2;
+  const maxY = editorCanvas.height - pad - fontSize / 2;
+  drawY = Math.max(minY, Math.min(drawY, maxY));
+
+  editorCtx.textAlign = align;
+  editorCtx.lineWidth = 1.4 * scale;
+  editorCtx.strokeStyle = 'rgba(0,0,0,.55)';
+  editorCtx.fillStyle = ann.label.color || ann.color || '#ff0000';
+
+  editorCtx.strokeText(text, drawX, drawY);
+  editorCtx.fillText(text, drawX, drawY);
+
+  editorCtx.restore();
+}
+
+
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
 function drawSelectionBox(ann){
   editorCtx.save();
   editorCtx.setLineDash([8,6]);
@@ -1296,10 +1411,22 @@ function drawSelectionBox(ann){
 }
 
 function getAnnotationBounds(ann){
+  let base;
   if(ann.tool==='circle'){
-    return {x:ann.cx-ann.rx,y:ann.cy-ann.ry,w:ann.rx*2,h:ann.ry*2};
+    base={x:ann.cx-ann.rx,y:ann.cy-ann.ry,w:ann.rx*2,h:ann.ry*2};
+  } else {
+    base={x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};
   }
-  return {x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};
+  if(ann.label?.text){
+    const labelW=Math.max(80, ann.label.text.length*12)+20;
+    const labelH=32;
+    const lx=ann.label.x-labelW;
+    const ly=ann.label.y-labelH/2;
+    const minX=Math.min(base.x,lx), minY=Math.min(base.y,ly);
+    const maxX=Math.max(base.x+base.w,lx+labelW), maxY=Math.max(base.y+base.h,ly+labelH);
+    return {x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+  }
+  return base;
 }
 
 function rotateSelectedArrow(delta){
@@ -1311,7 +1438,6 @@ function rotateSelectedArrow(delta){
   ann.x2=ann.x1+Math.cos(angle)*len;
   ann.y2=ann.y1+Math.sin(angle)*len;
   redrawEditorCanvas();
-  vibrateLight(8);
 }
 
 function undoEditor(){
@@ -1320,7 +1446,6 @@ function undoEditor(){
   editorRedoStack.push(JSON.parse(JSON.stringify(ann)));
   editorSelectedIndex=editorAnnotations.length-1;
   redrawEditorCanvas();
-  vibrateLight(8);
 }
 
 function redoEditor(){
@@ -1329,7 +1454,6 @@ function redoEditor(){
   editorAnnotations.push(JSON.parse(JSON.stringify(ann)));
   editorSelectedIndex=editorAnnotations.length-1;
   redrawEditorCanvas();
-  vibrateLight(8);
 }
 
 function clearEditorAnnotations(){
@@ -1338,21 +1462,50 @@ function clearEditorAnnotations(){
   editorAnnotations=[];
   editorSelectedIndex=-1;
   redrawEditorCanvas();
-  vibrateLight(12);
+}
+
+function deleteSelectedAnnotation(){
+  if(editorSelectedIndex<0) return;
+  editorRedoStack.push(JSON.parse(JSON.stringify(editorAnnotations[editorSelectedIndex])));
+  editorAnnotations.splice(editorSelectedIndex,1);
+  editorSelectedIndex=Math.min(editorSelectedIndex, editorAnnotations.length-1);
+  redrawEditorCanvas();
+}
+
+function editSelectedAnnotationText(){
+  if(editorSelectedIndex<0) return;
+  const ann=editorAnnotations[editorSelectedIndex];
+  const current=ann.label?.text || '';
+  const next=window.prompt('ערוך טקסט ליד הסימון. להשאיר ריק כדי למחוק.', current);
+  if(next===null) return;
+  if(!next.trim()){
+    delete ann.label;
+  } else {
+    ann.label={
+      text:next.trim(),
+      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12)),
+      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y2),
+      color:ann.color
+    };
+  }
+  redrawEditorCanvas();
 }
 
 function saveEditedImage(){
   if(editorCurrentTypeId==null || editorCurrentPhotoIndex==null || !editorCanvas) return;
+  const currentPhoto=inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex];
+  const originalData=currentPhoto.originalData || currentPhoto.data;
   const newData=editorCanvas.toDataURL('image/jpeg',0.92);
   inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex]={
-    ...inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex],
+    ...currentPhoto,
     data:newData,
-    annotated:editorAnnotations.length>0 || inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex]?.annotated
+    originalData,
+    annotations:editorAnnotations.map(a=>JSON.parse(JSON.stringify(a))),
+    annotated:editorAnnotations.length>0
   };
   renderInspRows();
   setSaveStatus('unsaved');
-  showToast('✓ התמונה עודכנה עם סימונים');
-  vibrateLight(18);
+  showToast(editorAnnotations.length ? '✓ התמונה והסימונים נשמרו' : '✓ הסימונים הוסרו והתמונה עודכנה');
   closeEditor();
 }
 
@@ -1414,9 +1567,9 @@ window.rotateSelectedArrow=rotateSelectedArrow;
 window.undoEditor=undoEditor;
 window.redoEditor=redoEditor;
 window.clearEditorAnnotations=clearEditorAnnotations;
+window.deleteSelectedAnnotation=deleteSelectedAnnotation;
+window.editSelectedAnnotationText=editSelectedAnnotationText;
 window.saveEditedImage=saveEditedImage;
-window.toggleEditorAdvanced=toggleEditorAdvanced;
-window.addEventListener('resize',()=>syncEditorMobileState(editorMobileAdvanced));
 
 // ── CERTAINTY ──
 function setCertainty(val){
