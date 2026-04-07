@@ -158,20 +158,23 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 /* Insp row: table full width, photos inline below each row */
 .insp-row-wrap{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;background:rgba(255,255,255,.02);}
 .insp-row-wrap:last-child{margin-bottom:0;}
-.insp-row-main{display:grid;grid-template-columns:28px 160px 1fr 1fr;gap:14px;align-items:start;margin-bottom:10px;}
-.insp-row-photos{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;padding-right:32px;}
-.insp-row-photos .photo-thumb,.insp-row-photos .photo-add-tile{width:90px;height:68px;aspect-ratio:unset;flex-shrink:0;}
-.insp-row-photos .photo-upload-btn{width:90px;height:68px;aspect-ratio:unset;font-size:11px;gap:3px;}
-.insp-row-photos .photo-upload-btn .icon{font-size:18px;}
-
+.insp-row-wrap:not(.open) .insp-acc-body{display:none;}
 .insp-acc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;}
 .insp-acc-title{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
 .insp-acc-name{font-size:13px;font-weight:800;color:var(--text);}
 .insp-acc-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .insp-photo-count{font-size:11px;color:var(--muted);}
-.insp-acc-chevron{width:28px;height:28px;border-radius:999px;border:1px solid var(--primary3);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;transition:transform .18s ease,color .18s ease,border-color .18s ease;background:rgba(255,255,255,.02);}
+.insp-acc-chevron{width:28px;height:28px;border-radius:999px;border:1px solid var(--primary3);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;transition:transform .18s ease,color .18s ease,border-color .18s ease;background:rgba(255,255,255,.02);flex-shrink:0;}
 .insp-row-wrap.open .insp-acc-chevron{transform:rotate(180deg);color:var(--accent);border-color:var(--accent);}
 .insp-acc-body{margin-top:12px;}
+.insp-body-grid{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:12px;align-items:start;}
+.insp-box{border:1px solid var(--primary3);border-radius:12px;background:rgba(255,255,255,.02);padding:12px;}
+.insp-box-title{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:8px;}
+.insp-row-main{display:grid;grid-template-columns:1fr;gap:12px;align-items:start;margin-bottom:0;}
+.insp-row-photos{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;padding-right:0;}
+.insp-row-photos .photo-thumb,.insp-row-photos .photo-add-tile{width:90px;height:68px;aspect-ratio:unset;flex-shrink:0;}
+.insp-row-photos .photo-upload-btn{width:90px;height:68px;aspect-ratio:unset;font-size:11px;gap:3px;}
+.insp-row-photos .photo-upload-btn .icon{font-size:18px;}
 .editor-more-wrap{position:relative;}
 .editor-more-menu{display:none;gap:8px;flex-wrap:wrap;margin-top:8px;}
 .editor-more-wrap.open .editor-more-menu{display:flex;}
@@ -181,7 +184,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 
 @media(max-width:900px){
   .form-row-2{grid-template-columns:1fr;}
-  .insp-row-main{grid-template-columns:32px 1fr 1fr;}
+  .insp-body-grid{grid-template-columns:1fr;}
 }
 @media(max-width:768px){
   .sidebar{display:none;}
@@ -190,11 +193,10 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   .stepper-wrap{gap:4px;}
   .step-btn .step-label{display:none;}
   .insp-row-wrap{padding:12px;}
-  .insp-row-main{grid-template-columns:1fr;}
-  .insp-row-wrap:not(.open) .insp-acc-body{display:none;}
   .insp-acc-name{font-size:14px;}
   .insp-acc-meta{gap:6px;}
-  .insp-row-photos{padding-right:0;}
+  .insp-body-grid{grid-template-columns:1fr;}
+  .insp-box{padding:10px;}
   .editor-btn.is-mobile-primary{display:inline-flex;}
   .editor-btn.is-mobile-more{display:none;}
   .editor-more-toggle{display:inline-flex;}
@@ -872,9 +874,9 @@ function populateStaticBanners(){
 function renderInspRows(){
   const wrap=document.getElementById('inspRowsWrap');
   if(!wrap) return;
-  const isMobile=window.innerWidth<=768;
   wrap.innerHTML=INSP_TYPES.map(t=>{
     const d=inspData[t.id];
+    if(typeof d.open==='undefined') d.open=true;
     const opts=INSP_STATUS_OPTIONS.map(o=>`<option value="${o.value}"${d.status===o.value?' selected':''}>${o.label}</option>`).join('');
     const maxSlots=4;
     const photoCount=d.photos.length;
@@ -886,7 +888,7 @@ function renderInspRows(){
         <button class="photo-del" type="button" onclick="event.stopPropagation();removeInspPhoto('${t.id}',${i})">×</button>
       </div>
     `).join('');
-    const placeholders=Array.from({length:Math.max(0,maxSlots-d.photos.length)}).map((_,slot)=>`
+    const placeholders=Array.from({length:Math.max(0,maxSlots-d.photos.length)}).map(()=>`
       <label class="photo-thumb placeholder" for="insp-file-${t.id}" title="הוסף תמונה">
         <div class="ph-inner"><span>＋</span><small>הוסף תמונה</small></div>
       </label>
@@ -894,8 +896,8 @@ function renderInspRows(){
     const addTile=`<label class="photo-add-tile" for="insp-file-${t.id}" title="הוסף עוד תמונות">
       <div class="ph-inner"><span>📷</span><small>הוסף</small></div>
     </label>`;
-    return `<div class="insp-row-wrap ${!isMobile || d.openMobile ? 'open' : ''}" id="insp-row-${t.id}">
-      <div class="insp-acc-head" ${isMobile ? `onclick="toggleInspAccordion('${t.id}')"` : ''}>
+    return `<div class="insp-row-wrap ${d.open ? 'open' : ''}" id="insp-row-${t.id}">
+      <div class="insp-acc-head" onclick="toggleInspAccordion('${t.id}')">
         <div class="insp-acc-title">
           <div style="font-size:18px;text-align:center;">${t.icon}</div>
           <div class="insp-acc-name">${t.name}</div>
@@ -903,24 +905,33 @@ function renderInspRows(){
         <div class="insp-acc-meta">
           <span class="status-pill ${getInspStatusClass(d.status)}">${statusLabel}</span>
           <span class="insp-photo-count">${photoCount} תמונות</span>
-          ${isMobile ? '<span class="insp-acc-chevron">⌄</span>' : ''}
+          <span class="insp-acc-chevron">⌄</span>
         </div>
       </div>
       <div class="insp-acc-body">
-        <div class="insp-row-main">
-          <div style="font-size:18px;text-align:center;padding-top:8px;display:${isMobile?'none':'block'};">${t.icon}</div>
-          <div style="font-size:13px;font-weight:700;padding-top:10px;display:${isMobile?'none':'block'};">${t.name}</div>
-          <select onclick="event.stopPropagation()" onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();renderInspRows();" id="insp-status-${t.id}"
-            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;">${opts}</select>
-          <textarea placeholder="הערות, פרטים, מדידות..." onclick="event.stopPropagation()" onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
-            id="insp-notes-${t.id}"
-            style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:58px;">${d.notes}</textarea>
-        </div>
-        <div class="insp-row-photos" onclick="event.stopPropagation()">
-          ${thumbs}
-          ${placeholders}
-          ${addTile}
-          <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+        <div class="insp-body-grid">
+          <div class="insp-row-main">
+            <div class="insp-box">
+              <div class="insp-box-title">תוצאת בדיקה</div>
+              <select onclick="event.stopPropagation()" onchange="inspData['${t.id}'].status=this.value;setSaveStatus('unsaved');updateAutoTools();renderInspRows();" id="insp-status-${t.id}"
+                style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;appearance:none;width:100%;">${opts}</select>
+            </div>
+            <div class="insp-box">
+              <div class="insp-box-title">הערות</div>
+              <textarea placeholder="הערות, פרטים, מדידות..." onclick="event.stopPropagation()" onchange="inspData['${t.id}'].notes=this.value;setSaveStatus('unsaved');"
+                id="insp-notes-${t.id}"
+                style="background:var(--primary2);border:1.5px solid var(--primary3);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:Heebo,sans-serif;outline:none;resize:vertical;min-height:72px;width:100%;">${d.notes}</textarea>
+            </div>
+          </div>
+          <div class="insp-box" onclick="event.stopPropagation()">
+            <div class="insp-box-title">תמונות</div>
+            <div class="insp-row-photos">
+              ${thumbs}
+              ${placeholders}
+              ${addTile}
+              <input type="file" id="insp-file-${t.id}" accept="image/*" multiple style="display:none;" onchange="handleInspPhoto('${t.id}',this)">
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -936,10 +947,9 @@ function getInspStatusClass(status){
 }
 
 function toggleInspAccordion(typeId){
-  if(window.innerWidth>768) return;
   const row=inspData[typeId];
   if(!row) return;
-  row.openMobile=!row.openMobile;
+  row.open = !row.open;
   renderInspRows();
 }
 
