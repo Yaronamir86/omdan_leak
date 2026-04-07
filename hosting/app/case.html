@@ -483,7 +483,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 </div>
 
 <!-- ══ SECTION 4: דוח סופי ══ -->
-<div class="form-section" id="section-4" style="display:none;" id="section-report">
+<div class="form-section" id="section-4" style="display:none;">
   <div class="form-card no-print">
     <div class="card-header">
       <div><div class="card-title">📄 דוח סופי</div><div class="card-sub">תצוגה מקדימה + הדפסה / שמירה</div></div>
@@ -783,12 +783,12 @@ function buildState(){
 async function saveCase(){
   setSaveStatus('saving');
   try{
-    const state=buildState();
+    const state=sanitizeForFirestore(buildState());
     const caseData={
       uid:currentUser.uid,
       caseNum:getVal('f-caseNum'),
       date:getVal('f-date'),
-      name:state.client.name,
+      name:state.client?.name || '',
       status:getVal('f-status'),
       state,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
@@ -891,11 +891,32 @@ function updateAutoTools(){
   else if(disc) disc.style.display='none';
 }
 
+// ── Image compression ──
+function compressImage(dataUrl, maxW=1200, quality=0.72){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1, maxW/Math.max(img.width, img.height));
+      const w=Math.round(img.width*scale), h=Math.round(img.height*scale);
+      const c=document.createElement('canvas');
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror=()=>resolve(dataUrl); // fallback
+    img.src=dataUrl;
+  });
+}
+
 // ── Photo handlers ──
 function handleInspPhoto(typeId,input){
   Array.from(input.files).forEach(file=>{
     const r=new FileReader();
-    r.onload=e=>{ inspData[typeId].photos.push({data:e.target.result,originalData:e.target.result,name:file.name,annotated:false,annotations:[]}); renderInspRows(); setSaveStatus('unsaved'); };
+    r.onload=async e=>{
+      const compressed=await compressImage(e.target.result);
+      inspData[typeId].photos.push({data:compressed,originalData:compressed,name:file.name,annotated:false,annotations:[]});
+      renderInspRows(); setSaveStatus('unsaved');
+    };
     r.readAsDataURL(file);
   });
   input.value='';
@@ -941,7 +962,6 @@ function initEditorUi(){
 
     editorCanvas.addEventListener('mousedown',onEditorPointerDown);
     editorCanvas.addEventListener('mousemove',onEditorPointerMove);
-    editorCanvas.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('mouseup',onEditorPointerUp);
 
     editorCanvas.addEventListener('touchstart',onEditorPointerDown,{passive:false});
@@ -1178,12 +1198,18 @@ function moveAnnotation(ann, dx, dy){
 function maybeAttachLabelToAnnotation(ann){
   const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');
   if(!text) return;
-  ann.label={
-    text:text.trim(),
-    x:ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12),
-    y:ann.tool==='circle' ? ann.cy : ann.y2,
-    color:ann.color
-  };
+  // מיקום: צד הזנב של החץ (x1,y1) או מחוץ לעיגול
+  let lx, ly;
+  if(ann.tool==='circle'){
+    // מחוץ לעיגול — ימין אם יש מקום, אחרת שמאל
+    lx = ann.cx + ann.rx + 14;
+    ly = ann.cy;
+  } else {
+    // צד הזנב (x1,y1) — הצד הרחוק מהחץ
+    lx = ann.x1 + 14;
+    ly = ann.y1;
+  }
+  ann.label={ text:text.trim(), x:lx, y:ly, color:ann.color };
 }
 
 function createAnnotationFromDrag(start,end){
@@ -1203,78 +1229,26 @@ function isAnnotationMeaningful(ann){
   return Math.hypot(ann.x2-ann.x1, ann.y2-ann.y1)>12;
 }
 
-function findAnnotationHit(x, y) {
-  for (let i = editorAnnotations.length - 1; i >= 0; i--) {
-    const ann = editorAnnotations[i];
-
-    // 1) פגיעה על תיבת הטקסט
-    if (ann.label?.text) {
-      const scale = editorCanvas.width / editorCanvas.clientWidth;
-      const fontSize = 18 * scale;
-      const offset = 12 * scale;
-      const pad = 8 * scale;
-
-      editorCtx.save();
-      editorCtx.font = `700 ${fontSize}px Heebo, Arial, sans-serif`;
-      const metrics = editorCtx.measureText(ann.label.text);
-      const textWidth = metrics.width;
-      editorCtx.restore();
-
-      const baseX = ann.tool === 'arrow'
-        ? (ann.x1 ?? ann.label.x ?? 0)
-        : (ann.label.x ?? 0);
-
-      const baseY = ann.tool === 'arrow'
-        ? (ann.y1 ?? ann.label.y ?? 0)
-        : (ann.label.y ?? 0);
-
-      let drawX = baseX - offset;
-      let align = 'right';
-
-      const leftEdgeIfRightAlign = drawX - textWidth;
-      if (leftEdgeIfRightAlign < pad) {
-        drawX = baseX + offset;
-        align = 'left';
-      }
-
-      if (align === 'left' && drawX + textWidth > editorCanvas.width - pad) {
-        drawX = editorCanvas.width - pad - textWidth;
-      }
-
-      if (align === 'right' && drawX > editorCanvas.width - pad) {
-        drawX = editorCanvas.width - pad;
-      }
-
-      let drawY = baseY;
-      const minY = pad + fontSize / 2;
-      const maxY = editorCanvas.height - pad - fontSize / 2;
-      drawY = Math.max(minY, Math.min(drawY, maxY));
-
-      const box = {
-        left: align === 'right' ? drawX - textWidth - 6 * scale : drawX - 6 * scale,
-        right: align === 'right' ? drawX + 6 * scale : drawX + textWidth + 6 * scale,
-        top: drawY - fontSize / 2 - 6 * scale,
-        bottom: drawY + fontSize / 2 + 6 * scale
-      };
-
-      if (x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
-        return i;
-      }
+function findAnnotationHit(x,y){
+  for(let i=editorAnnotations.length-1;i>=0;i--){
+    const ann=editorAnnotations[i];
+    if(ann.label?.text){
+      const labelW=Math.max(40, ann.label.text.length*7)+12;
+      const labelH=22;
+      const lx=ann.label.x;
+      const ly=ann.label.y-labelH/2;
+      if(x>=lx && x<=lx+labelW && y>=ly && y<=ly+labelH) return i;
     }
-
-    // 2) פגיעה על העיגול
-    if (ann.tool === 'circle') {
-      const dx = (x - ann.cx) / (ann.rx || 1);
-      const dy = (y - ann.cy) / (ann.ry || 1);
-      const dist = Math.abs((dx * dx + dy * dy) - 1);
-      if (dist < 0.22) return i;
-    } else {
-      // 3) פגיעה על קו החץ
-      const d = distanceToSegment(x, y, ann.x1, ann.y1, ann.x2, ann.y2);
-      if (d <= Math.max(10, (ann.lineWidth || 1) + 6)) return i;
+    if(ann.tool==='circle'){
+      const dx=(x-ann.cx)/(ann.rx||1);
+      const dy=(y-ann.cy)/(ann.ry||1);
+      const dist=Math.abs((dx*dx+dy*dy)-1);
+      if(dist<0.22 || (dx*dx+dy*dy)<=1) return i;
+    }else{
+      const d=distanceToSegment(x,y,ann.x1,ann.y1,ann.x2,ann.y2);
+      if(d<=Math.max(12, ann.lineWidth+8)) return i;
     }
   }
-
   return -1;
 }
 
@@ -1314,7 +1288,7 @@ function drawAnnotation(ann,isSelected=false,isPreview=false){
 }
 
 function drawArrowShape(ann){
-  const headLength=Math.max(20, ann.lineWidth*8);
+  const headLength=Math.max(12, ann.lineWidth*4);
   const angle=Math.atan2(ann.y2-ann.y1, ann.x2-ann.x1);
   editorCtx.beginPath();
   editorCtx.moveTo(ann.x1,ann.y1);
@@ -1328,67 +1302,35 @@ function drawArrowShape(ann){
   editorCtx.closePath();
   editorCtx.fill();
 }
-
-function drawAnnotationLabel(ann, isSelected = false) {
-  if (!ann?.label?.text) return;
-
-  const text = ann.label.text;
-  const scale = editorCanvas.width / editorCanvas.clientWidth;
-
+function drawAnnotationLabel(ann, isSelected=false){
+  if(!ann.label?.text) return;
   editorCtx.save();
-
-  const fontSize = 18 * scale;
-  const offset = 12 * scale;
-  const pad = 8 * scale;
-
-  editorCtx.font = `700 ${fontSize}px Heebo, Arial, sans-serif`;
-  editorCtx.textBaseline = 'middle';
-
-  const metrics = editorCtx.measureText(text);
-  const textWidth = metrics.width;
-
-  const baseX = ann.tool === 'arrow'
-    ? (ann.x1 ?? ann.label.x ?? 0)
-    : (ann.label.x ?? 0);
-
-  const baseY = ann.tool === 'arrow'
-    ? (ann.y1 ?? ann.label.y ?? 0)
-    : (ann.label.y ?? 0);
-
-  let drawX = baseX - offset;
-  let align = 'right';
-
-  const leftEdgeIfRightAlign = drawX - textWidth;
-  if (leftEdgeIfRightAlign < pad) {
-    drawX = baseX + offset;
-    align = 'left';
-  }
-
-  if (align === 'left' && drawX + textWidth > editorCanvas.width - pad) {
-    drawX = editorCanvas.width - pad - textWidth;
-  }
-
-  if (align === 'right' && drawX > editorCanvas.width - pad) {
-    drawX = editorCanvas.width - pad;
-  }
-
-  let drawY = baseY;
-  const minY = pad + fontSize / 2;
-  const maxY = editorCanvas.height - pad - fontSize / 2;
-  drawY = Math.max(minY, Math.min(drawY, maxY));
-
-  editorCtx.textAlign = align;
-  editorCtx.lineWidth = 1.4 * scale;
-  editorCtx.strokeStyle = 'rgba(0,0,0,.55)';
-  editorCtx.fillStyle = ann.label.color || ann.color || '#ff0000';
-
-  editorCtx.strokeText(text, drawX, drawY);
-  editorCtx.fillText(text, drawX, drawY);
-
+  const FONT_SIZE=32;
+  editorCtx.font=`700 ${FONT_SIZE}px Heebo, Arial, sans-serif`;
+  editorCtx.textAlign='left';
+  editorCtx.textBaseline='middle';
+  const text=ann.label.text;
+  const metrics=editorCtx.measureText(text);
+  const cW=editorCanvas.width, cH=editorCanvas.height;
+  // מיקום בסיס
+  let tx=ann.label.x;
+  let ty=ann.label.y;
+  // מניעת גלישה
+  const textW=Math.ceil(metrics.width);
+  if(tx+textW > cW-2) tx=cW-textW-4;
+  if(tx < 2) tx=2;
+  if(ty < FONT_SIZE) ty=FONT_SIZE;
+  if(ty > cH-4) ty=cH-4;
+  // צל לקריאות ללא רקע
+  editorCtx.shadowColor='rgba(0,0,0,0.85)';
+  editorCtx.shadowBlur=4;
+  editorCtx.shadowOffsetX=1;
+  editorCtx.shadowOffsetY=1;
+  // טקסט ללא רקע
+  editorCtx.fillStyle=ann.label.color || ann.color;
+  editorCtx.fillText(text, tx, ty);
   editorCtx.restore();
 }
-
-
 
 function roundRect(ctx, x, y, w, h, r){
   ctx.beginPath();
@@ -1418,9 +1360,9 @@ function getAnnotationBounds(ann){
     base={x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};
   }
   if(ann.label?.text){
-    const labelW=Math.max(80, ann.label.text.length*12)+20;
-    const labelH=32;
-    const lx=ann.label.x-labelW;
+    const labelW=Math.max(40, ann.label.text.length*7)+12;
+    const labelH=22;
+    const lx=ann.label.x;
     const ly=ann.label.y-labelH/2;
     const minX=Math.min(base.x,lx), minY=Math.min(base.y,ly);
     const maxX=Math.max(base.x+base.w,lx+labelW), maxY=Math.max(base.y+base.h,ly+labelH);
@@ -1483,8 +1425,8 @@ function editSelectedAnnotationText(){
   } else {
     ann.label={
       text:next.trim(),
-      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+12) : (ann.x2+12)),
-      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y2),
+      x:ann.label?.x ?? (ann.tool==='circle' ? (ann.cx+ann.rx+14) : (ann.x1+14)),
+      y:ann.label?.y ?? (ann.tool==='circle' ? ann.cy : ann.y1),
       color:ann.color
     };
   }
@@ -1495,7 +1437,7 @@ function saveEditedImage(){
   if(editorCurrentTypeId==null || editorCurrentPhotoIndex==null || !editorCanvas) return;
   const currentPhoto=inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex];
   const originalData=currentPhoto.originalData || currentPhoto.data;
-  const newData=editorCanvas.toDataURL('image/jpeg',0.92);
+  const newData=editorCanvas.toDataURL('image/jpeg',0.75);
   inspData[editorCurrentTypeId].photos[editorCurrentPhotoIndex]={
     ...currentPhoto,
     data:newData,
@@ -1745,6 +1687,35 @@ ${customEnd}
 </div>`;
 }
 
+
+
+function sanitizeForFirestore(value){
+  if(value === undefined || value === null) return null;
+
+  if(typeof value === 'number'){
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if(typeof value === 'string' || typeof value === 'boolean'){
+    return value;
+  }
+
+  if(Array.isArray(value)){
+    return value.map(item => sanitizeForFirestore(item));
+  }
+
+  if(typeof value === 'object'){
+    const out = {};
+    Object.entries(value).forEach(([key, val]) => {
+      if(typeof val === 'function') return;
+      const cleanVal = sanitizeForFirestore(val);
+      if(cleanVal !== undefined) out[key] = cleanVal;
+    });
+    return out;
+  }
+
+  return null;
+}
 
 function getVal(id){const el=document.getElementById(id);return el?el.value:'';}
 function setVal(id,v){const el=document.getElementById(id);if(el&&v!==undefined) el.value=v;}
