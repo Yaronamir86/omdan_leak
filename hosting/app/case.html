@@ -202,6 +202,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 .editor-small-label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;}
 .editor-inline-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
 .editor-help{font-size:11px;color:var(--muted);line-height:1.6;}
+.editor-mobile-quick,.editor-mobile-advanced-toggle{display:none;}
 @media(max-width:960px){
   .img-editor-shell{grid-template-columns:1fr;max-height:96vh;}
   .img-editor-panel{order:2;}
@@ -262,6 +263,43 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   }
   .img-editor-title{font-size:14px;}
   .img-editor-sub,.editor-help,.editor-meta,.editor-small-label{font-size:11px;}
+  .editor-mobile-quick{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .editor-mobile-quick .editor-btn{
+    min-height:48px;
+    padding:10px 8px;
+    font-size:11px;
+    border-radius:14px;
+    flex-direction:column;
+    gap:3px;
+  }
+  .editor-mobile-quick .editor-btn .mobile-icon{
+    font-size:17px;
+    line-height:1;
+  }
+  .editor-mobile-quick .editor-btn.more-open{
+    border-color:var(--accent);
+    color:var(--accent);
+    background:rgba(33,150,243,.12);
+  }
+  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-mobile-advanced{
+    display:none;
+  }
+  .img-editor-panel[data-mobile-advanced="expanded"] .editor-mobile-advanced{
+    display:block;
+  }
+  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-group--tool,
+  .img-editor-panel[data-mobile-advanced="collapsed"] .editor-group--help{
+    display:none;
+  }
+  .img-editor-panel[data-mobile-advanced="expanded"] .editor-group--tool,
+  .img-editor-panel[data-mobile-advanced="expanded"] .editor-group--help{
+    display:block;
+  }
   .editor-toolbar,
   .editor-inline-actions{
     display:flex;
@@ -275,12 +313,13 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
   .editor-inline-actions::-webkit-scrollbar{display:none;}
   .editor-btn{
     flex:0 0 auto;
-    min-height:40px;
+    min-height:44px;
     white-space:nowrap;
-    padding:9px 12px;
+    padding:10px 14px;
+    font-size:12px;
   }
   .editor-swatches{
-    grid-template-columns:repeat(5,minmax(42px,1fr));
+    grid-template-columns:repeat(5,minmax(44px,1fr));
     gap:8px;
   }
 }
@@ -508,48 +547,59 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 100px; width:100%;}
 
 <div id="imgEditorModal" class="img-editor-modal no-print">
   <div class="img-editor-shell">
-    <div class="img-editor-panel">
+    <div class="img-editor-panel" id="imgEditorPanel" data-mobile-advanced="collapsed">
       <div class="img-editor-title">עורך סימונים לתמונה</div>
       <div class="img-editor-sub">חצים, עיגולים, זום, צבעים, עובי קו, Undo / Redo וסיבוב חץ</div>
 
-      <div class="editor-group">
-        <span class="editor-small-label">כלי סימון</span>
-        <div class="editor-toolbar">
-          <button type="button" class="editor-btn active" id="tool-arrow" onclick="setEditorTool('arrow')">↗️ חץ</button>
-          <button type="button" class="editor-btn" id="tool-circle" onclick="setEditorTool('circle')">⭕ עיגול</button>
+      <div class="editor-mobile-quick">
+        <button type="button" class="editor-btn active" id="tool-arrow-mobile" onclick="setEditorTool('arrow')"><span class="mobile-icon">↗️</span><span>חץ</span></button>
+        <button type="button" class="editor-btn" id="tool-circle-mobile" onclick="setEditorTool('circle')"><span class="mobile-icon">⭕</span><span>עיגול</span></button>
+        <button type="button" class="editor-btn" onclick="undoEditor()"><span class="mobile-icon">↶</span><span>Undo</span></button>
+        <button type="button" class="editor-btn" onclick="redoEditor()"><span class="mobile-icon">↷</span><span>Redo</span></button>
+        <button type="button" class="editor-btn" id="editorMoreBtn" onclick="toggleEditorAdvanced()"><span class="mobile-icon">⋯</span><span>עוד</span></button>
+      </div>
+
+      <div class="editor-mobile-advanced">
+        <div class="editor-group editor-group--tool">
+          <span class="editor-small-label">כלי סימון</span>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn active" id="tool-arrow" onclick="setEditorTool('arrow')">↗️ חץ</button>
+            <button type="button" class="editor-btn" id="tool-circle" onclick="setEditorTool('circle')">⭕ עיגול</button>
+          </div>
         </div>
-        <div class="editor-help" style="margin-top:10px;">גרור על התמונה כדי להוסיף סימון. בחץ אפשר לבחור סימון ולסובב אותו.</div>
-      </div>
 
-      <div class="editor-group">
-        <span class="editor-small-label">צבע סימון</span>
-        <div class="editor-swatches" id="editorSwatches"></div>
-      </div>
-
-      <div class="editor-group">
-        <label class="editor-small-label" for="editorLineWidth">עובי קו</label>
-        <input id="editorLineWidth" class="editor-range" type="range" min="2" max="14" step="1" value="4" oninput="setEditorLineWidth(this.value)">
-        <div class="editor-meta"><span id="editorLineWidthValue">4</span> פיקסלים</div>
-      </div>
-
-      <div class="editor-group">
-        <label class="editor-small-label" for="editorZoom">זום</label>
-        <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
-        <div class="editor-inline-actions">
-          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(-10)">− הקטן</button>
-          <button type="button" class="editor-btn" onclick="nudgeEditorZoom(10)">+ הגדל</button>
-          <button type="button" class="editor-btn" onclick="resetEditorZoom()">איפוס זום</button>
+        <div class="editor-group editor-group--help">
+          <div class="editor-help">גרור על התמונה כדי להוסיף סימון. בחץ אפשר לבחור סימון ולסובב אותו.</div>
         </div>
-      </div>
 
-      <div class="editor-group">
-        <span class="editor-small-label">ניהול סימונים</span>
-        <div class="editor-inline-actions">
-          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
-          <button type="button" class="editor-btn" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
-          <button type="button" class="editor-btn" onclick="undoEditor()">↶ Undo</button>
-          <button type="button" class="editor-btn" onclick="redoEditor()">↷ Redo</button>
-          <button type="button" class="editor-btn" onclick="clearEditorAnnotations()">🗑️ נקה הכל</button>
+        <div class="editor-group">
+          <span class="editor-small-label">צבע סימון</span>
+          <div class="editor-swatches" id="editorSwatches"></div>
+        </div>
+
+        <div class="editor-group">
+          <label class="editor-small-label" for="editorLineWidth">עובי קו</label>
+          <input id="editorLineWidth" class="editor-range" type="range" min="2" max="14" step="1" value="4" oninput="setEditorLineWidth(this.value)">
+          <div class="editor-meta"><span id="editorLineWidthValue">4</span> פיקסלים</div>
+        </div>
+
+        <div class="editor-group">
+          <label class="editor-small-label" for="editorZoom">זום</label>
+          <input id="editorZoom" class="editor-range" type="range" min="10" max="300" step="10" value="100" oninput="setEditorZoom(this.value)">
+          <div class="editor-inline-actions">
+            <button type="button" class="editor-btn" onclick="nudgeEditorZoom(-10)">− הקטן</button>
+            <button type="button" class="editor-btn" onclick="nudgeEditorZoom(10)">+ הגדל</button>
+            <button type="button" class="editor-btn" onclick="resetEditorZoom()">איפוס זום</button>
+          </div>
+        </div>
+
+        <div class="editor-group">
+          <span class="editor-small-label">ניהול סימונים</span>
+          <div class="editor-inline-actions">
+            <button type="button" class="editor-btn" onclick="rotateSelectedArrow(-15)">⟲ סובב</button>
+            <button type="button" class="editor-btn" onclick="rotateSelectedArrow(15)">⟳ סובב</button>
+            <button type="button" class="editor-btn" onclick="clearEditorAnnotations()">🗑️ נקה הכל</button>
+          </div>
         </div>
       </div>
     </div>
@@ -908,6 +958,39 @@ let editorCurrentTypeId=null, editorCurrentPhotoIndex=null;
 let editorCurrentTool='arrow', editorCurrentColor=EDITOR_COLORS[0], editorCurrentLineWidth=4, editorZoom=1;
 let editorAnnotations=[], editorRedoStack=[], editorSelectedIndex=-1;
 let editorIsDrawing=false, editorDragStart=null, editorPreviewAnnotation=null;
+let editorMobileAdvanced=false;
+
+function isMobileEditorView(){
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function vibrateLight(ms=10){
+  try{
+    if(navigator.vibrate) navigator.vibrate(ms);
+  }catch(e){}
+}
+
+function syncEditorMobileState(forceExpanded=null){
+  const panel=document.getElementById('imgEditorPanel');
+  const moreBtn=document.getElementById('editorMoreBtn');
+  if(!panel) return;
+  if(!isMobileEditorView()){
+    panel.dataset.mobileAdvanced='expanded';
+    if(moreBtn) moreBtn.classList.remove('more-open');
+    return;
+  }
+  if(forceExpanded!==null) editorMobileAdvanced=!!forceExpanded;
+  panel.dataset.mobileAdvanced=editorMobileAdvanced ? 'expanded' : 'collapsed';
+  if(moreBtn) moreBtn.classList.toggle('more-open', editorMobileAdvanced);
+}
+
+function toggleEditorAdvanced(forceValue=null){
+  if(!isMobileEditorView()) return;
+  editorMobileAdvanced = forceValue===null ? !editorMobileAdvanced : !!forceValue;
+  syncEditorMobileState(editorMobileAdvanced);
+  vibrateLight(8);
+}
+
 
 function ensurePhotoShapeDefaults(){
   Object.values(inspData).forEach(item=>{
@@ -928,6 +1011,7 @@ function initEditorUi(){
   setEditorColor(editorCurrentColor);
   setEditorTool('arrow');
   setEditorLineWidth(editorCurrentLineWidth);
+  syncEditorMobileState(false);
 
   editorCanvas=document.getElementById('editorCanvas');
   if(editorCanvas && !editorCanvas.dataset.bound){
@@ -967,6 +1051,8 @@ function openEditor(typeId,index){
     redrawEditorCanvas();
     document.getElementById('imgEditorModal').style.display='flex';
     document.getElementById('editorMeta').textContent=`${INSP_TYPES.find(t=>t.id===typeId)?.name || 'בדיקה'} · תמונה ${index+1}`;
+    editorMobileAdvanced=false;
+    syncEditorMobileState(false);
     requestAnimationFrame(()=>{
       fitEditorToViewport();
       requestAnimationFrame(fitEditorToViewport);
@@ -991,8 +1077,11 @@ function setEditorTool(tool){
   editorCurrentTool=tool;
   ['arrow','circle'].forEach(t=>{
     const el=document.getElementById(`tool-${t}`);
+    const mobileEl=document.getElementById(`tool-${t}-mobile`);
     if(el) el.classList.toggle('active', t===tool);
+    if(mobileEl) mobileEl.classList.toggle('active', t===tool);
   });
+  vibrateLight(8);
 }
 
 function setEditorColor(color){
@@ -1107,6 +1196,7 @@ function onEditorPointerUp(evt){
     editorAnnotations.push(ann);
     editorRedoStack=[];
     editorSelectedIndex=editorAnnotations.length-1;
+    vibrateLight(12);
   }
   redrawEditorCanvas();
 }
@@ -1221,6 +1311,7 @@ function rotateSelectedArrow(delta){
   ann.x2=ann.x1+Math.cos(angle)*len;
   ann.y2=ann.y1+Math.sin(angle)*len;
   redrawEditorCanvas();
+  vibrateLight(8);
 }
 
 function undoEditor(){
@@ -1229,6 +1320,7 @@ function undoEditor(){
   editorRedoStack.push(JSON.parse(JSON.stringify(ann)));
   editorSelectedIndex=editorAnnotations.length-1;
   redrawEditorCanvas();
+  vibrateLight(8);
 }
 
 function redoEditor(){
@@ -1237,6 +1329,7 @@ function redoEditor(){
   editorAnnotations.push(JSON.parse(JSON.stringify(ann)));
   editorSelectedIndex=editorAnnotations.length-1;
   redrawEditorCanvas();
+  vibrateLight(8);
 }
 
 function clearEditorAnnotations(){
@@ -1245,6 +1338,7 @@ function clearEditorAnnotations(){
   editorAnnotations=[];
   editorSelectedIndex=-1;
   redrawEditorCanvas();
+  vibrateLight(12);
 }
 
 function saveEditedImage(){
@@ -1258,6 +1352,7 @@ function saveEditedImage(){
   renderInspRows();
   setSaveStatus('unsaved');
   showToast('✓ התמונה עודכנה עם סימונים');
+  vibrateLight(18);
   closeEditor();
 }
 
@@ -1320,6 +1415,8 @@ window.undoEditor=undoEditor;
 window.redoEditor=redoEditor;
 window.clearEditorAnnotations=clearEditorAnnotations;
 window.saveEditedImage=saveEditedImage;
+window.toggleEditorAdvanced=toggleEditorAdvanced;
+window.addEventListener('resize',()=>syncEditorMobileState(editorMobileAdvanced));
 
 // ── CERTAINTY ──
 function setCertainty(val){
