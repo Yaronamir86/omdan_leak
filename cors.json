@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://omdan-leak.web.app"],
+    "method": ["GET"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]

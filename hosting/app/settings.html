@@ -1,86 +1,120 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMDA | הגדרות</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>הגדרות</title>
+
+<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+<link rel="icon" type="image/png" href="/assets/img/omdan-leak-icon.png" />
+<link rel="apple-touch-icon" href="/assets/img/omdan-leak-icon.png" />
+
+<meta name="theme-color" content="#2196F3" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="OMDA איתור"/>
+
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
 <!-- Firebase -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut }
-  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-// Firebase Storage no longer used — signature and logo stored as base64 in Firestore
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="/app/config/firebase-config-global.js"></script>
 
-const app  = initializeApp({
-  apiKey:"AIzaSyCkhNhUHWLAf6G45nIH1wIZeE-rGQFrwgM",
-  authDomain:"omdan-property.firebaseapp.com",
-  projectId:"omdan-property",
-  storageBucket:"omdan-property.firebasestorage.app",
-  messagingSenderId:"1028931108038",
-  appId:"1:1028931108038:web:01731ca2a152b700ea6bc7"
-});
-const auth    = getAuth(app);
-const db      = getFirestore(app);
-// storage removed — using Firestore base64
+<script>
+firebase.initializeApp(window.FIREBASE_CONFIG);
 
-onAuthStateChanged(auth, async user => {
-  if(!user){ window.location.href='../index.html'; return; }
-  window._currentUser = user;
-  document.getElementById('userEmail').textContent = user.email;
-  // Load profile + onboarding state
-  try{
-    const userRef = doc(db,'users',user.uid);
-    const snap = await getDoc(userRef);
-    const data = snap.exists() ? (snap.data() || {}) : {};
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let authChecked = false;
+
+auth.onAuthStateChanged(async u => {
+  if (authChecked) return;
+  authChecked = true;
+
+  if (!u) {
+    setTimeout(() => {
+      if (!firebase.auth().currentUser) {
+        window.location.href = '/index.html?redirect=' + encodeURIComponent('/app/settings.html');
+      }
+    }, 300);
+    return;
+  }
+
+  window._currentUser = u;
+  document.getElementById('userEmail').textContent = u.email;
+
+  try {
+    const userRef = db.collection('users').doc(u.uid);
+    const snap = await userRef.get();
+    const data = snap.exists ? (snap.data() || {}) : {};
+
     window._settingsOnboarding = {
       completed: data.onboardingCompleted === true,
       step: data.onboardingStep || 'dashboard',
       active: false
     };
-    if(snap.exists()) loadProfile(data);
-    if(!('onboardingStep' in data) || !('onboardingCompleted' in data)){
-      await setDoc(userRef, {
+
+    // Store data for deferred load — loadProfile may not be defined yet if DOM not ready
+    if (snap.exists) {
+      if (typeof loadProfile === 'function') {
+        loadProfile(data);
+      } else {
+        window._pendingProfileData = data;
+      }
+    }
+
+    if (!('onboardingStep' in data) || !('onboardingCompleted' in data)) {
+      await userRef.set({
         onboardingCompleted: window._settingsOnboarding.completed,
         onboardingStep: window._settingsOnboarding.step,
-        updatedAt: serverTimestamp()
-      }, { merge:true });
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
     }
-    setTimeout(maybeStartSettingsOnboarding, 220);
-  }catch(e){ console.error(e); }
+
+    if (window._settingsOnboarding && window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
+  setTimeout(() => {
+    if (window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
+      maybeStartSettingsOnboarding();
+    }
+  }, 220);
+}
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 window._saveProfile = async (data) => {
   const uid = window._currentUser?.uid;
-  if(!uid) throw new Error('לא מחובר');
-  await setDoc(doc(db,'users',uid), {...data, updatedAt: serverTimestamp()}, {merge:true});
+  if (!uid) throw new Error('לא מחובר');
+  await db.collection('users').doc(uid).set({
+    ...data,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
 };
 
 window._uploadLogo = async (dataUrl) => {
-  // Store as base64 in Firestore instead of Firebase Storage (avoids CORS)
   const uid = window._currentUser?.uid;
-  if(!uid) throw new Error('לא מחובר');
-  // dataUrl is already base64 — return as-is, saveProfile stores it in Firestore
+  if (!uid) throw new Error('לא מחובר');
   return dataUrl;
 };
 
 window._uploadSig = async (dataUrl) => {
-  // Store as base64 in Firestore instead of Firebase Storage (avoids CORS)
   const uid = window._currentUser?.uid;
-  if(!uid) throw new Error('לא מחובר');
-  // dataUrl is already base64 — return as-is, saveProfile stores it in Firestore
+  if (!uid) throw new Error('לא מחובר');
   return dataUrl;
 };
 
-window._doLogout = async () => { await signOut(auth); window.location.href='../index.html'; };
+window._doLogout = async () => {
+  await auth.signOut();
+  window.location.href = '../index.html';
+};
 
 function cleanupSettingsOnboarding() {
-  const overlay = document.getElementById('settingsObOverlay');
-  const card = document.getElementById('settingsObCard');
-  if (overlay) overlay.classList.remove('show');
+  const card = document.getElementById('settingsOnboardingCard');
   if (card) {
     card.classList.remove('show');
     card.style.top = '';
@@ -93,13 +127,12 @@ function cleanupSettingsOnboarding() {
     .forEach(el => el.classList.remove('ob-highlight', 'ob-spotlight', 'ob-spotlight-soft'));
 }
 </script>
-
 <style>
 :root{
   --bg:#030712;--surface:#0d1117;--surface2:#111827;--surface3:#1a2332;
   --border:#1f2937;--border2:#374151;
   --text:#f9fafb;--muted:#9ca3af;--subtle:#6b7280;
-  --accent:#f59e0b;--accent2:#fde68a;
+  --accent:#2196F3;--accent2:#fde68a;
   --blue:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;
   --r:12px;--shadow:0 4px 24px rgba(0,0,0,.5);
 }
@@ -132,8 +165,13 @@ body::before{
   align-items:stretch;
 }
 .sg-row .section{margin-bottom:0;}
+.sg-row-equal{align-items:stretch;}
 .sg-row-full{margin-bottom:24px;}
 .sg-row-full .section{margin-bottom:0;}
+@media(max-width:900px){
+  .sg-row{grid-template-columns:1fr;}
+}
+
 
 @media(max-width:768px){
   .sidebar{display:none;}
@@ -211,7 +249,7 @@ body::before{
 .field input:focus,.field textarea:focus,.field select:focus{
   border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.12);
 }
-.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field input::placeholder,.field textarea::placeholder{color: #4b5563;}
 .field textarea{resize:vertical;min-height:80px;}
 .field select{cursor:pointer;}
 .field-hint{font-size:11px;color:var(--subtle);margin-top:2px;}
@@ -330,7 +368,7 @@ body::before{
 .save-status.saved{color:var(--green);}
 .save-status.saving{color:var(--accent);}
 .btn-save{
-  padding:11px 28px;background:linear-gradient(135deg,#f59e0b,#d97706);
+  padding:11px 28px;background:linear-gradient(135deg,#2196F3,#1565C0);
   border:none;border-radius:10px;color:#0f1117;font-size:14px;font-weight:800;
   font-family:'Heebo',sans-serif;cursor:pointer;transition:opacity .2s;
 }
@@ -376,7 +414,7 @@ body::before{
   margin: 8px 0;
 }
 
-/* 2. sub-sections (פרטי שמאי / פרטי משרד) */
+/* 2. sub-sections (פרטי מאתר נזילות / פרטי משרד) */
 .sub-section-title {
   font-size: 11px; font-weight: 800; color: var(--subtle);
   text-transform: uppercase; letter-spacing: .08em;
@@ -672,7 +710,7 @@ body.ob-lock{overflow:hidden;}
 <body>
 <div id="mob-topbar" style="display:none;background:#111827;border-bottom:1px solid #1F2937;padding:0 16px;height:52px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;">
   <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-    <img src="/assets/omda-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/omda-logo.png" alt="OMDA רכוש" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
+    <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
     <div style="line-height:1.1;">
       
       
@@ -699,7 +737,7 @@ body.ob-lock{overflow:hidden;}
 <aside class="sidebar">
   <div class="sb-logo">
     <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
-      <img src="/assets/omda-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/omda-logo.png" alt="OMDA רכוש" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
+      <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
       <div style="line-height:1.15;">
         
         
@@ -747,44 +785,87 @@ body.ob-lock{overflow:hidden;}
     <p class="page-sub">הפרטים יופיעו בכל הדוחות שלך</p>
   </div>
 
+  <!-- ════════════════════════════════════════════════════
+       SETTINGS GRID — 2-column equal-width layout
+       ════════════════════════════════════════════════════ -->
+
   <!-- ROW 1: פרטים אישיים | פרטי יצירת קשר -->
   <div class="sg-row">
 
-    <!-- פרטים אישיים -->
-    <div class="section">
+    <!-- SECTION: פרטים אישיים -->
+    <div class="section" id="settingsPersonalSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">👤</span> פרטים אישיים</div>
       </div>
       <div class="section-body">
-        <div class="sub-section-title">👤 פרטי השמאי</div>
+        <div class="sub-section-title">👤 פרטי המאתר</div>
         <div class="fields-grid" style="margin-bottom:24px;">
-          <div class="field"><label>שם מלא (עברית)</label><input type="text" id="nameHe" placeholder="ישראל ישראלי"></div>
-          <div class="field"><label>שם מלא (אנגלית)</label><input type="text" id="nameEn" placeholder="Israel Israeli" dir="ltr"></div>
-          <div class="field"><label>תואר מקצועי</label><input type="text" id="title" placeholder="שמאי רכוש"></div>
-          <div class="field"><label>מספר רישיון</label><input type="text" id="license" placeholder="12345"></div>
+          <div class="field">
+            <label>שם מלא (עברית)</label>
+            <input type="text" id="nameHe" placeholder="ישראל ישראלי">
+          </div>
+          <div class="field">
+            <label>שם מלא (אנגלית)</label>
+            <input type="text" id="nameEn" placeholder="Israel Israeli" dir="ltr">
+          </div>
+          <div class="field">
+            <label>תואר מקצועי</label>
+            <input type="text" id="title" placeholder="מאתר נזילות">
+          </div>
+          <div class="field">
+            <label>מספר רישיון</label>
+            <input type="text" id="license" placeholder="12345">
+          </div>
         </div>
         <div class="sub-section-title">🏢 פרטי המשרד</div>
         <div class="fields-grid">
-          <div class="field"><label>עיר</label><input type="text" id="city" placeholder="תל אביב"></div>
-          <div class="field"><label>כתובת מלאה</label><input type="text" id="address" placeholder="רחוב הרצל 1, תל אביב"></div>
-          <div class="field"><label>ע.מ / ח.פ</label><input type="text" id="vat" placeholder="033571290" dir="ltr"></div>
+          <div class="field">
+            <label>עיר</label>
+            <input type="text" id="city" placeholder="תל אביב">
+          </div>
+          <div class="field">
+            <label>כתובת מלאה</label>
+            <input type="text" id="address" placeholder="רחוב הרצל 1, תל אביב">
+          </div>
+          <div class="field">
+            <label>ע.מ / ח.פ</label>
+            <input type="text" id="vat" placeholder="033571290" dir="ltr">
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- פרטי יצירת קשר -->
-    <div class="section">
+    <!-- SECTION: פרטי יצירת קשר -->
+    <div class="section" id="settingsContactSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">📞</span> פרטי יצירת קשר</div>
       </div>
       <div class="section-body">
         <div class="fields-grid">
-          <div class="field"><label>טלפון</label><input type="tel" id="phone" placeholder="050-0000000"></div>
-          <div class="field"><label>פקס</label><input type="tel" id="fax" placeholder="03-0000000"></div>
-          <div class="field"><label>אימייל</label><input type="email" id="email" placeholder="your@email.com" dir="ltr"></div>
-          <div class="field"><label>אתר אינטרנט</label><input type="url" id="website" placeholder="https://yoursite.com" dir="ltr"></div>
-          <div class="field"><label>לינקדאין</label><input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." dir="ltr"></div>
-          <div class="field"><label>פייסבוק / אינסטגרם</label><input type="url" id="social" placeholder="https://..." dir="ltr"></div>
+          <div class="field">
+            <label>טלפון</label>
+            <input type="tel" id="phone" placeholder="050-0000000">
+          </div>
+          <div class="field">
+            <label>פקס</label>
+            <input type="tel" id="fax" placeholder="03-0000000">
+          </div>
+          <div class="field">
+            <label>אימייל</label>
+            <input type="email" id="email" placeholder="your@email.com" dir="ltr">
+          </div>
+          <div class="field">
+            <label>אתר אינטרנט</label>
+            <input type="url" id="website" placeholder="https://yoursite.com" dir="ltr">
+          </div>
+          <div class="field">
+            <label>לינקדאין</label>
+            <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." dir="ltr">
+          </div>
+          <div class="field">
+            <label>פייסבוק / אינסטגרם</label>
+            <input type="url" id="social" placeholder="https://..." dir="ltr">
+          </div>
         </div>
       </div>
     </div>
@@ -792,10 +873,10 @@ body.ob-lock{overflow:hidden;}
   </div><!-- /ROW 1 -->
 
   <!-- ROW 2: לוגו | חתימה דיגיטלית -->
-  <div class="sg-row">
+  <div class="sg-row sg-row-equal">
 
-    <!-- לוגו -->
-    <div class="section">
+    <!-- SECTION: לוגו -->
+    <div class="section" id="settingsLogoSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">🎨</span> לוגו</div>
       </div>
@@ -822,14 +903,14 @@ body.ob-lock{overflow:hidden;}
               </div>
               <div style="font-size:11px;color:var(--subtle);margin-top:6px;">עד 3 תווים — ראשי תיבות מהשם</div>
               <div class="color-swatches" id="logoColorSwatches">
-                <div class="swatch active" style="background:#f59e0b" onclick="setLogoColor('#f59e0b','#0f1117',this)"></div>
+                <div class="swatch active" style="background:#2196F3" onclick="setLogoColor('#2196F3','#0f1117',this)"></div>
                 <div class="swatch" style="background:#3b82f6" onclick="setLogoColor('#3b82f6','#fff',this)"></div>
                 <div class="swatch" style="background:#10b981" onclick="setLogoColor('#10b981','#fff',this)"></div>
                 <div class="swatch" style="background:#ef4444" onclick="setLogoColor('#ef4444','#fff',this)"></div>
                 <div class="swatch" style="background:#8b5cf6" onclick="setLogoColor('#8b5cf6','#fff',this)"></div>
                 <div class="swatch" style="background:#ec4899" onclick="setLogoColor('#ec4899','#fff',this)"></div>
                 <div class="swatch" style="background:#f97316" onclick="setLogoColor('#f97316','#fff',this)"></div>
-                <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#f59e0b',this)"></div>
+                <div class="swatch" style="background:#1e293b" onclick="setLogoColor('#1e293b','#2196F3',this)"></div>
               </div>
             </div>
             <div class="logo-tab-content" id="logoTab-upload">
@@ -837,13 +918,83 @@ body.ob-lock{overflow:hidden;}
               <div class="field-hint" style="margin-top:8px;">PNG / JPG / SVG — מומלץ ריבוע 200×200</div>
               <button class="btn-sm danger" style="margin-top:8px;" onclick="clearLogoImage()">🗑️ הסר תמונה</button>
             </div>
+            <!-- Logo size, position & layout -->
+            <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:14px;">
+
+              <!-- SIZE SLIDER -->
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <div style="font-size:12px;font-weight:700;color:var(--muted);">גודל לוגו בדוח</div>
+                  <div style="font-size:12px;font-weight:800;color:var(--accent);" id="logoSizeLabel">70px</div>
+                </div>
+                <input type="range" id="logoSizeSlider" min="40" max="160" step="5" value="70"
+                  style="width:100%;accent-color:var(--accent);cursor:pointer;"
+                  oninput="setLogoSizePx(+this.value)">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--subtle);margin-top:3px;">
+                  <span>קטן</span><span>בינוני</span><span>גדול</span>
+                </div>
+                <!-- Live preview -->
+                <div id="logoSizePreview" style="margin-top:10px;padding:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;gap:10px;min-height:50px;">
+                  <div id="logoSizePreviewImg" style="flex-shrink:0;"></div>
+                  <div style="font-size:11px;color:var(--muted);">תצוגה מקדימה של גודל הלוגו</div>
+                </div>
+              </div>
+
+              <!-- LAYOUT SELECTOR -->
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">תבנית כותרת הדוח</div>
+                <div style="display:flex;flex-direction:column;gap:6px;" id="layoutBtnGroup">
+
+                  <!-- Layout A: logo right, details left -->
+                  <button class="logo-layout-btn active" data-layout="A" onclick="setLogoLayout('A',this)"
+                    style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--accent);background:rgba(245,158,11,.1);cursor:pointer;text-align:right;font-family:'Heebo',sans-serif;">
+                    <div style="display:flex;align-items:center;gap:8px;pointer-events:none;">
+                      <div style="width:32px;height:28px;background:var(--accent);border-radius:5px;opacity:.7;flex-shrink:0;"></div>
+                      <div style="flex:1;">
+                        <div style="font-size:11px;font-weight:800;color:var(--text);">לוגו ימין · פרטים משמאל</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם | תפקיד | רישיון ←→ טלפון | מייל | ע.מ</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <!-- Layout B: logo center top, details row below -->
+                  <button class="logo-layout-btn" data-layout="B" onclick="setLogoLayout('B',this)"
+                    style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);cursor:pointer;text-align:right;font-family:'Heebo',sans-serif;">
+                    <div style="display:flex;align-items:center;gap:8px;pointer-events:none;">
+                      <div style="width:32px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                        <div style="width:22px;height:20px;background:var(--muted);border-radius:4px;opacity:.5;"></div>
+                        <div style="width:32px;height:6px;background:var(--muted);border-radius:3px;opacity:.3;"></div>
+                      </div>
+                      <div style="flex:1;">
+                        <div style="font-size:11px;font-weight:800;color:var(--text);">לוגו מרכז · פרטים בשורה מתחת</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם · תפקיד · טל · מייל — בשורה אחת</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <!-- Layout C: logo large left, details in column -->
+                  <button class="logo-layout-btn" data-layout="C" onclick="setLogoLayout('C',this)"
+                    style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);cursor:pointer;text-align:right;font-family:'Heebo',sans-serif;">
+                    <div style="display:flex;align-items:center;gap:8px;pointer-events:none;">
+                      <div style="width:32px;height:36px;background:var(--muted);border-radius:5px;opacity:.4;flex-shrink:0;"></div>
+                      <div style="flex:1;">
+                        <div style="font-size:11px;font-weight:800;color:var(--text);">לוגו גדול ימין · פרטים עמודה</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם, תפקיד, רישיון, טל, מייל, ע.מ — אנכי</div>
+                      </div>
+                    </div>
+                  </button>
+
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- חתימה דיגיטלית -->
-    <div class="section">
+    <!-- SECTION: חתימה דיגיטלית -->
+    <div class="section" id="settingsSignatureSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">✍️</span> חתימה דיגיטלית</div>
       </div>
@@ -874,42 +1025,6 @@ body.ob-lock{overflow:hidden;}
 
   </div><!-- /ROW 2 -->
 
-  <!-- ROW 3: שבלונות ברירת מחדל — full width -->
-  <div class="sg-row-full">
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title"><span class="icon">📋</span> שבלונות ברירת מחדל</div>
-        <span style="font-size:11px;color:var(--muted);">נתמלאים אוטומטית בכל תיק חדש</span>
-      </div>
-      <div class="section-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-          <div>
-            <div class="sub-section-title">🔤 ברירות מחדל לשדות</div>
-            <div id="fieldDefaultsList" class="templates-list" style="margin-bottom:10px;"></div>
-            <div id="fieldDefaultsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
-              <div class="empty-icon">🔤</div>
-              <div class="empty-title">אין ברירות מחדל עדיין</div>
-              <div class="empty-sub">הגדר ערכים שיתמלאו אוטומטית<br>בכל תיק חדש</div>
-              <button class="empty-cta" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל</button>
-            </div>
-            <button class="add-template-btn" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל לשדה</button>
-          </div>
-          <div>
-            <div class="sub-section-title">📝 קטעי טקסט קבועים</div>
-            <div id="textSnippetsList" class="templates-list" style="margin-bottom:10px;"></div>
-            <div id="textSnippetsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
-              <div class="empty-icon">📝</div>
-              <div class="empty-title">אין קטעי טקסט עדיין</div>
-              <div class="empty-sub">הוסף נוסחאות ופסקאות<br>שחוזרות בדוחות שלך</div>
-              <button class="empty-cta" onclick="openTemplateModal('text')">+ הוסף קטע טקסט</button>
-            </div>
-            <button class="add-template-btn" onclick="openTemplateModal('text')">+ הוסף קטע טקסט קבוע</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div><!-- /ROW 3 -->
-
   <!-- ROW 3: הצהרה, השכלה וניסיון — full width -->
   <div class="sg-row-full">
     <div class="section">
@@ -918,19 +1033,19 @@ body.ob-lock{overflow:hidden;}
         <span style="font-size:11px;color:var(--muted);">נמשך אוטומטית לכל תיק חדש</span>
       </div>
       <div class="section-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+        <div class="sg-row sg-row-equal" style="gap:28px;">
           <div>
-            <div class="sub-section-title" style="margin-bottom:12px;">📋 הצהרת שמאי</div>
+            <div class="sub-section-title" style="margin-bottom:12px;">📋 הצהרת מאתר</div>
             <div class="field">
               <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
-              <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעת זו נערכה על ידי באופן מקצועי, עצמאי ובלתי תלוי..."></textarea>
+              <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי..."></textarea>
             </div>
           </div>
           <div>
             <div class="sub-section-title" style="margin-bottom:12px;">🎓 השכלה וניסיון</div>
             <div class="field">
-              <label>פרטי השכלה וניסיון — יופיע בתחילת הדוח</label>
-              <textarea id="education" rows="8" placeholder="* בעל תואר ראשון בכלכלה ומנהל עסקים...&#10;* רישיון שמאי רכוש מספר...&#10;* שנות ניסיון בתחום שמאות הרכוש..."></textarea>
+              <label>פרטי השכלה וניסיון — יופיע בכל דוח</label>
+              <textarea id="education" rows="8" placeholder="* לימודי תעודה מערכות שאיבה...&#10;* שנות ניסיון..."></textarea>
             </div>
           </div>
         </div>
@@ -938,17 +1053,91 @@ body.ob-lock{overflow:hidden;}
     </div>
   </div><!-- /ROW 3 -->
 
-  <!-- ROW 4: פרקים מותאמים אישית -->
+  <!-- ROW 3b: סיום הדוח -->
+  <div class="sg-row-full">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">✍️</span> סיום הדוח</div>
+        <span style="font-size:11px;color:var(--muted);">טקסט פרידה שיופיע בתחתית כל דוח</span>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>טקסט סיום — יופיע בתחתית הדוח לפני החתימה</label>
+          <textarea id="closingText" rows="3" placeholder="תודה שבחרתם בנו, נהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד"></textarea>
+        </div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="resetClosingDefault()" style="font-size:12px;">↩ ברירת מחדל</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /ROW 3b -->
+
+  <!-- ROW 4: מאגר כלים | שבלונות ברירת מחדל -->
   <div class="sg-row">
 
-    <!-- פרק מותאם 1 -->
+    <!-- SECTION: מאגר כלים -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">🔧</span> מאגר כלים</div>
+      </div>
+      <div class="section-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+          בכל תיק תוכל לסמן <strong style="color:var(--text);">אילו כלים שימשו בפועל</strong> בבדיקה.
+        </p>
+        <div id="toolsListSettings" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+        <div id="toolsEmptySettings" style="padding:20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px;font-size:13px;margin-bottom:16px;display:none;">
+          אין כלים במאגר — הוסף את הציוד שלך
+        </div>
+        <button class="add-template-btn" onclick="openToolModal()">+ הוסף כלי</button>
+      </div>
+    </div>
+
+    <!-- SECTION: שבלונות -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📋</span> שבלונות ברירת מחדל</div>
+      </div>
+      <div class="section-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7;">
+          ערכים שיתמלאו <strong style="color:var(--text);">אוטומטית בכל תיק חדש</strong>.
+        </p>
+        <div class="sub-section-title">🔤 ברירות מחדל לשדות</div>
+        <div id="fieldDefaultsList" class="templates-list" style="margin-bottom:10px;"></div>
+        <div id="fieldDefaultsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
+          <div class="empty-icon">🔤</div>
+          <div class="empty-title">אין ברירות מחדל עדיין</div>
+          <div class="empty-sub">הגדר ערכים שיתמלאו אוטומטית<br>בכל תיק חדש</div>
+          <button class="empty-cta" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל</button>
+        </div>
+        <button class="add-template-btn" onclick="openTemplateModal('field')">+ הוסף ברירת מחדל לשדה</button>
+        <div style="height:1px;background:var(--border);margin:20px 0;"></div>
+        <div class="sub-section-title">📝 קטעי טקסט קבועים</div>
+        <div id="textSnippetsList" class="templates-list" style="margin-bottom:10px;"></div>
+        <div id="textSnippetsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">אין קטעי טקסט עדיין</div>
+          <div class="empty-sub">הוסף נוסחאות ופסקאות<br>שחוזרות בדוחות שלך</div>
+          <button class="empty-cta" onclick="openTemplateModal('text')">+ הוסף קטע טקסט</button>
+        </div>
+        <button class="add-template-btn" onclick="openTemplateModal('text')">+ הוסף קטע טקסט קבוע</button>
+      </div>
+    </div>
+
+  </div><!-- /ROW 4 -->
+
+  <!-- ROW 5: פרקים מותאמים אישית -->
+  <div class="sg-row">
+
+    <!-- SECTION: פרק מותאם 1 -->
     <div class="section">
       <div class="section-header">
         <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 1</div>
         <span class="section-badge">אופציונלי</span>
       </div>
       <div class="section-body">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+          פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.
+        </p>
         <div class="field" style="margin-bottom:14px;">
           <label>כותרת הפרק</label>
           <input type="text" id="custom1Title" placeholder="לדוגמה: הערות כלליות / תנאים">
@@ -967,14 +1156,16 @@ body.ob-lock{overflow:hidden;}
       </div>
     </div>
 
-    <!-- פרק מותאם 2 -->
+    <!-- SECTION: פרק מותאם 2 -->
     <div class="section">
       <div class="section-header">
         <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 2</div>
         <span class="section-badge">אופציונלי</span>
       </div>
       <div class="section-body">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+          פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.
+        </p>
         <div class="field" style="margin-bottom:14px;">
           <label>כותרת הפרק</label>
           <input type="text" id="custom2Title" placeholder="לדוגמה: תנאי תשלום / אחריות">
@@ -993,11 +1184,13 @@ body.ob-lock{overflow:hidden;}
       </div>
     </div>
 
-  </div><!-- /ROW 4 -->
+  </div><!-- /ROW 5 -->
 
 </main>
 
-</div><!-- .content or similar wrapper -->
+</div><!-- /.app -->
+
+
 
 
 <!-- 4 strips במקום overlay אחד -->
@@ -1040,13 +1233,13 @@ body.ob-lock{overflow:hidden;}
       <div class="field" style="margin-bottom:14px;">
         <label>שדה</label>
         <select id="tFieldKey">
-          <option value="insurance.company">חברת ביטוח</option>
-          <option value="insurance.policyNum">מספר פוליסה</option>
-          <option value="event.eventType">סוג אירוע</option>
-          <option value="circ.waterOrigin">מקור מים</option>
-          <option value="base.city">עיר הנכס</option>
-          <option value="property.type">סוג נכס</option>
-          <option value="summary.rehabTime">זמן שיקום</option>
+          <option value="client.insCompany">חברת ביטוח</option>
+          <option value="client.claimNum">מספר תביעה</option>
+          <option value="findings.leakType">סוג נזילה</option>
+          <option value="client.city">עיר הנכס</option>
+          <option value="client.propertyType">סוג נכס</option>
+          <option value="findings.fixTime">זמן תיקון</option>
+          <option value="summary.declaration">הצהרת מאתר</option>
         </select>
       </div>
       <div class="field">
@@ -1066,7 +1259,7 @@ body.ob-lock{overflow:hidden;}
           <option value="circ">נסיבות האירוע</option>
           <option value="findings">ממצאים כלליים</option>
           <option value="summary">סיכום והמלצות</option>
-          <option value="event.appraiserDeclaration">הצהרת שמאי</option>
+          <option value="event.appraiserDeclaration">הצהרת מאתר נזילות</option>
         </select>
       </div>
       <div class="field">
@@ -1089,14 +1282,19 @@ body.ob-lock{overflow:hidden;}
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
-let logoColor     = '#f59e0b';
+let logoColor     = '#2196F3';
 let logoTextColor = '#0f1117';
 let logoMode      = 'initials'; // 'initials' | 'upload'
 let logoImageUrl  = null;       // uploaded image URL
+let logoSizePx    = 70;          // pixels 40-160
+let logoPosition  = 'right';    // kept for compat (layout drives position now)
+let logoLayout    = 'A';        // 'A'|'B'|'C' — header layout template
 let sigDataUrl    = null;       // drawn signature
 let savedSigUrl   = null;       // uploaded signature URL
 let fieldDefaults = [];         // [{key, val}]
 let textSnippets  = [];         // [{name, section, text}]
+let tools         = [];         // [{name, model, icon}] — מאגר כלים
+let editingToolIndex = -1;
 let currentTemplateType = 'field';
 
 // ══════════════════════════════════════════════════
@@ -1113,7 +1311,7 @@ function toast(msg, dur=2500){
 // ══════════════════════════════════════════════════
 function loadProfile(p){
   // Basic fields
-  const set = (id, v) => { const el=document.getElementById(id); if(el&&v) el.value=v; };
+  const set = (id, v) => { const el=document.getElementById(id); if(el && v !== undefined && v !== null) el.value=v; };
   set('nameHe',   p.nameHe   || p.fullName || '');
   set('nameEn',   p.nameEn   || '');
   set('title',    p.title    || '');
@@ -1128,10 +1326,14 @@ function loadProfile(p){
   set('social',   p.social   || '');
 
   // Logo
-  if(p.logoInitials) document.getElementById('logoInitials').value = p.logoInitials;
-  if(p.logoColor)    { logoColor=p.logoColor; logoTextColor=p.logoTextColor||'#0f1117'; }
-  if(p.logoImageData||p.logoImageUrl) { logoImageUrl=p.logoImageData||p.logoImageUrl; logoMode='upload'; switchLogoTab('upload'); }
-  updateLogoPreview();
+  try {
+    if(p.logoInitials) document.getElementById('logoInitials').value = p.logoInitials;
+    if(p.logoColor)    { logoColor=p.logoColor; logoTextColor=p.logoTextColor||'#0f1117'; }
+    if(p.logoImageData||p.logoImageUrl) { logoImageUrl=p.logoImageData||p.logoImageUrl; logoMode='upload'; switchLogoTab('upload'); }
+    if(p.logoSizePx)  { logoSizePx=p.logoSizePx; const sl=document.getElementById('logoSizeSlider'); if(sl){sl.value=logoSizePx;} document.getElementById('logoSizeLabel')&&(document.getElementById('logoSizeLabel').textContent=logoSizePx+'px'); updateLogoSizePreview(); }
+    if(p.logoLayout)  { logoLayout=p.logoLayout; _activateLayoutBtn(p.logoLayout); }
+    updateLogoPreview();
+  } catch(e) { console.warn('logo load error:', e); }
 
   // Sidebar name
   if(p.nameHe||p.fullName) document.getElementById('sbLogoName').textContent=p.nameHe||p.fullName;
@@ -1155,12 +1357,16 @@ function loadProfile(p){
   // Templates
   if(p.fieldDefaults) fieldDefaults = p.fieldDefaults;
   if(p.textSnippets)  textSnippets  = p.textSnippets;
+  if(p.tools)         tools         = p.tools;
   renderTemplates();
+  renderToolsList();
 
-  // new fields
-  set('vat', p.vat || '');
-  set('declaration', p.declaration || '');
+  // declaration + education + vat
+  set('declaration', p.declaration || p.textSnippets?.find(s=>s.section==='summary.declaration')?.text || '');
   set('education',   p.education   || '');
+  set('vat',         p.vat         || '');
+  set('closingText', p.closingText || '');
+  // Custom sections
   if(p.custom1){ set('custom1Title', p.custom1.title||''); set('custom1Body', p.custom1.body||''); set('custom1Position', p.custom1.position||'end'); }
   if(p.custom2){ set('custom2Title', p.custom2.title||''); set('custom2Body', p.custom2.body||''); set('custom2Position', p.custom2.position||'end'); }
 
@@ -1170,11 +1376,42 @@ function loadProfile(p){
 // ══════════════════════════════════════════════════
 // LOGO
 // ══════════════════════════════════════════════════
+function setLogoSizePx(px){
+  logoSizePx=px;
+  const lbl=document.getElementById('logoSizeLabel');
+  if(lbl) lbl.textContent=px+'px';
+  updateLogoSizePreview();
+  setSaveStatus('unsaved');
+}
+function updateLogoSizePreview(){
+  const wrap=document.getElementById('logoSizePreviewImg');
+  if(!wrap) return;
+  const sz=logoSizePx||70;
+  if(logoMode==='upload'&&logoImageUrl){
+    wrap.innerHTML=`<img src="${logoImageUrl}" style="max-height:${sz}px;max-width:${sz*2.5}px;object-fit:contain;display:block;">`;
+  } else {
+    const initials=(document.getElementById('logoInitials')?.value||'').trim().substring(0,3)||'AB';
+    const fs=Math.round(sz*0.36);
+    wrap.innerHTML=`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.18)}px;background:${logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:${logoTextColor||'#fff'};">${initials}</div>`;
+  }
+}
+function _activateLayoutBtn(layout){
+  document.querySelectorAll('.logo-layout-btn').forEach(b=>{
+    const active=b.getAttribute('data-layout')===layout;
+    b.style.borderColor = active ? 'var(--accent)' : 'var(--border2)';
+    b.style.background  = active ? 'rgba(245,158,11,.1)' : 'var(--surface2)';
+    b.classList.toggle('active', active);
+  });
+}
+function setLogoLayout(val, el){ logoLayout=val; _activateLayoutBtn(val); setSaveStatus('unsaved'); }
+// compat stubs (called from old code paths)
+function setLogoSize(val,el){}
+function setLogoPos(val,el){}
 function updateLogoPreview(){
   const preview = document.getElementById('logoPreview');
   const rawInitials = document.getElementById('logoInitials')?.value.trim() || '';
   const initials = rawInitials || (document.getElementById('sbLogoName')?.textContent?.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)) || '';
-  document.getElementById('logoInitialsDisplay').textContent = initials;
+  const lid = document.getElementById('logoInitialsDisplay'); if(lid) lid.textContent = initials;
   const sbSq = document.getElementById('sbLogoSq');
   if(sbSq){ sbSq.textContent = initials; sbSq.style.background = logoColor; sbSq.style.color = logoTextColor; }
 
@@ -1183,16 +1420,18 @@ function updateLogoPreview(){
     preview.style.background = '';
   } else {
     preview.style.background = logoColor || '#1a2332';
-    preview.style.color = logoTextColor || '#f59e0b';
-    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#f59e0b'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
+    preview.style.color = logoTextColor || '#2196F3';
+    preview.innerHTML = `<span id="logoInitialsDisplay" style="color:${logoTextColor||'#2196F3'};font-size:${initials.length>2?'20':'26'}px;font-weight:900;">${initials}</span><div class="logo-overlay">📷</div>`;
   }
-}
 
+  updateLogoSizePreview();
+}
 function setLogoColor(bg, text, el){
   logoColor=bg; logoTextColor=text;
   document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
   el.classList.add('active');
   updateLogoPreview();
+  setSaveStatus('unsaved');
 }
 
 function switchLogoTab(tab, btn){
@@ -1213,7 +1452,8 @@ function handleLogoUpload(input){
     logoMode = 'upload';
     switchLogoTab('upload');
     updateLogoPreview();
-    toast('✅ לוגו נטען');
+    setSaveStatus('unsaved');
+    toast('✅ לוגו נטען למסך — נשמר אוטומטית בלחיצה על שמור הכל');
   };
   reader.readAsDataURL(file);
 }
@@ -1289,6 +1529,7 @@ function clearSignature(){
   ctx.fillRect(0,0,canvas.width,canvas.height);
   sigDataUrl=null;
   document.getElementById('sigStatus').textContent='';
+  setSaveStatus('unsaved');
   const badge = document.getElementById('sigSavedBadge');
   const wrap = document.getElementById('sigPreviewWrap');
   if(badge) badge.classList.remove('visible');
@@ -1315,13 +1556,13 @@ function saveSignaturePreview(){
 // TEMPLATES
 // ══════════════════════════════════════════════════
 const FIELD_LABELS = {
-  'insurance.company':'חברת ביטוח','insurance.policyNum':'מספר פוליסה',
-  'event.eventType':'סוג אירוע','circ.waterOrigin':'מקור מים',
-  'base.city':'עיר הנכס','property.type':'סוג נכס','summary.rehabTime':'זמן שיקום'
+  'client.insCompany':'חברת ביטוח','client.claimNum':'מספר תביעה',
+  'findings.leakType':'סוג נזילה','client.city':'עיר הנכס',
+  'client.propertyType':'סוג נכס','findings.fixTime':'זמן תיקון','summary.declaration':'הצהרת מאתר'
 };
 const SECTION_LABELS = {
   'circ':'נסיבות האירוע','findings':'ממצאים','summary':'סיכום',
-  'event.appraiserDeclaration':'הצהרת שמאי'
+  'event.appraiserDeclaration':'הצהרת מאתר נזילות'
 };
 
 function renderTemplates(){
@@ -1386,7 +1627,7 @@ function closeTemplateModal(){
   document.getElementById('templateModal').classList.remove('open');
 }
 
-function saveTemplate(){
+async function saveTemplate(){
   if(currentTemplateType==='field'){
     const key=document.getElementById('tFieldKey').value;
     const val=document.getElementById('tFieldVal').value.trim();
@@ -1401,23 +1642,57 @@ function saveTemplate(){
   }
   renderTemplates();
   closeTemplateModal();
-  toast('✅ נוסף בהצלחה');
+  setSaveStatus('unsaved');
+  try{
+    await saveAll();
+    toast('✅ נשמר בהצלחה');
+  }catch(e){
+    console.error('saveTemplate', e);
+    toast('❌ השבלונה נוספה למסך אך לא נשמרה');
+  }
 }
 
 // ══════════════════════════════════════════════════
 // SAVE ALL
 // ══════════════════════════════════════════════════
+function resetClosingDefault(){
+  const nameHe=document.getElementById('nameHe')?.value?.trim()||'';
+  const el=document.getElementById('closingText');
+  if(el) el.value=nameHe
+    ?`תודה שבחרתם ב${nameHe},\nנהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד`
+    :'תודה שבחרתם בנו,\nנהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד';
+}
 function setSaveStatus(s){
   const el=document.getElementById('saveStatus');
-  el.className='save-status';
-  if(s==='saved'){el.textContent='✓ השינויים נשמרו';el.classList.add('saved');}
-  else if(s==='saving'){el.textContent='💾 שומר...';el.classList.add('saving');}
-  else{el.textContent='שינויים לא נשמרו';}
+  if(el){
+    el.className='save-status';
+    if(s==='saved'){el.textContent='✓ השינויים נשמרו';el.classList.add('saved');}
+    else if(s==='saving'){el.textContent='💾 שומר...';el.classList.add('saving');}
+    else{el.textContent='שינויים לא נשמרו';}
+  }
+
+  const mobBtn = document.getElementById('mobileSaveBtn');
+  const mobLabel = document.getElementById('mobileSaveLabel');
+  if(mobBtn && mobLabel){
+    mobBtn.classList.remove('saving','saved');
+    if(s==='saved'){
+      mobBtn.classList.add('saved');
+      mobLabel.textContent = 'נשמר';
+    }else if(s==='saving'){
+      mobBtn.classList.add('saving');
+      mobLabel.textContent = 'שומר';
+    }else{
+      mobLabel.textContent = 'שמור';
+    }
+  }
 }
 
 async function saveAll(){
   const btn=document.getElementById('saveBtn');
-  btn.disabled=true; setSaveStatus('saving');
+  const mobileBtn=document.getElementById('mobileSaveBtn');
+  if(btn) btn.disabled=true;
+  if(mobileBtn) mobileBtn.disabled=true;
+  setSaveStatus('saving');
 
   try{
     // Build profile object
@@ -1430,12 +1705,14 @@ async function saveAll(){
       email:    v('email'),    website: v('website'),
       linkedin: v('linkedin'), social:  v('social'),
       logoMode, logoColor, logoTextColor,
+      logoSizePx, logoLayout,
       reportTheme: currentReportTheme,
       logoInitials: v('logoInitials') || '',
-      fieldDefaults, textSnippets,
-      vat:         v('vat'),
-      declaration: v('declaration'),
-      education:   v('education'),
+      fieldDefaults, textSnippets, tools,
+      declaration:  v('declaration'),
+      education:    v('education'),
+      vat:          v('vat'),
+      closingText:  v('closingText'),
       custom1:{ title:v('custom1Title'), body:v('custom1Body'), position:v('custom1Position')||'end' },
       custom2:{ title:v('custom2Title'), body:v('custom2Body'), position:v('custom2Position')||'end' },
     };
@@ -1481,9 +1758,17 @@ async function saveAll(){
   }catch(e){
     setSaveStatus('unsaved');
     toast('❌ שגיאה: '+e.message);
+    throw e;
+  } finally {
+    if(btn) btn.disabled=false;
+    if(mobileBtn) mobileBtn.disabled=false;
   }
+}
 
-  btn.disabled=false;
+// Apply pending profile data if auth fired before this script was ready
+if (window._pendingProfileData) {
+  loadProfile(window._pendingProfileData);
+  window._pendingProfileData = null;
 }
 
 // Mark unsaved on any change
@@ -1534,22 +1819,22 @@ function renderThemeGrid(){
     const sel = currentReportTheme === key;
     return `<div onclick="selectTheme('${key}')" style="
       cursor:pointer;border-radius:10px;overflow:hidden;
-      border:2px solid ${sel ? '#f59e0b' : 'rgba(255,255,255,.1)'};
+      border:2px solid ${sel ? '#2196F3' : 'rgba(255,255,255,.1)'};
       transition:all .2s;display:flex;flex-direction:column;
     ">
       <div style="background:${t.rptBg};padding:8px;direction:rtl;flex:1;">
         <div style="border-bottom:2px solid ${t.headerBorder};padding-bottom:4px;margin-bottom:5px;text-align:center;">
-          <div style="font-size:8px;font-weight:900;color:${t.headerBorder};">שמאי רכוש</div>
+          <div style="font-size:8px;font-weight:900;color:${t.headerBorder};">מאתר נזילות</div>
         </div>
         <div style="font-size:7px;font-weight:800;color:${t.h3Color};border-bottom:1px solid ${t.thBg};padding-bottom:2px;margin-bottom:4px;">מהות הבקשה</div>
-        <div style="font-size:6px;color:#374151;line-height:1.4;margin-bottom:5px;">ח"מ התבקש לערוך חוות דעת שמאית...</div>
+        <div style="font-size:6px;color:#374151;line-height:1.4;margin-bottom:5px;">ח"מ התבקש לערוך חוות דעת מאתר נזילותת...</div>
         <table style="width:100%;border-collapse:collapse;font-size:6px;">
           <tr style="background:${t.thBg};"><th style="padding:2px 4px;text-align:right;color:${t.h3Color};border:1px solid rgba(0,0,0,.1);">תיאור</th><th style="padding:2px 4px;color:${t.h3Color};border:1px solid rgba(0,0,0,.1);">סה"כ</th></tr>
           <tr><td style="padding:2px 4px;border:1px solid rgba(0,0,0,.07);">תיקון טיח</td><td style="padding:2px 4px;border:1px solid rgba(0,0,0,.07);color:${t.accentColor};font-weight:700;">₪3,200</td></tr>
           <tr style="background:${t.summaryBg};"><td style="padding:2px 4px;font-weight:800;">סה"כ</td><td style="padding:2px 4px;font-weight:800;color:${t.accentColor};">₪8,500</td></tr>
         </table>
       </div>
-      <div style="background:${sel?'#f59e0b':'#1F2937'};padding:5px;text-align:center;">
+      <div style="background:${sel?'#2196F3':'#1F2937'};padding:5px;text-align:center;">
         <span style="font-size:11px;font-weight:700;color:${sel?'#000':'#F9FAFB'};">${t.emoji} ${t.name}</span>
       </div>
     </div>`;
@@ -1575,8 +1860,9 @@ document.addEventListener('DOMContentLoaded', ()=> renderThemeGrid());
 // ══════════════════════════════════════════════════
 const settingsOnboardingSteps = [
   {
-    target: '.sg-row:nth-of-type(1) .section:nth-child(1)',
-    placement: 'right',
+    key: 'logo',
+    target: '#settingsLogoSection',
+    placement: 'left',
     step: 'שלב 1',
     chip: 'זהות ויזואלית',
     title: 'הלוגו שלך נכנס לראש כל דוח',
@@ -1585,18 +1871,20 @@ const settingsOnboardingSteps = [
     nextLabel: 'המשך'
   },
   {
-    target: '.sg-row:nth-of-type(2) .section:nth-child(1)',
-    placement: 'right',
+    key: 'personal',
+    target: '#settingsPersonalSection',
+    placement: 'left',
     step: 'שלב 2',
     chip: 'פרטים מקצועיים',
     title: 'הפרטים שיופיעו בכל דוח',
     text: 'שם, תואר, רישיון ופרטי משרד — כולם ייכנסו אוטומטית לדוח הסופי.',
-    bullets: ['פרטי השמאי — שם, תואר, רישיון.', 'פרטי המשרד — עיר, כתובת.', 'פרטי קשר — טלפון, אימייל.'],
+    bullets: ['פרטי המאתר — שם, תואר, רישיון.', 'פרטי המשרד — עיר, כתובת.', 'פרטי קשר — טלפון, אימייל.'],
     nextLabel: 'המשך'
   },
   {
-    target: '.sg-row:nth-of-type(2) .section:nth-child(2)',
-    placement: 'left',
+    key: 'signature',
+    target: '#settingsSignatureSection',
+    placement: 'right',
     step: 'שלב 3',
     chip: 'חתימה דיגיטלית',
     title: 'החתימה נשמרת פעם אחת',
@@ -1605,6 +1893,7 @@ const settingsOnboardingSteps = [
     nextLabel: 'המשך'
   },
   {
+    key: 'save',
     target: '.save-bar',
     placement: 'above-fixed',
     step: 'שלב 4',
@@ -1620,14 +1909,19 @@ const settingsOnboardingSteps = [
 let settingsOnboardingIndex = 0;
 
 function maybeStartSettingsOnboarding(){
-  const params = new URLSearchParams(window.location.search);
-  const forced = params.get('onboarding') === 'profile-setup';
+  const url = new URL(window.location.href);
+  const forced = url.searchParams.get('onboarding') === 'profile-setup';
   if(window._settingsOnboarding?.completed === true) return;
   if(!forced && window._settingsOnboarding?.step !== 'settings') return;
   if(window._settingsOnboarding?.active) return;
 
   window._settingsOnboarding.active = true;
   document.body.classList.add('ob-lock');
+
+  if (forced) {
+    url.searchParams.delete('onboarding');
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+  }
 
   const overlay = document.getElementById('settingsOnboardingOverlay');
   const card = document.getElementById('settingsOnboardingCard');
@@ -1689,7 +1983,21 @@ function clearSettingsOnboardingHighlight(){
 
 function getSettingsOnboardingTarget(step){
   if(!step?.target) return null;
-  return document.querySelector(step.target);
+  const direct = document.querySelector(step.target);
+  if(direct) return direct;
+
+  const fallbackMap = {
+    logo: '#settingsLogoSection, [data-onboarding="logo"]',
+    personal: '#settingsPersonalSection, [data-onboarding="personal"]',
+    contact: '#settingsContactSection, [data-onboarding="contact"]',
+    signature: '#settingsSignatureSection, [data-onboarding="signature"]',
+    save: '.save-bar, [data-onboarding="save"]'
+  };
+
+  if(step.key && fallbackMap[step.key]){
+    return document.querySelector(fallbackMap[step.key]);
+  }
+  return null;
 }
 
 function placeSettingsOnboardingCard(target, placement){
@@ -1824,10 +2132,14 @@ function showSettingsOnboardingStep(index){
 async function nextSettingsOnboardingStep(){
   const current = settingsOnboardingSteps[settingsOnboardingIndex];
   if(current?.final){
-    // שמור + עבור לדשבורד לשלב הבא
     try{
       await saveAll();
       if(window._currentUser?.uid && window._settingsOnboarding){
+        await window._saveProfile({
+          onboardingCompleted: false,
+          onboardingStep: 'first_case'
+        });
+        window._settingsOnboarding.completed = false;
         window._settingsOnboarding.step = 'first_case';
       }
     }catch(e){ console.warn('settings onboarding save:', e); }
@@ -1857,9 +2169,15 @@ async function skipSettingsOnboarding() {
     if (window._settingsOnboarding) {
       window._settingsOnboarding.completed = true;
       window._settingsOnboarding.step = 'done';
+      window._settingsOnboarding.active = false;
     }
   }catch(e){
     console.error('skipSettingsOnboarding', e);
+  }
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('onboarding')) {
+    url.searchParams.delete('onboarding');
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
   }
   closeSettingsOnboarding();
 }
@@ -1893,9 +2211,104 @@ window.addEventListener('resize', () => {
 });
 
 
+
+// ══════════════════════════════════════════════════
+// TOOLS ARSENAL
+// ══════════════════════════════════════════════════
+function renderToolsList(){
+  const list  = document.getElementById('toolsListSettings');
+  const empty = document.getElementById('toolsEmptySettings');
+  if(!list) return;
+  if(!tools.length){
+    list.innerHTML=''; empty.style.display='block'; return;
+  }
+  empty.style.display='none';
+  list.innerHTML = tools.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#1F2937;border:1px solid #374151;border-radius:10px;">
+      <span style="font-size:22px;flex-shrink:0;">${t.icon||'🔧'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#F9FAFB;">${escHtml(t.name)}</div>
+        ${t.model?`<div style="font-size:11px;color:#9CA3AF;">${escHtml(t.model)}</div>`:''}
+      </div>
+      <button onclick="editTool(${i})" style="background:transparent;border:1px solid #374151;color:#9CA3AF;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:11px;font-family:Heebo,sans-serif;font-weight:700;">✏️</button>
+      <button onclick="removeTool(${i})" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:11px;font-family:Heebo,sans-serif;font-weight:700;">✕</button>
+    </div>`).join('');
+}
+
+function openToolModal(editIdx){
+  editingToolIndex = editIdx !== undefined ? editIdx : -1;
+  const modal = document.getElementById('toolModal');
+  modal.style.display='flex';
+  const title = document.getElementById('toolModalTitle');
+  if(editIdx !== undefined && tools[editIdx]){
+    const t=tools[editIdx];
+    title.textContent = '✏️ עריכת כלי';
+    document.getElementById('toolName').value  = t.name  || '';
+    document.getElementById('toolModel').value = t.model || '';
+    document.getElementById('toolIcon').value  = t.icon  || '';
+  } else {
+    title.textContent = '+ הוסף כלי';
+    document.getElementById('toolName').value  = '';
+    document.getElementById('toolModel').value = '';
+    document.getElementById('toolIcon').value  = '🔧';
+  }
+  setTimeout(()=>document.getElementById('toolName').focus(), 100);
+}
+
+function closeToolModal(){
+  document.getElementById('toolModal').style.display='none';
+  editingToolIndex=-1;
+}
+
+async function saveTool(){
+  const name  = document.getElementById('toolName').value.trim();
+  const model = document.getElementById('toolModel').value.trim();
+  const icon  = document.getElementById('toolIcon').value.trim() || '🔧';
+  if(!name){ toast('⚠️ הכנס שם לכלי'); return; }
+  const isEdit = editingToolIndex >= 0;
+  if(isEdit){
+    tools[editingToolIndex] = {name, model, icon};
+  } else {
+    tools.push({name, model, icon});
+  }
+  renderToolsList();
+  closeToolModal();
+  setSaveStatus('unsaved');
+  try{
+    await saveAll();
+    toast('✅ ' + (isEdit ? 'הכלי עודכן ונשמר' : 'הכלי נוסף ונשמר'));
+  }catch(e){
+    console.error('saveTool', e);
+    toast('❌ הכלי נוסף למסך אך לא נשמר');
+  }
+}
+
+function editTool(i){ openToolModal(i); }
+
+async function removeTool(i){
+  tools.splice(i,1);
+  renderToolsList();
+  setSaveStatus('unsaved');
+  try{
+    await saveAll();
+    toast('✅ הכלי הוסר ונשמר');
+  }catch(e){
+    console.error('removeTool', e);
+    toast('❌ הכלי הוסר מהמסך אך לא נשמר');
+  }
+}
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Close tool modal on backdrop click
+document.getElementById('toolModal')?.addEventListener('click', function(e){
+  if(e.target===this) closeToolModal();
+});
+
 // Init
 updateLogoPreview();
 renderTemplates();
+renderToolsList();
 
 // Ctrl+S shortcut
 document.addEventListener('keydown', e=>{
@@ -1906,7 +2319,7 @@ document.addEventListener('keydown', e=>{
 <style>
 .omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
 .omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#f59e0b;}
+.omdan-footer a:hover{color:#2196F3;}
 
 
 
@@ -1914,6 +2327,30 @@ document.addEventListener('keydown', e=>{
 
 
 </style>
+
+<!-- ══ Tool Modal ══ -->
+<div id="toolModal" style="display:none;position:fixed;inset:0;z-index:3000;align-items:center;justify-content:center;background:rgba(0,0,0,.7);">
+  <div style="background:#1F2937;border:1px solid #374151;border-radius:16px;padding:28px;width:min(420px,92vw);direction:rtl;">
+    <div style="font-size:16px;font-weight:800;margin-bottom:20px;" id="toolModalTitle">+ הוסף כלי</div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>שם הכלי *</label>
+      <input type="text" id="toolName" placeholder="לדוגמה: מצלמה תרמית">
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>דגם / מפרט</label>
+      <input type="text" id="toolModel" placeholder="לדוגמה: FLIR E60">
+    </div>
+    <div class="field" style="margin-bottom:20px;">
+      <label>אייקון (אימוג'י)</label>
+      <input type="text" id="toolIcon" placeholder="🌡️" style="width:80px;font-size:20px;text-align:center;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-sm" onclick="closeToolModal()" style="background:transparent;border:1px solid #374151;color:#9CA3AF;cursor:pointer;padding:8px 16px;border-radius:8px;font-family:Heebo,sans-serif;font-weight:700;">ביטול</button>
+      <button class="btn-sm" onclick="saveTool()" style="background:linear-gradient(135deg,#2196F3,#1565C0);color:#fff;border:none;cursor:pointer;padding:8px 16px;border-radius:8px;font-family:Heebo,sans-serif;font-weight:700;">שמור כלי</button>
+    </div>
+  </div>
+</div>
+
 <footer class="omdan-footer">
   <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
   <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
@@ -1923,6 +2360,26 @@ document.addEventListener('keydown', e=>{
   <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
 </footer>
 
+
+<style id="mobile-save-nav-patch">
+@media(max-width:768px){
+  .save-bar{display:none !important;}
+  .settings-mob-nav{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    align-items:stretch;
+  }
+  .settings-mob-nav .mob-save-btn{
+    color:#2196F3;
+  }
+  .settings-mob-nav .mob-save-btn.saving{
+    color:#F9FAFB;
+  }
+  .settings-mob-nav .mob-save-btn.saved{
+    color:#10B981;
+  }
+}
+</style>
 <style>.settings-mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
   background:#111827;border-top:1px solid #1F2937;padding:8px 0 max(8px,env(safe-area-inset-bottom));
   grid-template-columns:repeat(4,1fr);}
@@ -1930,11 +2387,11 @@ document.addEventListener('keydown', e=>{
   padding:4px;color:#9CA3AF;font-family:'Heebo',sans-serif;font-size:9px;font-weight:600;
   background:none;border:none;cursor:pointer;text-decoration:none;transition:color .15s;}
 .settings-mob-nav a:hover,.settings-mob-nav button:hover{color:#F9FAFB;}
-.settings-mob-nav a.active{color:#F59E0B;}
+.settings-mob-nav a.active{color:#2196F3;}
 @media(max-width:768px){.settings-mob-nav{display:grid;}.app{padding-bottom:72px;}}
 </style>
 <nav class="settings-mob-nav">
-  <a href="/app/dashboard.html"><span style="font-size:20px">📊</span>דשבורד</a>
+  <button type="button" class="mob-save-btn" id="mobileSaveBtn" onclick="saveAll()"><span style="font-size:20px">💾</span><span id="mobileSaveLabel">שמור</span></button>
   <a href="/app/account-billing.html"><span style="font-size:20px">💳</span>מנוי</a>
   <a href="/app/case.html"><span style="font-size:20px">➕</span>תיק חדש</a>
   <button onclick="window._doLogout()"><span style="font-size:20px">🚪</span>יציאה</button>
