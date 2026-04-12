@@ -353,6 +353,15 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
 /* ══════════════════════════════
    SECTION 4 — REPORT OUTPUT
 ══════════════════════════════ */
+/* Edit+Preview grid — like רכוש card 8 */
+.c8-grid{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+.c8-sec{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.c8-sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.c8-sec-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.c8-textarea{width:100%;background:transparent;border:none;border-top:1px solid var(--border);color:var(--text);font-size:13px;line-height:1.7;resize:vertical;padding:8px 0 0;font-family:'Heebo',sans-serif;outline:none;}
+.c8-auto-text{font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-line;max-height:80px;overflow:hidden;mask-image:linear-gradient(to bottom,black 60%,transparent);}
+.btn-xs{padding:3px 10px!important;font-size:11px!important;border-radius:6px!important;}
+@media(max-width:768px){.c8-grid{display:flex;flex-direction:column;gap:14px;}}
 
 /* ── BOTTOM NAV (fixed) ── */
 .bottom-nav{
@@ -376,6 +385,75 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
 /* Toast */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1F2937;border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;}
 .toast.show{display:block;}
+
+/* ── PDF Progress Overlay ── */
+#pdfProgressOverlay{
+  display:none;position:fixed;inset:0;z-index:19000;
+  background:rgba(3,7,18,.82);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+}
+#pdfProgressOverlay.active{display:flex;}
+#pdfProgressBox{
+  background:#111827;border:1px solid #1e2a3a;border-radius:20px;
+  padding:36px 44px;min-width:320px;max-width:90vw;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+#pdfProgressSpinner{
+  width:52px;height:52px;border-radius:50%;
+  border:4px solid #1e2a3a;border-top-color:#2196F3;
+  animation:pdfSpin .8s linear infinite;
+}
+#pdfReadyIcon{
+  display:none;
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(16,185,129,.15);border:2px solid #10B981;
+  align-items:center;justify-content:center;
+  font-size:24px;
+}
+@keyframes pdfSpin{to{transform:rotate(360deg);}}
+#pdfProgressTitle{font-size:16px;font-weight:800;color:#f0f4f8;}
+#pdfProgressSteps{display:flex;flex-direction:column;gap:8px;width:100%;}
+.pdf-step{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:#6b7a8d;font-weight:600;
+  transition:color .3s;
+}
+.pdf-step.active{color:#2196F3;}
+.pdf-step.done{color:#10B981;}
+.pdf-step-dot{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  border:2px solid #263347;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;transition:all .3s;
+}
+.pdf-step.active .pdf-step-dot{border-color:#2196F3;background:rgba(33,150,243,.15);animation:pdfPulse 1s infinite;}
+.pdf-step.done .pdf-step-dot{border-color:#10B981;background:#10B981;color:#fff;font-size:10px;}
+@keyframes pdfPulse{0%,100%{box-shadow:0 0 0 0 rgba(33,150,243,.4);}50%{box-shadow:0 0 0 5px rgba(33,150,243,0);}}
+#pdfProgressBar{width:100%;height:4px;background:#1e2a3a;border-radius:2px;overflow:hidden;}
+#pdfProgressBarFill{height:100%;width:0%;background:linear-gradient(90deg,#2196F3,#10B981);border-radius:2px;transition:width .6s ease;}
+
+/* ── PDF Ready Actions ── */
+#pdfReadyActions{display:none;flex-direction:column;gap:10px;width:100%;}
+#pdfReadyActions .pdf-action-title{font-size:13px;font-weight:700;color:#10B981;text-align:center;}
+#pdfReadyActions .pdf-action-subtitle{font-size:11px;color:#6b7a8d;text-align:center;margin-top:-6px;}
+.pdf-action-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;border-radius:10px;border:none;
+  font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;width:100%;text-align:right;
+  transition:all .15s;
+}
+.pdf-action-btn-open{background:#2196F3;color:#fff;}
+.pdf-action-btn-open:hover{background:#1565C0;}
+.pdf-action-btn-share{background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25d366;}
+.pdf-action-btn-share:hover{background:rgba(37,211,102,.25);}
+.pdf-action-btn-copy{background:var(--card);border:1px solid var(--border2);color:var(--muted);}
+.pdf-action-btn-copy:hover{color:var(--text);border-color:var(--subtle);}
+.pdf-action-btn-close{background:transparent;border:1px solid var(--border);color:var(--subtle);font-size:12px;}
+.pdf-action-btn-close:hover{color:var(--muted);}
+.pdf-action-btn .btn-icon{font-size:18px;flex-shrink:0;}
+.pdf-action-btn .btn-label{flex:1;}
 
 /* no-print */
 .no-print{}
@@ -832,14 +910,19 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
   <div class="form-section" id="section-4" style="display:none;">
     <div class="sec-head">
       <div class="sec-title">📄 תצוגה מקדימה</div>
-      <div class="sec-sub">בדוק את הדוח לפני הפקה סופית — ניתן לחזור ולערוך</div>
+      <div class="sec-sub">בדוק ועדכן את הדוח לפני הפקה סופית</div>
     </div>
-    <!-- Preview output -->
-    <div id="reportOutput"></div>
-    <!-- Action bar -->
-    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:12px;">
-      <button class="btn btn-ghost" onclick="goSection(3)">→ חזרה לעריכה</button>
-      <button onclick="openReport()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:9px;font-family:'Heebo',sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px rgba(33,150,243,.3);">📄 הפק דוח סופי ←</button>
+    <div class="c8-grid">
+      <!-- RIGHT: edit panel (sticky) -->
+      <div id="c8EditPanel" style="position:sticky;top:20px;"></div>
+      <!-- LEFT: live preview -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">👁️ תצוגה מקדימה — דוח סופי</div>
+          <button onclick="openReport()" class="btn btn-primary btn-sm no-print">📄 הפק דוח סופי</button>
+        </div>
+        <div id="reportOutput"></div>
+      </div>
     </div>
   </div>
 
@@ -868,7 +951,7 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
     </div>
     <span id="rptModeLabel" style="font-size:12px;font-weight:700;color:#374151;background:#F3F4F6;padding:4px 12px;border-radius:20px;"></span>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#111827;border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💾 שמור כ-PDF</button>
+      <button onclick="savePdf()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#111827;border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💾 שמור כ-PDF</button>
       <button onclick="shareReport()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2196F3;border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">📤 שלח / שתף</button>
       <button onclick="closeReport()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#059669;border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">✏️ ערוך דוח</button>
     </div>
@@ -880,6 +963,64 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ PDF PROGRESS OVERLAY ══ -->
+<div id="pdfProgressOverlay">
+  <div id="pdfProgressBox">
+    <!-- Spinner (during generation) -->
+    <div id="pdfProgressSpinner"></div>
+    <!-- Done icon (after ready) -->
+    <div id="pdfReadyIcon">✅</div>
+
+    <div id="pdfProgressTitle">מכין את הדוח…</div>
+    <div id="pdfProgressBar"><div id="pdfProgressBarFill"></div></div>
+
+    <!-- Steps (during generation) -->
+    <div id="pdfProgressSteps">
+      <div class="pdf-step" id="pdfStep1">
+        <div class="pdf-step-dot">1</div>
+        <span>מעבד נתוני תיק</span>
+      </div>
+      <div class="pdf-step" id="pdfStep2">
+        <div class="pdf-step-dot">2</div>
+        <span>שולח לשרת</span>
+      </div>
+      <div class="pdf-step" id="pdfStep3">
+        <div class="pdf-step-dot">3</div>
+        <span>מייצר PDF</span>
+      </div>
+      <div class="pdf-step" id="pdfStep4">
+        <div class="pdf-step-dot">4</div>
+        <span>מעלה קובץ</span>
+      </div>
+      <div class="pdf-step" id="pdfStep5">
+        <div class="pdf-step-dot">✓</div>
+        <span>מוכן לשיתוף</span>
+      </div>
+    </div>
+
+    <!-- Ready actions (after generation) -->
+    <div id="pdfReadyActions">
+      <div class="pdf-action-title">✓ הדוח מוכן!</div>
+      <div class="pdf-action-subtitle">בחר פעולה:</div>
+      <button class="pdf-action-btn pdf-action-btn-open" onclick="_pdfActionOpen()">
+        <span class="btn-icon">📄</span>
+        <span class="btn-label">פתח PDF</span>
+      </button>
+      <button class="pdf-action-btn pdf-action-btn-share" id="pdfBtnShare" onclick="_pdfActionShare()">
+        <span class="btn-icon">📤</span>
+        <span class="btn-label">שלח / שתף</span>
+      </button>
+      <button class="pdf-action-btn pdf-action-btn-copy" onclick="_pdfActionCopy()">
+        <span class="btn-icon">🔗</span>
+        <span class="btn-label" id="pdfCopyLabel">העתק קישור</span>
+      </button>
+      <button class="pdf-action-btn pdf-action-btn-close" onclick="hidePdfProgress()">
+        סגור
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ IMAGE EDITOR MODAL ══ -->
 <div id="imgEditorModal" class="img-editor-modal no-print">
@@ -1014,17 +1155,20 @@ window.closeReport=function(){
   window.scrollTo(0,0);
 };
 window.shareReport=function(){};
+window.savePdf=function(){};
 window.resetClosingText=function(){};
 window.autoFillFindings=function(){};
 window.toggleVoice=function(){};
 window.toggleSourceOther=function(v){const el=document.getElementById('f-source-other');if(el)el.style.display=(v==='other')?'block':'none';};
 window.updateStatusBadge=function(){};
 window.renderReport=function(){};
+window.renderSection4EditPanel=function(){};
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
 <script>
 // ── FIREBASE ──
 firebase.initializeApp({
@@ -1105,7 +1249,7 @@ function _goSection(n){
     if(n===4){btnNext.textContent='💾 שמור';btnNext.onclick=saveCase;}
     else{btnNext.textContent='המשך ←';btnNext.onclick=navNext;}
   }
-  if(n===4){saveCase();setTimeout(renderReport,300);}
+  if(n===4){saveCase();setTimeout(()=>{renderReport();renderSection4EditPanel();},300);}
   if(n===2){setTimeout(renderInspRows,50);setTimeout(renderInspPicker,50);}
   // bottom-nav visibility
   const _bnav=document.querySelector('.bottom-nav');
@@ -1525,17 +1669,86 @@ async function saveCase(){
   setSaveStatus('saving');
   try{
     const fullState=sanitizeForFirestore(buildState());
-    let instsToSave=fullState.inspInstances||[];
-    if(_activeUploads>0){
-      try{const snap=await db.collection('leakCases').doc(currentCaseId).get();if(snap.exists) instsToSave=snap.data()?.state?.inspInstances||instsToSave;}catch(e){}
+
+    // ── Guard: skip save if DOM not yet populated ──
+    // buildState() on an empty DOM returns empty strings — never write that.
+    const domReady = getVal('f-caseNum') || getVal('f-clientName') || getVal('f-date') ||
+                     inspInstances.length > 0 || getVal('f-findings') || getVal('f-recommendations');
+    if(!domReady){
+      setSaveStatus('unsaved');
+      return;
     }
-    const state={...fullState,inspInstances:instsToSave};
-    const caseData={uid:currentUser.uid,caseNum:getVal('f-caseNum'),date:getVal('f-date'),name:state.client?.name||'',status:getVal('f-status'),state,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-    await db.collection('leakCases').doc(currentCaseId).set(caseData,{merge:true});
+
+    // ── Handle active uploads: keep existing inspInstances from Firestore ──
+    let instsToSave = fullState.inspInstances || [];
+    if(_activeUploads > 0){
+      try{
+        const snap = await db.collection('leakCases').doc(currentCaseId).get();
+        if(snap.exists) instsToSave = snap.data()?.state?.inspInstances || instsToSave;
+      }catch(e){}
+    }
+
+    // ── Deep merge: load existing state, overlay only non-empty fields ──
+    // This prevents overwriting fields that weren't loaded into the DOM yet.
+    let existingState = {};
+    try{
+      const snap = await db.collection('leakCases').doc(currentCaseId).get();
+      if(snap.exists) existingState = snap.data()?.state || {};
+    }catch(e){}
+
+    // Merge: existing wins only if the new value is empty AND existing is not
+    function safeMergeField(newVal, existingVal){
+      if(newVal !== null && newVal !== undefined && newVal !== '') return newVal;
+      return existingVal !== undefined ? existingVal : newVal;
+    }
+
+    const mergedState = {
+      // Deep-merge client fields
+      client:{
+        name:        safeMergeField(fullState.client?.name,        existingState.client?.name),
+        present:     safeMergeField(fullState.client?.present,     existingState.client?.present),
+        address:     safeMergeField(fullState.client?.address,     existingState.client?.address),
+        floor:       safeMergeField(fullState.client?.floor,       existingState.client?.floor),
+        city:        safeMergeField(fullState.client?.city,        existingState.client?.city),
+        propertyType:safeMergeField(fullState.client?.propertyType,existingState.client?.propertyType),
+        source:      safeMergeField(fullState.client?.source,      existingState.client?.source),
+        insCompany:  safeMergeField(fullState.client?.insCompany,  existingState.client?.insCompany),
+        claimNum:    safeMergeField(fullState.client?.claimNum,    existingState.client?.claimNum),
+        problem:     safeMergeField(fullState.client?.problem,     existingState.client?.problem),
+        date:        safeMergeField(fullState.client?.date,        existingState.client?.date),
+      },
+      inspector:{
+        declaration: safeMergeField(fullState.inspector?.declaration, existingState.inspector?.declaration),
+        education:   safeMergeField(fullState.inspector?.education,   existingState.inspector?.education),
+      },
+      inspInstances: instsToSave.length > 0 ? instsToSave : (existingState.inspInstances || []),
+      findings:        safeMergeField(fullState.findings,        existingState.findings),
+      recommendations: safeMergeField(fullState.recommendations, existingState.recommendations),
+      closing:         safeMergeField(fullState.closing,         existingState.closing),
+      tools:           (fullState.tools?.selected?.length > 0)
+                         ? fullState.tools
+                         : (existingState.tools || fullState.tools),
+    };
+
+    const caseData = {
+      uid:       currentUser.uid,
+      caseNum:   getVal('f-caseNum') || existingState.caseNum || '',
+      date:      getVal('f-date')    || existingState.client?.date || '',
+      name:      mergedState.client?.name || '',
+      status:    getVal('f-status')  || 'draft',
+      state:     mergedState,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db.collection('leakCases').doc(currentCaseId).set(caseData, {merge:true});
     setSaveStatus('saved');
     showToast('✓ נשמר בהצלחה');
     if(currentSection===4) renderReport();
-  }catch(e){setSaveStatus('unsaved');showToast('שגיאה בשמירה: '+e.message);}
+  }catch(e){
+    setSaveStatus('unsaved');
+    showToast('שגיאה בשמירה: '+e.message);
+    console.error('saveCase error:',e);
+  }
 }
 window.saveCase=saveCase;
 
@@ -1613,18 +1826,196 @@ window.openReport = openReport;
 window.closeReport = closeReport;
 
 // ── SHARE ──
-async function shareReport(){
-  const title = 'דוח איתור נזילה' + (currentCaseId ? ' — ' + currentCaseId : '');
+// ── PDF GENERATION + SHARE ──────────────────────────────────────────────────
+// Sends report HTML to Firebase Cloud Function → puppeteer → PDF in Storage
+// Returns signed URL → navigator.share (mobile) or direct download (desktop)
+// ─────────────────────────────────────────────────────────────────────────────
+// ── PDF PROGRESS OVERLAY ─────────────────────────────────────────────────────
+const _PDF_STEPS = ['pdfStep1','pdfStep2','pdfStep3','pdfStep4','pdfStep5'];
+const _PDF_PROGRESS = [8, 25, 55, 82, 100];
+let _currentPdfUrl = null;
+
+function showPdfProgress(){
+  const ov = document.getElementById('pdfProgressOverlay');
+  if(ov) ov.classList.add('active');
+  // Reset to loading state
+  document.getElementById('pdfProgressSpinner').style.display = '';
+  document.getElementById('pdfReadyIcon').style.display = 'none';
+  document.getElementById('pdfProgressTitle').textContent = 'מכין את הדוח…';
+  document.getElementById('pdfProgressBar').style.display = '';
+  document.getElementById('pdfProgressSteps').style.display = '';
+  document.getElementById('pdfReadyActions').style.display = 'none';
+  _PDF_STEPS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.classList.remove('active','done'); }
+  });
+  setPdfProgressBar(0);
+  setPdfStep(0);
+  _currentPdfUrl = null;
+}
+
+function showPdfReady(url){
+  _currentPdfUrl = url;
+  // Hide loading elements
+  document.getElementById('pdfProgressSpinner').style.display = 'none';
+  document.getElementById('pdfProgressBar').style.display = 'none';
+  document.getElementById('pdfProgressSteps').style.display = 'none';
+  document.getElementById('pdfProgressTitle').textContent = '';
+  // Show ready elements
+  const icon = document.getElementById('pdfReadyIcon');
+  icon.style.display = 'flex';
+  // Show/hide native share button based on support
+  const shareBtn = document.getElementById('pdfBtnShare');
+  if(shareBtn) shareBtn.style.display = navigator.share ? 'flex' : 'flex'; // always show — works on desktop too
+  document.getElementById('pdfReadyActions').style.display = 'flex';
+  // Reset copy label
+  document.getElementById('pdfCopyLabel').textContent = 'העתק קישור';
+}
+
+function hidePdfProgress(){
+  const ov = document.getElementById('pdfProgressOverlay');
+  if(ov) ov.classList.remove('active');
+  _currentPdfUrl = null;
+}
+
+// ── PDF Ready Actions ─────────────────────────────────────────────────────────
+function _pdfActionOpen(){
+  if(!_currentPdfUrl) return;
+  window.open(_currentPdfUrl, '_blank');
+}
+async function _pdfActionShare(){
+  if(!_currentPdfUrl) return;
+  const fileName = `דוח-איתור-${currentCaseId || 'omda'}.pdf`;
+  // Try native share with file first (mobile)
   if(navigator.share){
     try{
-      await navigator.share({title, text: title, url: window.location.href.split('?')[0]+'?case='+currentCaseId+'&view=report'});
+      const resp = await fetch(_currentPdfUrl);
+      const blob = await resp.blob();
+      const file = new File([blob], fileName, {type:'application/pdf'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:fileName});
+        return;
+      }
+    }catch(_){}
+    // Fallback: share URL (works on WhatsApp Web, Gmail, etc.)
+    try{
+      await navigator.share({title:fileName, url:_currentPdfUrl});
       return;
     }catch(e){ if(e.name==='AbortError') return; }
   }
-  showToast('בחר "שמור כ-PDF" בחלון ההדפסה, ואז שלח את הקובץ');
-  setTimeout(()=>window.print(), 600);
+  // Desktop fallback: open in new tab (user can share from there)
+  window.open(_currentPdfUrl, '_blank');
 }
-window.shareReport=shareReport;
+async function _pdfActionCopy(){
+  if(!_currentPdfUrl) return;
+  try{
+    await navigator.clipboard.writeText(_currentPdfUrl);
+    const lbl = document.getElementById('pdfCopyLabel');
+    if(lbl){ lbl.textContent = '✓ הועתק!'; setTimeout(()=>{ lbl.textContent='העתק קישור'; }, 2000); }
+  }catch(e){
+    showToast('לא ניתן להעתיק — נסה ידנית');
+  }
+}
+window._pdfActionOpen = _pdfActionOpen;
+window._pdfActionShare = _pdfActionShare;
+window._pdfActionCopy = _pdfActionCopy;
+function setPdfStep(idx){
+  _PDF_STEPS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('active','done');
+    if(i < idx) { el.classList.add('done'); el.querySelector('.pdf-step-dot').textContent='✓'; }
+    else if(i === idx) { el.classList.add('active'); el.querySelector('.pdf-step-dot').textContent=String(i+1); }
+    else { el.querySelector('.pdf-step-dot').textContent=String(i+1); }
+  });
+  setPdfProgressBar(_PDF_PROGRESS[idx] || 0);
+}
+function setPdfProgressBar(pct){
+  const bar = document.getElementById('pdfProgressBarFill');
+  if(bar) bar.style.width = pct + '%';
+}
+
+// ── CORE: generate PDF via Cloud Function ─────────────────────────────────────
+async function _generatePdf(){
+  showPdfProgress();
+  try {
+    // Step 1 — render
+    setPdfStep(0);
+    if (!document.getElementById('reportOutput')?.innerHTML?.trim()) {
+      renderReport();
+      await new Promise(r => setTimeout(r, 400));
+    }
+    const reportHtml = document.getElementById('reportOutput')?.innerHTML || '';
+    if (!reportHtml.trim()) { hidePdfProgress(); showToast('שגיאה: הדוח ריק'); return null; }
+
+    // Step 2 — prepare payload
+    setPdfStep(1);
+    await new Promise(r => setTimeout(r, 300));
+    const logoUrl = profileData?.logoUrl || null;
+    const logoDataUri = profileData?.logoImageData || null;
+    const signatureUrl = profileData?.signatureUrl || null;
+    const signatureDataUri = profileData?.signature || null;
+
+    const logoHtml = logoUrl
+      ? `<img src="${logoUrl}" style="max-height:70px;object-fit:contain;display:block;">`
+      : logoDataUri
+        ? `<img src="${logoDataUri}" style="max-height:70px;object-fit:contain;display:block;">`
+        : `<div style="font-size:20px;font-weight:900;color:#1565C0;">OMDA<br>איתור</div>`;
+    const sigHtml = signatureUrl
+      ? `<img src="${signatureUrl}" style="max-height:50px;max-width:160px;display:block;margin:4px 0;">`
+      : signatureDataUri
+        ? `<img src="${signatureDataUri}" style="max-height:50px;max-width:160px;display:block;margin:4px 0;">`
+        : `<div style="height:50px;border-bottom:1px dashed #9ca3af;margin-bottom:6px;width:160px;"></div>`;
+
+    let payload = reportHtml
+      .replace(/data-logo-placeholder[^>]*>.*?<\/[^>]+>/gs, logoHtml)
+      .replace(/data-sig-placeholder[^>]*>.*?<\/[^>]+>/gs, sigHtml);
+
+    // Step 3 — call Function (puppeteer)
+    setPdfStep(2);
+    const fn = firebase.functions().httpsCallable('generateLeakPdf', { timeout: 120000 });
+    const resultPromise = fn({
+      caseId: currentCaseId || null,
+      htmlPayload: payload,
+      logoUrl: logoUrl || null,
+      signatureUrl: signatureUrl || null,
+    });
+
+    // Optimistic step 4 while waiting
+    await new Promise(r => setTimeout(r, 800));
+    setPdfStep(3);
+    const result = await resultPromise;
+
+    if (!result.data?.url) throw new Error('לא התקבל קישור PDF');
+
+    // Step 5 — done → show ready screen
+    setPdfStep(4);
+    await new Promise(r => setTimeout(r, 500));
+    showPdfReady(result.data.url);
+    return result.data.url;
+
+  } catch(err) {
+    hidePdfProgress();
+    console.error('_generatePdf error:', err);
+    showToast('שגיאה ביצירת PDF: ' + (err.message || err));
+    return null;
+  }
+}
+
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+async function shareReport(){
+  await _generatePdf();
+  // Actions are shown inside the overlay — no extra code needed
+}
+window.shareReport = shareReport;
+
+// ── SAVE PDF ──────────────────────────────────────────────────────────────────
+async function savePdf(){
+  await _generatePdf();
+  // Actions are shown inside the overlay — user picks "פתח PDF" to download
+}
+window.savePdf = savePdf;
+
 
 // ── PROFILE BANNERS ──
 function populateStaticBanners(){
@@ -1942,6 +2333,79 @@ ${customEnd}
 </div>`;
 }
 window.renderReport=renderReport;
+
+// ── SECTION 4 EDIT PANEL — like רכוש card 8 ──
+function renderSection4EditPanel(){
+  const panel = document.getElementById('c8EditPanel');
+  if(!panel) return;
+
+  // helper: one editable section
+  function editSec(label, fieldId, stateGetter, stateSetter, autoVal, rows=4){
+    const val = stateGetter();
+    const isOverride = !!val;
+    const displayText = val || autoVal || '';
+    return `<div class="c8-sec">
+      <div class="c8-sec-head">
+        <span class="c8-sec-label">${label}</span>
+        ${isOverride
+          ? `<button class="btn btn-ghost btn-xs" onclick="(${stateSetter})('');renderSection4EditPanel();renderReport()">↩ אוטומטי</button>`
+          : `<button class="btn btn-ghost btn-xs" onclick="(${stateSetter})(${JSON.stringify(autoVal||'')});renderSection4EditPanel();renderReport()">✏️ ערוך</button>`
+        }
+      </div>
+      ${isOverride
+        ? `<textarea class="c8-textarea" rows="${rows}"
+            oninput="(${stateSetter})(this.value);renderReport()"
+          >${escHtml(val)}</textarea>`
+        : `<div class="c8-auto-text">${escHtml(displayText)||'<span style="color:var(--subtle);font-style:italic;">(ריק)</span>'}</div>`
+      }
+    </div>`;
+  }
+
+  let html = '';
+
+  // ── ממצאים ──
+  html += editSec(
+    '🔍 ממצאים',
+    'f-findings',
+    () => window._s4Overrides?.findings ?? '',
+    `v=>{if(!window._s4Overrides)window._s4Overrides={};window._s4Overrides.findings=v;const el=document.getElementById('f-findings');if(el)el.value=v}`,
+    getVal('f-findings'),
+    6
+  );
+
+  // ── המלצות ──
+  html += editSec(
+    '✅ המלצות',
+    'f-recommendations',
+    () => window._s4Overrides?.recommendations ?? '',
+    `v=>{if(!window._s4Overrides)window._s4Overrides={};window._s4Overrides.recommendations=v;const el=document.getElementById('f-recommendations');if(el)el.value=v}`,
+    getVal('f-recommendations'),
+    6
+  );
+
+  // ── הצהרת מאתר ──
+  html += editSec(
+    '👤 הצהרת מאתר',
+    'f-declaration',
+    () => window._s4Overrides?.declaration ?? '',
+    `v=>{if(!window._s4Overrides)window._s4Overrides={};window._s4Overrides.declaration=v;const el=document.getElementById('f-declaration');if(el)el.value=v}`,
+    getVal('f-declaration'),
+    4
+  );
+
+  // ── תיאור הבעיה ──
+  html += editSec(
+    '📋 תיאור הבעיה',
+    'f-problem',
+    () => window._s4Overrides?.problem ?? '',
+    `v=>{if(!window._s4Overrides)window._s4Overrides={};window._s4Overrides.problem=v;const el=document.getElementById('f-problem');if(el)el.value=v}`,
+    getVal('f-problem'),
+    3
+  );
+
+  panel.innerHTML = html;
+}
+window.renderSection4EditPanel = renderSection4EditPanel;
 
 function getDefaultClosingText(name){
   return name?`תודה שבחרתם ב${name},\nנהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד`:'תודה שבחרתם בנו,\nנהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד';
