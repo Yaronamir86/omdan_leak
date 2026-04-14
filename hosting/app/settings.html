@@ -31,6 +31,13 @@ const db = firebase.firestore();
 
 let authChecked = false;
 
+function hidePageLoader() {
+  const loader = document.getElementById('pageLoader');
+  if (!loader) return;
+  loader.style.opacity = '0';
+  setTimeout(() => loader.remove(), 400);
+}
+
 auth.onAuthStateChanged(async u => {
   if (authChecked) return;
   authChecked = true;
@@ -85,6 +92,7 @@ auth.onAuthStateChanged(async u => {
   } catch (e) {
     console.error(e);
   }
+  hidePageLoader();
 });
 
 window._saveProfile = async (data) => {
@@ -667,6 +675,39 @@ body::before{
 
 
 
+/* ══ NEW SETTINGS STYLES ══ */
+
+.breadcrumb-link{color:var(--muted);font-size:13px;text-decoration:none;font-weight:600;transition:color .15s;}
+.breadcrumb-link:hover{color:var(--text);}
+
+.settings-hero{display:flex;align-items:center;gap:16px;padding:20px 24px;background:linear-gradient(135deg,rgba(33,150,243,.1) 0%,rgba(33,150,243,.03) 100%);border:1px solid rgba(33,150,243,.18);border-radius:16px;margin-bottom:4px;}
+.settings-hero-icon{font-size:32px;flex-shrink:0;}
+
+.report-fields-banner{display:flex;align-items:flex-start;gap:14px;padding:14px 20px;margin-bottom:28px;background:rgba(33,150,243,.07);border:1.5px solid rgba(33,150,243,.22);border-radius:12px;}
+.rfb-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+.rfb-title{font-size:13px;font-weight:800;color:#90CAF9;margin-bottom:3px;}
+.rfb-sub{font-size:12px;color:var(--muted);line-height:1.6;}
+.rfb-tag{display:inline-block;padding:1px 7px;border-radius:20px;background:rgba(33,150,243,.18);border:1px solid rgba(33,150,243,.3);color:#90CAF9;font-size:11px;font-weight:700;}
+
+.in-report-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;white-space:nowrap;background:rgba(33,150,243,.12);border:1px solid rgba(33,150,243,.28);color:#90CAF9;font-size:10px;font-weight:700;letter-spacing:.03em;}
+
+.section-report-highlight{border-color:rgba(33,150,243,.18) !important;}
+.section-report-highlight .section-header{background:rgba(33,150,243,.04);}
+
+.accordion-field{border:1.5px solid var(--border2);border-radius:10px;overflow:hidden;transition:border-color .2s;}
+.accordion-field:focus-within{border-color:rgba(33,150,243,.45);}
+.accordion-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;cursor:pointer;background:var(--surface2);transition:background .15s;user-select:none;}
+.accordion-preview:hover{background:var(--surface3);}
+.accordion-preview-text{font-size:12px;color:var(--subtle);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.accordion-preview-text.has-content{color:var(--text);}
+.accordion-edit-btn{flex-shrink:0;padding:4px 11px;border-radius:7px;font-size:11px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Heebo',sans-serif;pointer-events:none;}
+.accordion-preview:hover .accordion-edit-btn{color:#90CAF9;border-color:rgba(33,150,243,.4);background:rgba(33,150,243,.08);}
+.accordion-body{padding:0 14px 14px;}
+.accordion-close-btn{padding:5px 14px;border-radius:7px;font-size:11px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--subtle);cursor:pointer;font-family:'Heebo',sans-serif;transition:all .15s;}
+.accordion-close-btn:hover{color:var(--text);background:rgba(255,255,255,.05);}
+
+.templates-explainer{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;margin-bottom:20px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:10px;}
+
 /* ── Onboarding — זהה לדשבורד (ob-* system) ── */
 .ob-spotlight{ /* handled by 4-strip overlays */ }
 .ob-spotlight-soft{ /* handled by 4-strip overlays */ }
@@ -708,6 +749,32 @@ body.ob-lock{overflow:hidden;}
 </style>
 </head>
 <body>
+
+<!-- ── PAGE LOADER ── -->
+<div id="pageLoader" style="
+  position:fixed;inset:0;z-index:9999;
+  background:#030712;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+  transition:opacity 0.4s ease;
+">
+  <div style="position:relative;width:56px;height:56px;">
+    <img src="/assets/img/omdan-leak-icon.png" alt="" style="
+      width:56px;height:56px;object-fit:contain;
+      position:absolute;inset:0;
+    " onerror="this.style.display='none'">
+    <svg style="position:absolute;inset:-8px;width:72px;height:72px;" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="32" fill="none" stroke="rgba(33,150,243,0.15)" stroke-width="3"/>
+      <circle cx="36" cy="36" r="32" fill="none" stroke="#2196F3" stroke-width="3"
+        stroke-linecap="round" stroke-dasharray="50 150"
+        style="transform-origin:center;animation:pageLoaderSpin 1.1s linear infinite;"/>
+    </svg>
+  </div>
+  <div style="font-size:13px;color:#6b7280;font-weight:700;letter-spacing:0.04em;">טוען נתונים...</div>
+</div>
+<style>
+@keyframes pageLoaderSpin{to{transform:rotate(360deg);}}
+</style>
 <div id="mob-topbar" style="display:none;background:#111827;border-bottom:1px solid #1F2937;padding:0 16px;height:52px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;">
   <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
     <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:32px;width:32px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);">
@@ -778,11 +845,25 @@ body.ob-lock{overflow:hidden;}
 <main class="main">
 
   <div class="page-header">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
-      <a href="/app/dashboard.html" style="color:var(--muted);font-size:13px;text-decoration:none;font-weight:600;">← דשבורד</a>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <a href="/app/dashboard.html" class="breadcrumb-link">← דשבורד</a>
     </div>
-    <h1 class="page-title">⚙️ פרופיל והגדרות</h1>
-    <p class="page-sub">הפרטים יופיעו בכל הדוחות שלך</p>
+    <div class="settings-hero">
+      <div class="settings-hero-icon">⚙️</div>
+      <div>
+        <h1 class="page-title" style="margin-bottom:4px;">פרופיל והגדרות</h1>
+        <p class="page-sub">כל הגדרות המערכת ופרטי הפרופיל שלך</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT FIELDS BANNER -->
+  <div class="report-fields-banner">
+    <div class="rfb-icon">📋</div>
+    <div class="rfb-content">
+      <div class="rfb-title">פרטים המופיעים בדוחות</div>
+      <div class="rfb-sub">הסקשנים המסומנים בתג <span class="rfb-tag">📋 מופיע בדוח</span> נמשכים אוטומטית לכל דוח חדש — חשוב למלא אותם במדויק</div>
+    </div>
   </div>
 
   <!-- ════════════════════════════════════════════════════
@@ -796,6 +877,7 @@ body.ob-lock{overflow:hidden;}
     <div class="section" id="settingsPersonalSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">👤</span> פרטים אישיים</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <div class="sub-section-title">👤 פרטי המאתר</div>
@@ -811,10 +893,6 @@ body.ob-lock{overflow:hidden;}
           <div class="field">
             <label>תואר מקצועי</label>
             <input type="text" id="title" placeholder="מאתר נזילות">
-          </div>
-          <div class="field">
-            <label>מספר רישיון</label>
-            <input type="text" id="license" placeholder="12345">
           </div>
         </div>
         <div class="sub-section-title">🏢 פרטי המשרד</div>
@@ -839,6 +917,7 @@ body.ob-lock{overflow:hidden;}
     <div class="section" id="settingsContactSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">📞</span> פרטי יצירת קשר</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <div class="fields-grid">
@@ -879,6 +958,7 @@ body.ob-lock{overflow:hidden;}
     <div class="section" id="settingsLogoSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">🎨</span> לוגו</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <div class="logo-builder">
@@ -933,10 +1013,17 @@ body.ob-lock{overflow:hidden;}
                 <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--subtle);margin-top:3px;">
                   <span>קטן</span><span>בינוני</span><span>גדול</span>
                 </div>
-                <!-- Live preview -->
-                <div id="logoSizePreview" style="margin-top:10px;padding:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;gap:10px;min-height:50px;">
-                  <div id="logoSizePreviewImg" style="flex-shrink:0;"></div>
-                  <div style="font-size:11px;color:var(--muted);">תצוגה מקדימה של גודל הלוגו</div>
+                <!-- Report header preview -->
+                <div id="logoSizePreview" style="margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border2);">
+                  <div id="reportHeaderPreview" style="background:#f9fafb;padding:10px 14px;direction:rtl;display:flex;align-items:center;gap:10px;min-height:50px;">
+                    <div id="rhpLogoEl" style="flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div id="rhpName" style="font-size:12px;font-weight:800;color:#111827;">שם המאתר</div>
+                      <div id="rhpRole" style="font-size:10px;color:#374151;margin-top:1px;">תואר מקצועי</div>
+                      <div id="rhpContact" style="font-size:9px;color:#6b7280;margin-top:3px;">טלפון · אימייל</div>
+                    </div>
+                  </div>
+                  <div style="font-size:10px;font-weight:700;color:var(--subtle);padding:5px 14px 4px;border-top:1px solid var(--border);background:var(--surface2);">תצוגה מקדימה — כותרת הדוח</div>
                 </div>
               </div>
 
@@ -952,7 +1039,7 @@ body.ob-lock{overflow:hidden;}
                       <div style="width:32px;height:28px;background:var(--accent);border-radius:5px;opacity:.7;flex-shrink:0;"></div>
                       <div style="flex:1;">
                         <div style="font-size:11px;font-weight:800;color:var(--text);">לוגו ימין · פרטים משמאל</div>
-                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם | תפקיד | רישיון ←→ טלפון | מייל | ע.מ</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם | תפקיד ←→ טלפון | מייל | ע.מ</div>
                       </div>
                     </div>
                   </button>
@@ -979,7 +1066,7 @@ body.ob-lock{overflow:hidden;}
                       <div style="width:32px;height:36px;background:var(--muted);border-radius:5px;opacity:.4;flex-shrink:0;"></div>
                       <div style="flex:1;">
                         <div style="font-size:11px;font-weight:800;color:var(--text);">לוגו גדול ימין · פרטים עמודה</div>
-                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם, תפקיד, רישיון, טל, מייל, ע.מ — אנכי</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:1px;">שם, תפקיד, טל, מייל, ע.מ — אנכי</div>
                       </div>
                     </div>
                   </button>
@@ -997,6 +1084,7 @@ body.ob-lock{overflow:hidden;}
     <div class="section" id="settingsSignatureSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">✍️</span> חתימה דיגיטלית</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">חתום עם האצבע (מובייל) או העכבר — תופיע בתחתית הדוח</div>
@@ -1027,25 +1115,43 @@ body.ob-lock{overflow:hidden;}
 
   <!-- ROW 3: הצהרה, השכלה וניסיון — full width -->
   <div class="sg-row-full">
-    <div class="section">
+    <div class="section section-report-highlight">
       <div class="section-header">
         <div class="section-title"><span class="icon">📜</span> הצהרה, השכלה וניסיון</div>
-        <span style="font-size:11px;color:var(--muted);">נמשך אוטומטית לכל תיק חדש</span>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <div class="sg-row sg-row-equal" style="gap:28px;">
           <div>
             <div class="sub-section-title" style="margin-bottom:12px;">📋 הצהרת מאתר</div>
-            <div class="field">
-              <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
-              <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי..."></textarea>
+            <div class="accordion-field">
+              <div class="accordion-preview" onclick="toggleAccordion('declaration')">
+                <div class="accordion-preview-text" id="acc-declaration-preview">טקסט ההצהרה — לחץ לעריכה</div>
+                <span class="accordion-edit-btn">✏️ עריכה</span>
+              </div>
+              <div class="accordion-body" id="acc-declaration-body" style="display:none;">
+                <div class="field" style="margin-top:10px;">
+                  <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
+                  <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי..."></textarea>
+                </div>
+                <button class="accordion-close-btn" onclick="toggleAccordion('declaration')">▲ סגור</button>
+              </div>
             </div>
           </div>
           <div>
             <div class="sub-section-title" style="margin-bottom:12px;">🎓 השכלה וניסיון</div>
-            <div class="field">
-              <label>פרטי השכלה וניסיון — יופיע בכל דוח</label>
-              <textarea id="education" rows="8" placeholder="* לימודי תעודה מערכות שאיבה...&#10;* שנות ניסיון..."></textarea>
+            <div class="accordion-field">
+              <div class="accordion-preview" onclick="toggleAccordion('education')">
+                <div class="accordion-preview-text" id="acc-education-preview">פרטי השכלה וניסיון — לחץ לעריכה</div>
+                <span class="accordion-edit-btn">✏️ עריכה</span>
+              </div>
+              <div class="accordion-body" id="acc-education-body" style="display:none;">
+                <div class="field" style="margin-top:10px;">
+                  <label>פרטי השכלה וניסיון — יופיע בכל דוח</label>
+                  <textarea id="education" rows="8" placeholder="* לימודי תעודה מערכות שאיבה...&#10;* שנות ניסיון..."></textarea>
+                </div>
+                <button class="accordion-close-btn" onclick="toggleAccordion('education')">▲ סגור</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1055,18 +1161,27 @@ body.ob-lock{overflow:hidden;}
 
   <!-- ROW 3b: סיום הדוח -->
   <div class="sg-row-full">
-    <div class="section">
+    <div class="section section-report-highlight">
       <div class="section-header">
         <div class="section-title"><span class="icon">✍️</span> סיום הדוח</div>
-        <span style="font-size:11px;color:var(--muted);">טקסט פרידה שיופיע בתחתית כל דוח</span>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
-        <div class="field">
-          <label>טקסט סיום — יופיע בתחתית הדוח לפני החתימה</label>
-          <textarea id="closingText" rows="3" placeholder="תודה שבחרתם בנו, נהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד"></textarea>
-        </div>
-        <div style="margin-top:10px;">
-          <button class="btn btn-ghost btn-sm" onclick="resetClosingDefault()" style="font-size:12px;">↩ ברירת מחדל</button>
+        <div class="accordion-field">
+          <div class="accordion-preview" onclick="toggleAccordion('closingText')">
+            <div class="accordion-preview-text" id="acc-closingText-preview">טקסט פרידה בתחתית הדוח — לחץ לעריכה</div>
+            <span class="accordion-edit-btn">✏️ עריכה</span>
+          </div>
+          <div class="accordion-body" id="acc-closingText-body" style="display:none;">
+            <div class="field" style="margin-top:10px;">
+              <label>טקסט סיום — יופיע בתחתית הדוח לפני החתימה</label>
+              <textarea id="closingText" rows="3" placeholder="תודה שבחרתם בנו, נהנינו לעבוד אתכם ונשמח לעמוד לשירותכם תמיד"></textarea>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="resetClosingDefault()" style="font-size:12px;">↩ ברירת מחדל</button>
+              <button class="accordion-close-btn" onclick="toggleAccordion('closingText')">▲ סגור</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1093,14 +1208,19 @@ body.ob-lock{overflow:hidden;}
     </div>
 
     <!-- SECTION: שבלונות -->
-    <div class="section">
+    <div class="section section-report-highlight">
       <div class="section-header">
         <div class="section-title"><span class="icon">📋</span> שבלונות ברירת מחדל</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7;">
-          ערכים שיתמלאו <strong style="color:var(--text);">אוטומטית בכל תיק חדש</strong>.
-        </p>
+        <div class="templates-explainer">
+          <div style="font-size:18px;flex-shrink:0;margin-top:1px;">💡</div>
+          <div>
+            <div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:3px;">מה זה שבלונות ברירת מחדל?</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6;">שבלונות הן טקסטים וערכים שיתמלאו <strong style="color:var(--text);">אוטומטית בכל תיק חדש</strong> שתפתח — לדוגמה: נוסחת הצהרה קבועה, שם חברת ביטוח שחוזרת, או פסקת ממצאים שגרתית. ניתן לערוך בכל תיק בנפרד.</div>
+          </div>
+        </div>
         <div class="sub-section-title">🔤 ברירות מחדל לשדות</div>
         <div id="fieldDefaultsList" class="templates-list" style="margin-bottom:10px;"></div>
         <div id="fieldDefaultsEmpty" class="template-empty-state" style="display:none;margin-bottom:10px;">
@@ -1129,24 +1249,34 @@ body.ob-lock{overflow:hidden;}
   <div class="sg-row">
 
     <!-- SECTION: פרק מותאם 1 -->
-    <div class="section">
+    <div class="section section-report-highlight">
       <div class="section-header">
         <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 1</div>
-        <span class="section-badge">אופציונלי</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="in-report-badge">📋 מופיע בדוח</span>
+          <span class="section-badge">אופציונלי</span>
+        </div>
       </div>
       <div class="section-body">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
-          פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.
-        </p>
-        <div class="field" style="margin-bottom:14px;">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <div class="field" style="margin-bottom:12px;">
           <label>כותרת הפרק</label>
           <input type="text" id="custom1Title" placeholder="לדוגמה: הערות כלליות / תנאים">
         </div>
-        <div class="field" style="margin-bottom:16px;">
-          <label>תוכן הפרק</label>
-          <textarea id="custom1Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
+        <div class="accordion-field">
+          <div class="accordion-preview" onclick="toggleAccordion('custom1Body')">
+            <div class="accordion-preview-text" id="acc-custom1Body-preview">תוכן הפרק — לחץ לעריכה</div>
+            <span class="accordion-edit-btn">✏️ עריכה</span>
+          </div>
+          <div class="accordion-body" id="acc-custom1Body-body" style="display:none;">
+            <div class="field" style="margin-top:10px;">
+              <label>תוכן הפרק</label>
+              <textarea id="custom1Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
+            </div>
+            <button class="accordion-close-btn" style="margin-top:8px;" onclick="toggleAccordion('custom1Body')">▲ סגור</button>
+          </div>
         </div>
-        <div class="field">
+        <div class="field" style="margin-top:14px;">
           <label>מיקום הפרק בדוח</label>
           <select id="custom1Position">
             <option value="after_details">אחרי פרטים אישיים — בתחילת הדוח</option>
@@ -1157,24 +1287,34 @@ body.ob-lock{overflow:hidden;}
     </div>
 
     <!-- SECTION: פרק מותאם 2 -->
-    <div class="section">
+    <div class="section section-report-highlight">
       <div class="section-header">
         <div class="section-title"><span class="icon">✏️</span> פרק מותאם אישית 2</div>
-        <span class="section-badge">אופציונלי</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="in-report-badge">📋 מופיע בדוח</span>
+          <span class="section-badge">אופציונלי</span>
+        </div>
       </div>
       <div class="section-body">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
-          פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.
-        </p>
-        <div class="field" style="margin-bottom:14px;">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">פרק נוסף שיופיע בכל דוח — מתאים לנוסחאות, תנאים, אזהרות וכד'.</p>
+        <div class="field" style="margin-bottom:12px;">
           <label>כותרת הפרק</label>
           <input type="text" id="custom2Title" placeholder="לדוגמה: תנאי תשלום / אחריות">
         </div>
-        <div class="field" style="margin-bottom:16px;">
-          <label>תוכן הפרק</label>
-          <textarea id="custom2Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
+        <div class="accordion-field">
+          <div class="accordion-preview" onclick="toggleAccordion('custom2Body')">
+            <div class="accordion-preview-text" id="acc-custom2Body-preview">תוכן הפרק — לחץ לעריכה</div>
+            <span class="accordion-edit-btn">✏️ עריכה</span>
+          </div>
+          <div class="accordion-body" id="acc-custom2Body-body" style="display:none;">
+            <div class="field" style="margin-top:10px;">
+              <label>תוכן הפרק</label>
+              <textarea id="custom2Body" rows="6" placeholder="תוכן הפרק שיופיע בדוח..."></textarea>
+            </div>
+            <button class="accordion-close-btn" style="margin-top:8px;" onclick="toggleAccordion('custom2Body')">▲ סגור</button>
+          </div>
         </div>
-        <div class="field">
+        <div class="field" style="margin-top:14px;">
           <label>מיקום הפרק בדוח</label>
           <select id="custom2Position">
             <option value="end">בסוף הדוח — לפני עמוד תודה</option>
@@ -1370,6 +1510,12 @@ function loadProfile(p){
   if(p.custom1){ set('custom1Title', p.custom1.title||''); set('custom1Body', p.custom1.body||''); set('custom1Position', p.custom1.position||'end'); }
   if(p.custom2){ set('custom2Title', p.custom2.title||''); set('custom2Body', p.custom2.body||''); set('custom2Position', p.custom2.position||'end'); }
 
+  // Refresh accordion previews + report header preview after data loaded
+  setTimeout(()=>{
+    ['declaration','education','closingText','custom1Body','custom2Body'].forEach(id => _refreshAccordionPreview && _refreshAccordionPreview(id));
+    _updateReportHeaderPreview && _updateReportHeaderPreview();
+  }, 60);
+
   setSaveStatus('saved');
 }
 
@@ -1384,16 +1530,7 @@ function setLogoSizePx(px){
   setSaveStatus('unsaved');
 }
 function updateLogoSizePreview(){
-  const wrap=document.getElementById('logoSizePreviewImg');
-  if(!wrap) return;
-  const sz=logoSizePx||70;
-  if(logoMode==='upload'&&logoImageUrl){
-    wrap.innerHTML=`<img src="${logoImageUrl}" style="max-height:${sz}px;max-width:${sz*2.5}px;object-fit:contain;display:block;">`;
-  } else {
-    const initials=(document.getElementById('logoInitials')?.value||'').trim().substring(0,3)||'AB';
-    const fs=Math.round(sz*0.36);
-    wrap.innerHTML=`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.18)}px;background:${logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:${logoTextColor||'#fff'};">${initials}</div>`;
-  }
+  _updateReportHeaderPreview && _updateReportHeaderPreview();
 }
 function _activateLayoutBtn(layout){
   document.querySelectorAll('.logo-layout-btn').forEach(b=>{
@@ -2305,6 +2442,62 @@ document.getElementById('toolModal')?.addEventListener('click', function(e){
   if(e.target===this) closeToolModal();
 });
 
+// ══════════════════════════════════════════════════
+// ACCORDION
+// ══════════════════════════════════════════════════
+function toggleAccordion(fieldId){
+  const body = document.getElementById('acc-'+fieldId+'-body');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){ const ta=document.getElementById(fieldId); if(ta) setTimeout(()=>ta.focus(),80); }
+}
+
+function _refreshAccordionPreview(fieldId){
+  const ta = document.getElementById(fieldId);
+  const el = document.getElementById('acc-'+fieldId+'-preview');
+  if(!el) return;
+  const placeholders = {
+    declaration:'טקסט ההצהרה — לחץ לעריכה',
+    education:'פרטי השכלה וניסיון — לחץ לעריכה',
+    closingText:'טקסט פרידה בתחתית הדוח — לחץ לעריכה',
+    custom1Body:'תוכן הפרק — לחץ לעריכה',
+    custom2Body:'תוכן הפרק — לחץ לעריכה',
+  };
+  const val = ta ? ta.value.trim() : '';
+  if(val){ el.textContent = val.length>70 ? val.substring(0,70)+'...' : val; el.classList.add('has-content'); }
+  else    { el.textContent = placeholders[fieldId]||'לחץ לעריכה'; el.classList.remove('has-content'); }
+}
+
+// ══════════════════════════════════════════════════
+// REPORT HEADER PREVIEW
+// ══════════════════════════════════════════════════
+function _updateReportHeaderPreview(){
+  const name  = document.getElementById('nameHe')?.value?.trim()  || '';
+  const role  = document.getElementById('title')?.value?.trim()   || '';
+  const phone = document.getElementById('phone')?.value?.trim()   || '';
+  const email = document.getElementById('email')?.value?.trim()   || '';
+  const n = document.getElementById('rhpName');    if(n) n.textContent = name  || 'שם המאתר';
+  const r = document.getElementById('rhpRole');    if(r) r.textContent = role  || 'תואר מקצועי';
+  const c = document.getElementById('rhpContact'); if(c) c.textContent = [phone,email].filter(Boolean).join(' · ') || 'טלפון · אימייל';
+  const logo = document.getElementById('rhpLogoEl'); if(!logo) return;
+  const sz = Math.min(logoSizePx||50, 52);
+  if(logoMode==='upload'&&logoImageUrl){
+    logo.innerHTML=`<img src="${logoImageUrl}" style="max-height:${sz}px;max-width:${sz*1.8}px;object-fit:contain;border-radius:4px;">`;
+  } else {
+    const initials=(document.getElementById('logoInitials')?.value||'').trim().substring(0,3)||'AB';
+    const fs=Math.round(sz*.36), br=Math.round(sz*.18);
+    logo.innerHTML=`<div style="width:${sz}px;height:${sz}px;border-radius:${br}px;background:${logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:${logoTextColor||'#fff'};">${initials}</div>`;
+  }
+}
+
+// Hook into input events for live preview
+document.addEventListener('input', e => {
+  if(['nameHe','title','phone','email','logoInitials'].includes(e.target?.id)) _updateReportHeaderPreview();
+  if(['declaration','education','closingText','custom1Body','custom2Body'].includes(e.target?.id)) _refreshAccordionPreview(e.target.id);
+});
+
+// ══════════════════════════════════════════════════
 // Init
 updateLogoPreview();
 renderTemplates();
