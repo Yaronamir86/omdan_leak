@@ -881,7 +881,7 @@ body.ob-lock{overflow:hidden;}
       </div>
       <div class="section-body">
         <div class="sub-section-title">👤 פרטי המאתר</div>
-        <div class="fields-grid" style="margin-bottom:24px;">
+        <div class="fields-grid three" style="margin-bottom:20px;">
           <div class="field">
             <label>שם מלא (עברית)</label>
             <input type="text" id="nameHe" placeholder="ישראל ישראלי">
@@ -896,7 +896,7 @@ body.ob-lock{overflow:hidden;}
           </div>
         </div>
         <div class="sub-section-title">🏢 פרטי המשרד</div>
-        <div class="fields-grid">
+        <div class="fields-grid three">
           <div class="field">
             <label>עיר</label>
             <input type="text" id="city" placeholder="תל אביב">
@@ -920,7 +920,7 @@ body.ob-lock{overflow:hidden;}
         <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
-        <div class="fields-grid">
+        <div class="fields-grid three">
           <div class="field">
             <label>טלפון</label>
             <input type="tel" id="phone" placeholder="050-0000000">
@@ -1015,13 +1015,7 @@ body.ob-lock{overflow:hidden;}
                 </div>
                 <!-- Report header preview -->
                 <div id="logoSizePreview" style="margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border2);">
-                  <div id="reportHeaderPreview" style="background:#f9fafb;padding:10px 14px;direction:rtl;display:flex;align-items:center;gap:10px;min-height:50px;">
-                    <div id="rhpLogoEl" style="flex-shrink:0;"></div>
-                    <div style="flex:1;min-width:0;">
-                      <div id="rhpName" style="font-size:12px;font-weight:800;color:#111827;">שם המאתר</div>
-                      <div id="rhpRole" style="font-size:10px;color:#374151;margin-top:1px;">תואר מקצועי</div>
-                      <div id="rhpContact" style="font-size:9px;color:#6b7280;margin-top:3px;">טלפון · אימייל</div>
-                    </div>
+                  <div id="reportHeaderPreview" style="background:#f9fafb;padding:10px 14px;direction:rtl;min-height:54px;display:flex;align-items:center;">
                   </div>
                   <div style="font-size:10px;font-weight:700;color:var(--subtle);padding:5px 14px 4px;border-top:1px solid var(--border);background:var(--surface2);">תצוגה מקדימה — כותרת הדוח</div>
                 </div>
@@ -1134,7 +1128,23 @@ body.ob-lock{overflow:hidden;}
                   <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
                   <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי..."></textarea>
                 </div>
-                <button class="accordion-close-btn" onclick="toggleAccordion('declaration')">▲ סגור</button>
+                <div style="margin-top:8px;">
+                  <button class="defaults-suggest-btn" onclick="toggleDefaultsPanel('declarationDefaultsPanel')">💡 הצע נוסח מוכן</button>
+                  <div id="declarationDefaultsPanel" style="display:none;margin-top:8px;display:none;">
+                    <div class="defaults-panel">
+                      <div class="defaults-panel-title">בחר נוסח מוכן:</div>
+                      <div class="defaults-option" onclick="applyDefaultDeclaration(0)">
+                        <div class="defaults-option-num">1</div>
+                        <div class="defaults-option-text">הצהרה מקצועית כללית — מתאים לרוב התיקים</div>
+                      </div>
+                      <div class="defaults-option" onclick="applyDefaultDeclaration(1)">
+                        <div class="defaults-option-num">2</div>
+                        <div class="defaults-option-text">הצהרת בלתי תלוי — מתאים לתיקי ביטוח</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button class="accordion-close-btn" style="margin-top:10px;" onclick="toggleAccordion('declaration')">▲ סגור</button>
               </div>
             </div>
           </div>
@@ -1150,7 +1160,23 @@ body.ob-lock{overflow:hidden;}
                   <label>פרטי השכלה וניסיון — יופיע בכל דוח</label>
                   <textarea id="education" rows="8" placeholder="* לימודי תעודה מערכות שאיבה...&#10;* שנות ניסיון..."></textarea>
                 </div>
-                <button class="accordion-close-btn" onclick="toggleAccordion('education')">▲ סגור</button>
+                <div style="margin-top:8px;">
+                  <button class="defaults-suggest-btn" onclick="toggleDefaultsPanel('educationDefaultsPanel')">💡 הצע נוסח מוכן</button>
+                  <div id="educationDefaultsPanel" style="display:none;">
+                    <div class="defaults-panel">
+                      <div class="defaults-panel-title">בחר נוסח מוכן:</div>
+                      <div class="defaults-option" onclick="applyDefaultEducation(0)">
+                        <div class="defaults-option-num">1</div>
+                        <div class="defaults-option-text">הכשרה + ניסיון + ציוד מתקדם</div>
+                      </div>
+                      <div class="defaults-option" onclick="applyDefaultEducation(1)">
+                        <div class="defaults-option-num">2</div>
+                        <div class="defaults-option-text">אינסטלציה + שנות ניסיון + ביטוחים</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button class="accordion-close-btn" style="margin-top:10px;" onclick="toggleAccordion('education')">▲ סגור</button>
               </div>
             </div>
           </div>
@@ -1194,6 +1220,7 @@ body.ob-lock{overflow:hidden;}
     <div class="section">
       <div class="section-header">
         <div class="section-title"><span class="icon">🔧</span> מאגר כלים</div>
+        <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
@@ -1540,7 +1567,7 @@ function _activateLayoutBtn(layout){
     b.classList.toggle('active', active);
   });
 }
-function setLogoLayout(val, el){ logoLayout=val; _activateLayoutBtn(val); setSaveStatus('unsaved'); }
+function setLogoLayout(val, el){ logoLayout=val; _activateLayoutBtn(val); _updateReportHeaderPreview(); setSaveStatus('unsaved'); }
 // compat stubs (called from old code paths)
 function setLogoSize(val,el){}
 function setLogoPos(val,el){}
@@ -1825,6 +1852,16 @@ function setSaveStatus(s){
 }
 
 async function saveAll(){
+  // בדיקת שדות חסרים
+  const missing = checkMissingFields();
+  if(missing.length > 0){
+    showMissingFieldsModal(missing, _doSaveAll);
+    return;
+  }
+  await _doSaveAll();
+}
+
+async function _doSaveAll(){
   const btn=document.getElementById('saveBtn');
   const mobileBtn=document.getElementById('mobileSaveBtn');
   if(btn) btn.disabled=true;
@@ -1910,6 +1947,20 @@ if (window._pendingProfileData) {
 
 // Mark unsaved on any change
 document.addEventListener('input', ()=>setSaveStatus('unsaved'));
+
+// ── beforeunload — התראה על עזיבה עם שינויים לא שמורים ──
+window._hasUnsavedChanges = false;
+const _origSetSaveStatus = setSaveStatus;
+function setSaveStatus(s){
+  _origSetSaveStatus(s);
+  window._hasUnsavedChanges = (s === 'unsaved');
+}
+window.addEventListener('beforeunload', e => {
+  if(window._hasUnsavedChanges){
+    e.preventDefault();
+    e.returnValue = 'יש שינויים שלא נשמרו — האם לעזוב?';
+  }
+});
 
 // ══════════════════════════════════════════════════
 // REPORT THEMES
@@ -2477,29 +2528,144 @@ function _updateReportHeaderPreview(){
   const role  = document.getElementById('title')?.value?.trim()   || '';
   const phone = document.getElementById('phone')?.value?.trim()   || '';
   const email = document.getElementById('email')?.value?.trim()   || '';
-  const n = document.getElementById('rhpName');    if(n) n.textContent = name  || 'שם המאתר';
-  const r = document.getElementById('rhpRole');    if(r) r.textContent = role  || 'תואר מקצועי';
-  const c = document.getElementById('rhpContact'); if(c) c.textContent = [phone,email].filter(Boolean).join(' · ') || 'טלפון · אימייל';
-  const logo = document.getElementById('rhpLogoEl'); if(!logo) return;
-  const sz = Math.min(logoSizePx||50, 52);
-  if(logoMode==='upload'&&logoImageUrl){
-    logo.innerHTML=`<img src="${logoImageUrl}" style="max-height:${sz}px;max-width:${sz*1.8}px;object-fit:contain;border-radius:4px;">`;
-  } else {
-    const initials=(document.getElementById('logoInitials')?.value||'').trim().substring(0,3)||'AB';
-    const fs=Math.round(sz*.36), br=Math.round(sz*.18);
-    logo.innerHTML=`<div style="width:${sz}px;height:${sz}px;border-radius:${br}px;background:${logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:${logoTextColor||'#fff'};">${initials}</div>`;
+  const vat   = document.getElementById('vat')?.value?.trim()     || '';
+
+  const preview = document.getElementById('reportHeaderPreview');
+  if(!preview) return;
+
+  const sz       = logoSizePx || 70;           // גודל אמיתי — ללא cap
+  const previewSz= Math.round(sz * 0.55);      // scale down לתצוגה (preview קטן)
+  const layout   = logoLayout || 'A';
+
+  // בנה את תוכן הלוגו
+  function buildLogo(size){
+    if(logoMode==='upload' && logoImageUrl){
+      return `<img src="${logoImageUrl}" style="max-height:${size}px;max-width:${size*2}px;object-fit:contain;border-radius:3px;">`;
+    }
+    const initials = (document.getElementById('logoInitials')?.value||'').trim().substring(0,3)||'AB';
+    const fs = Math.round(size*.36), br = Math.round(size*.18);
+    return `<div style="width:${size}px;height:${size}px;border-radius:${br}px;background:${logoColor||'#2196F3'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:${logoTextColor||'#fff'};flex-shrink:0;">${initials}</div>`;
   }
+
+  const contactLine = [phone, email, vat ? 'ע.מ ' + vat : ''].filter(Boolean).join(' · ');
+
+  let html = '';
+  if(layout === 'A'){
+    // לוגו ימין, פרטים משמאל
+    html = `
+      <div style="display:flex;align-items:center;gap:10px;direction:rtl;width:100%;">
+        ${buildLogo(previewSz)}
+        <div style="flex:1;border-right:2px solid #e5e7eb;padding-right:10px;">
+          <div style="font-size:${Math.max(9,Math.round(previewSz*.22))}px;font-weight:800;color:#111827;">${name||'שם המאתר'}</div>
+          <div style="font-size:${Math.max(8,Math.round(previewSz*.17))}px;color:#374151;margin-top:1px;">${role||'תואר מקצועי'}</div>
+          <div style="font-size:${Math.max(7,Math.round(previewSz*.14))}px;color:#6b7280;margin-top:2px;">${contactLine||'טלפון · אימייל'}</div>
+        </div>
+      </div>`;
+  } else if(layout === 'B'){
+    // לוגו מרכז למעלה, פרטים בשורה מתחת
+    html = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;direction:rtl;width:100%;text-align:center;">
+        ${buildLogo(previewSz)}
+        <div style="border-top:1px solid #e5e7eb;padding-top:5px;width:100%;">
+          <div style="font-size:${Math.max(8,Math.round(previewSz*.2))}px;font-weight:800;color:#111827;">${name||'שם המאתר'} · ${role||'תואר מקצועי'}</div>
+          <div style="font-size:${Math.max(7,Math.round(previewSz*.14))}px;color:#6b7280;margin-top:2px;">${contactLine||'טלפון · אימייל'}</div>
+        </div>
+      </div>`;
+  } else if(layout === 'C'){
+    // לוגו גדול ימין, פרטים בעמודה
+    const bigSz = Math.round(previewSz * 1.3);
+    html = `
+      <div style="display:flex;align-items:flex-start;gap:10px;direction:rtl;width:100%;">
+        ${buildLogo(bigSz)}
+        <div style="display:flex;flex-direction:column;gap:2px;padding-right:8px;border-right:2px solid #e5e7eb;">
+          <div style="font-size:${Math.max(9,Math.round(previewSz*.22))}px;font-weight:800;color:#111827;">${name||'שם המאתר'}</div>
+          <div style="font-size:${Math.max(7,Math.round(previewSz*.16))}px;color:#374151;">${role||'תואר מקצועי'}</div>
+          ${phone?`<div style="font-size:${Math.max(7,Math.round(previewSz*.14))}px;color:#6b7280;">${phone}</div>`:''}
+          ${email?`<div style="font-size:${Math.max(7,Math.round(previewSz*.14))}px;color:#6b7280;">${email}</div>`:''}
+          ${vat?`<div style="font-size:${Math.max(7,Math.round(previewSz*.14))}px;color:#6b7280;">ע.מ ${vat}</div>`:''}
+        </div>
+      </div>`;
+  }
+
+  preview.innerHTML = html;
 }
 
 // Hook into input events for live preview
 document.addEventListener('input', e => {
-  if(['nameHe','title','phone','email','logoInitials'].includes(e.target?.id)) _updateReportHeaderPreview();
+  if(['nameHe','title','phone','email','logoInitials','vat'].includes(e.target?.id)) _updateReportHeaderPreview();
   if(['declaration','education','closingText','custom1Body','custom2Body'].includes(e.target?.id)) _refreshAccordionPreview(e.target.id);
 });
 
 // ══════════════════════════════════════════════════
+// MISSING FIELDS WARNING
+// ══════════════════════════════════════════════════
+const CRITICAL_FIELDS = [
+  { id:'nameHe',      label:'שם מלא (עברית)',      section:'פרטים אישיים' },
+  { id:'phone',       label:'טלפון',                section:'יצירת קשר' },
+  { id:'email',       label:'אימייל',               section:'יצירת קשר' },
+  { id:'declaration', label:'הצהרת מאתר',           section:'הצהרה והשכלה' },
+  { id:'education',   label:'השכלה וניסיון',        section:'הצהרה והשכלה' },
+];
+
+function checkMissingFields(){
+  const missing = CRITICAL_FIELDS.filter(f => {
+    const el = document.getElementById(f.id);
+    return !el || !el.value.trim();
+  });
+  return missing;
+}
+
+function showMissingFieldsModal(missing, onConfirm){
+  const modal = document.getElementById('missingFieldsModal');
+  const list  = document.getElementById('missingFieldsList');
+  if(!modal || !list) return;
+  list.innerHTML = missing.map(f =>
+    `<li><span style="color:#f87171;font-weight:800;">✕</span> <strong>${f.label}</strong> <span style="color:var(--subtle);font-size:11px;">(${f.section})</span></li>`
+  ).join('');
+  modal.style.display = 'flex';
+  window._missingModalConfirm = onConfirm;
+}
+
+function closeMissingModal(saveAnyway){
+  document.getElementById('missingFieldsModal').style.display = 'none';
+  if(saveAnyway && typeof window._missingModalConfirm === 'function'){
+    window._missingModalConfirm();
+  }
+  window._missingModalConfirm = null;
+}
+
+// ══════════════════════════════════════════════════
+// DEFAULT SUGGESTIONS — הצהרה והשכלה
+// ══════════════════════════════════════════════════
+const DEFAULT_DECLARATIONS = [
+  `הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי המקצועיות, השכלתי וניסיוני בתחום איתור נזילות, ולפי מיטב שיפוטי המקצועי. הבדיקה בוצעה בשטח בהתאם לנסיבות ולנתונים שהוצגו בפניי.`,
+  `הריני מאשר כי בדיקה זו בוצעה על ידי באופן מקצועי ובלתי תלוי, ללא כל אינטרס אישי בתוצאותיה. הממצאים המפורטים בדוח זה מבוססים על בדיקה ויזואלית ומכשירית שנערכה בנכס הנ"ל.`,
+];
+
+const DEFAULT_EDUCATIONS = [
+  `• קורס מקצועי באיתור נזילות — מוסמך על ידי גורם מוסמך\n• ניסיון מעשי של מעל 5 שנים בתחום איתור נזילות ונזקי מים\n• בקיאות בשיטות בדיקה מתקדמות: אקוסטי, תרמוגרפיה, לחץ\n• עבודה עם ביטוחים ושמאים מובילים בישראל`,
+  `• הכשרה מקצועית מוסמכת בתחום אינסטלציה ואיתור נזילות\n• שנות ניסיון רבות בבדיקות תשתית ואיתור מקורות נזילה\n• שימוש בציוד בדיקה מתקדם ומכויל\n• מעורבות בפרויקטים רבים עבור חברות ביטוח ובעלי נכסים פרטיים`,
+];
+
+function applyDefaultDeclaration(idx){
+  const ta = document.getElementById('declaration');
+  if(ta){ ta.value = DEFAULT_DECLARATIONS[idx]; _refreshAccordionPreview('declaration'); setSaveStatus('unsaved'); }
+  document.getElementById('declarationDefaultsPanel').style.display = 'none';
+}
+function applyDefaultEducation(idx){
+  const ta = document.getElementById('education');
+  if(ta){ ta.value = DEFAULT_EDUCATIONS[idx]; _refreshAccordionPreview('education'); setSaveStatus('unsaved'); }
+  document.getElementById('educationDefaultsPanel').style.display = 'none';
+}
+function toggleDefaultsPanel(panelId){
+  const p = document.getElementById(panelId);
+  if(p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════════
 // Init
 updateLogoPreview();
+_updateReportHeaderPreview();
 renderTemplates();
 renderToolsList();
 
@@ -2510,7 +2676,31 @@ document.addEventListener('keydown', e=>{
 </script>
 
 <style>
-.omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
+/* ── Missing fields modal ── */
+.missing-modal-overlay{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px;}
+.missing-modal-overlay.open{display:flex;}
+.missing-modal-box{background:#111827;border:1px solid #374151;border-radius:18px;padding:28px;width:min(440px,92vw);direction:rtl;}
+.missing-modal-icon{font-size:32px;text-align:center;margin-bottom:10px;}
+.missing-modal-title{font-size:17px;font-weight:900;text-align:center;margin-bottom:6px;}
+.missing-modal-sub{font-size:13px;color:#9ca3af;text-align:center;margin-bottom:20px;line-height:1.6;}
+.missing-modal-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px;padding:0;}
+.missing-modal-list li{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px;font-size:13px;}
+.missing-modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.btn-save-anyway{padding:10px 20px;background:rgba(255,255,255,.06);border:1px solid #374151;border-radius:10px;color:#9ca3af;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;}
+.btn-save-anyway:hover{color:#f9fafb;border-color:#6b7280;}
+.btn-go-fix{padding:10px 22px;background:linear-gradient(135deg,#2196F3,#1565C0);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif;transition:opacity .2s;}
+.btn-go-fix:hover{opacity:.9;}
+
+/* ── Default suggestions ── */
+.defaults-suggest-btn{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;border:1px solid rgba(33,150,243,.3);background:rgba(33,150,243,.07);color:#90CAF9;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .15s;}
+.defaults-suggest-btn:hover{background:rgba(33,150,243,.15);}
+.defaults-panel{margin-top:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;}
+.defaults-panel-title{font-size:11px;font-weight:700;color:var(--subtle);margin-bottom:4px;}
+.defaults-option{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;}
+.defaults-option:hover{border-color:rgba(33,150,243,.4);background:rgba(33,150,243,.06);}
+.defaults-option-num{width:22px;height:22px;border-radius:50%;background:rgba(33,150,243,.2);color:#90CAF9;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.defaults-option-text{font-size:12px;color:var(--text);font-weight:600;}
+
 .omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
 .omdan-footer a:hover{color:#2196F3;}
 
@@ -2540,6 +2730,20 @@ document.addEventListener('keydown', e=>{
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <button class="btn-sm" onclick="closeToolModal()" style="background:transparent;border:1px solid #374151;color:#9CA3AF;cursor:pointer;padding:8px 16px;border-radius:8px;font-family:Heebo,sans-serif;font-weight:700;">ביטול</button>
       <button class="btn-sm" onclick="saveTool()" style="background:linear-gradient(135deg,#2196F3,#1565C0);color:#fff;border:none;cursor:pointer;padding:8px 16px;border-radius:8px;font-family:Heebo,sans-serif;font-weight:700;">שמור כלי</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Missing Fields Modal ── -->
+<div id="missingFieldsModal" class="missing-modal-overlay">
+  <div class="missing-modal-box">
+    <div class="missing-modal-icon">⚠️</div>
+    <div class="missing-modal-title">פרטים קריטיים חסרים</div>
+    <div class="missing-modal-sub">הפרטים הבאים יופיעו בדוחות — מומלץ למלא אותם לפני השמירה</div>
+    <ul class="missing-modal-list" id="missingFieldsList"></ul>
+    <div class="missing-modal-actions">
+      <button class="btn-save-anyway" onclick="closeMissingModal(true)">שמור בכל זאת</button>
+      <button class="btn-go-fix" onclick="closeMissingModal(false)">← חזור ומלא</button>
     </div>
   </div>
 </div>
