@@ -292,18 +292,20 @@
     <div class="card">
       <div style="text-align: center; margin-bottom: 28px">
         <span class="trial-badge"
-          >✅ ניסיון חינמי 14 יום — ללא כרטיס אשראי</span
+          >✅ ניסיון חינמי 28 יום — ללא כרטיס אשראי</span
         >
       </div>
 
       <div class="success" id="successMsg">
         <div style="font-size: 36px; margin-bottom: 10px">🎉</div>
-        <div style="font-size: 17px; font-weight: 800; margin-bottom: 6px">
+        <div style="font-size: 17px; font-weight: 800; margin-bottom: 6px" id="successTitle">
           ברוך הבא ל-OMDA איתור!
         </div>
-        <div style="font-size: 13px; opacity: 0.8">
-          החשבון נוצר. מועבר לדשבורד...
+        <div style="font-size: 22px; margin: 8px 0" id="successIcon">⏳</div>
+        <div style="font-size: 13px; opacity: 0.8" id="successSub">
+          מועבר לדשבורד...
         </div>
+        <div id="successCancel"></div>
       </div>
 
       <div id="regErr" class="err"></div>
@@ -490,8 +492,25 @@
       });
       const auth = firebase.auth(),
         db = firebase.firestore();
+
+      // ── Plan מה-URL ──
+      const _urlParams = new URLSearchParams(window.location.search);
+      const pendingPlan = _urlParams.get('plan') || null;
+      const pendingBilling = _urlParams.get('billing') || 'monthly';
+
+      const PLAN_NAMES = {
+        starter: 'OMDA Leak Detection - Starter',
+        pro:     'OMDA Leak Detection - Pro',
+        bundle:  'OMDA Leak + Property Bundle',
+      };
+      // onAuthStateChanged — לא מפנה אוטומטית (proceedToCheckout מטפל בזה)
+      let _authReady = false;
       auth.onAuthStateChanged((u) => {
-        if (u) window.location.href = "/app/dashboard.html";
+        if (_authReady) return; // מונע הפנייה כפולה
+        _authReady = true;
+        if (u && !pendingPlan) {
+          window.location.href = "/app/dashboard.html";
+        }
       });
 
       const ICON_EYE = `
@@ -505,6 +524,51 @@
           <path d="M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.77 21.77 0 0 1-2.16 3.19"></path>
           <path d="M1 1l22 22"></path>
         </svg>`;
+
+      // ── proceedToCheckout — זהה ללוגיקה של רכוש ──
+      async function proceedToCheckout(user) {
+        document.getElementById('regForm').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('successTitle').textContent = 'ברוך הבא ל-OMDA איתור!';
+        document.getElementById('successIcon').textContent = '⏳';
+        document.getElementById('successSub').textContent = 'מעביר לדף תשלום מאובטח...';
+        document.getElementById('successCancel').innerHTML =
+          `<a href="/pricing.html" style="font-size:12px;color:#6b7280;text-decoration:none;margin-top:8px;display:inline-block;">ביטול — חזרה לבחירת מסלול</a>`;
+
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const token = await user.getIdToken(true);
+            const res = await fetch(
+              'https://us-central1-omdan-leak.cloudfunctions.net/cardcomCreatePayment',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ planId: pendingPlan, billingMode: pendingBilling }),
+              }
+            );
+            const data = await res.json();
+            if (data.url) {
+              window.location.href = data.url;
+              return;
+            }
+            lastError = new Error(data.error || 'שגיאה ביצירת תשלום');
+          } catch (e) {
+            lastError = e;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+
+        // כל הניסיונות נכשלו
+        document.getElementById('successMsg').innerHTML = `
+          <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
+          <div style="font-size:16px;font-weight:800;color:#fca5a5;margin-bottom:8px;">שגיאה ביצירת תשלום</div>
+          <div style="font-size:13px;color:#9ca3af;margin-bottom:16px;">${lastError?.message || 'שגיאה לא ידועה'}</div>
+          <button onclick="window.location.href='/pricing.html?plan=${pendingPlan}&billing=${pendingBilling}'"
+            style="background:linear-gradient(135deg,#2196F3,#1565C0);border:none;color:#fff;padding:10px 24px;border-radius:10px;font-family:'Heebo',sans-serif;font-weight:800;cursor:pointer;font-size:14px;">
+            נסה שוב
+          </button>`;
+      }
 
       function togglePW(btn, id) {
         const inp = document.getElementById(id);
@@ -536,6 +600,9 @@
             city: "",
             photoURL: u.photoURL,
           });
+          if (pendingPlan && PLAN_NAMES[pendingPlan]) {
+            await proceedToCheckout(c.user);
+          }
         } catch (err) {
           showErr(hErr(err.code));
         }
@@ -586,12 +653,14 @@
           const c = await auth.createUserWithEmailAndPassword(email, pass);
           await c.user.updateProfile({ displayName });
           await createUserProfile(c.user, { displayName, email, phone, city });
-          document.getElementById("regForm").style.display = "none";
-          document.getElementById("successMsg").style.display = "block";
-          setTimeout(
-            () => (window.location.href = "/app/dashboard.html"),
-            1500,
-          );
+          if (pendingPlan && PLAN_NAMES[pendingPlan]) {
+            await proceedToCheckout(c.user);
+          } else {
+            document.getElementById("regForm").style.display = "none";
+            document.getElementById("successMsg").style.display = "block";
+            document.getElementById("successSub").textContent = "החשבון נוצר. מועבר לדשבורד...";
+            setTimeout(() => { window.location.href = "/app/dashboard.html"; }, 1500);
+          }
         } catch (err) {
           showErr(hErr(err.code));
           btn.disabled = false;
@@ -618,7 +687,7 @@
         const billingSnap = await billingRef.get();
         if (!billingSnap.exists) {
           const trialEnd = new Date();
-          trialEnd.setDate(trialEnd.getDate() + 14);
+          trialEnd.setDate(trialEnd.getDate() + 28);
           await billingRef.set({
             uid: user.uid,
             email: user.email || extra.email,

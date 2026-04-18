@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>תמיכה — OMDA איתור</title>
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+    <link rel="icon" type="image/png" href="/assets/img/omdan-leak-icon.png" />
+    <link rel="apple-touch-icon" href="/assets/img/omdan-leak-icon.png" />
+    <meta name="theme-color" content="#2196F3" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <style>
+      :root {
+        --primary: #111827;
+        --primary2: #1f2937;
+        --primary3: #374151;
+        --accent: #2196f3;
+        --accent3: #1565c0;
+        --green: #25d366;
+        --text: #f9fafb;
+        --muted: #9ca3af;
+        --subtle: #6b7280;
+        --border: #1f2937;
+        --card: #111827;
+        --bg: #030712;
+        --shadow: 0 4px 20px rgba(0,0,0,0.4);
+        --r: 10px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Heebo", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 14px;
+        line-height: 1.6;
+        padding-bottom: 80px;
+      }
+
+      /* ── TOPBAR ── */
+      #topbar {
+        background: var(--primary);
+        border-bottom: 1px solid var(--border);
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .tb-left { display: flex; align-items: center; gap: 10px; }
+      .tb-back {
+        display: flex; align-items: center; gap: 6px;
+        color: var(--muted); font-size: 13px; font-weight: 600;
+        text-decoration: none; cursor: pointer;
+        padding: 6px 10px; border-radius: 8px;
+        transition: background 0.15s, color 0.15s;
+        border: none; background: transparent; font-family: inherit;
+      }
+      .tb-back:hover { background: var(--primary2); color: var(--text); }
+      .tb-logo { font-size: 20px; font-weight: 900; color: var(--accent); letter-spacing: 1px; }
+      .tb-divider { width: 1px; height: 22px; background: var(--border); }
+      .tb-page { font-size: 13px; font-weight: 700; color: var(--muted); }
+
+      /* ── MAIN ── */
+      main {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 32px 20px;
+        width: 100%;
+      }
+
+      /* ── HERO ── */
+      .support-hero {
+        text-align: center;
+        margin-bottom: 36px;
+      }
+      .support-hero-icon {
+        width: 72px; height: 72px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(33,150,243,0.18), rgba(33,150,243,0.06));
+        border: 1px solid rgba(33,150,243,0.25);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 18px;
+      }
+      .support-hero h1 {
+        font-size: 24px; font-weight: 900;
+        margin-bottom: 8px;
+      }
+      .support-hero p {
+        font-size: 14px; color: var(--muted);
+        max-width: 380px; margin: 0 auto;
+        line-height: 1.65;
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: border-color 0.2s;
+      }
+      .card:hover { border-color: var(--primary3); }
+      .card-title {
+        font-size: 15px; font-weight: 800;
+        margin-bottom: 6px;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .card-sub {
+        font-size: 13px; color: var(--muted);
+        margin-bottom: 18px; line-height: 1.55;
+      }
+
+      /* ── WA BUTTON ── */
+      .btn-wa {
+        display: flex; align-items: center; justify-content: center;
+        gap: 10px;
+        width: 100%;
+        background: #25d366;
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 20px;
+        font-size: 16px; font-weight: 800;
+        font-family: "Heebo", sans-serif;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.18s, transform 0.18s;
+        box-shadow: 0 4px 18px rgba(37,211,102,0.35);
+        letter-spacing: 0.01em;
+      }
+      .btn-wa:hover { opacity: 0.9; transform: translateY(-1px); }
+      .btn-wa svg { width: 24px; height: 24px; fill: #fff; flex: 0 0 auto; }
+
+      /* ── MESSAGE BUILDER ── */
+      .msg-builder {
+        margin-top: 16px;
+      }
+      .msg-label {
+        font-size: 12px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 8px;
+      }
+      .msg-textarea {
+        width: 100%;
+        background: var(--primary2);
+        border: 1.5px solid var(--primary3);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: "Heebo", sans-serif;
+        color: var(--text);
+        direction: rtl;
+        resize: vertical;
+        min-height: 90px;
+        outline: none;
+        transition: border-color 0.2s;
+        margin-bottom: 12px;
+      }
+      .msg-textarea:focus { border-color: var(--accent); }
+      .btn-wa-custom {
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px;
+        width: 100%;
+        background: #25d366;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 14px; font-weight: 700;
+        font-family: "Heebo", sans-serif;
+        cursor: pointer;
+        transition: opacity 0.18s;
+        box-shadow: 0 3px 12px rgba(37,211,102,0.3);
+      }
+      .btn-wa-custom:hover { opacity: 0.88; }
+      .btn-wa-custom svg { width: 20px; height: 20px; fill: #fff; }
+
+      /* ── HOURS BADGE ── */
+      .hours-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(16,185,129,0.1);
+        border: 1px solid rgba(16,185,129,0.25);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12px; font-weight: 700;
+        color: #10b981;
+        margin-bottom: 16px;
+      }
+      .hours-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      /* ── FAQ ── */
+      .faq-item {
+        border-bottom: 1px solid var(--border);
+        padding: 16px 0;
+      }
+      .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+      .faq-q {
+        font-size: 14px; font-weight: 700;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px;
+        user-select: none;
+      }
+      .faq-q:hover { color: var(--accent); }
+      .faq-chevron {
+        font-size: 12px; color: var(--muted);
+        transition: transform 0.2s;
+        flex: 0 0 auto;
+      }
+      .faq-item.open .faq-chevron { transform: rotate(180deg); }
+      .faq-a {
+        font-size: 13px; color: var(--muted);
+        line-height: 1.65;
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.3s ease, padding-top 0.2s;
+      }
+      .faq-item.open .faq-a {
+        max-height: 300px;
+        padding-top: 10px;
+      }
+
+      /* ── SECTION TITLE ── */
+      .section-title {
+        font-size: 12px; font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin: 28px 0 12px;
+      }
+
+      /* ── MOBILE NAV ── */
+      .mob-nav {
+        display: none;
+        position: fixed; bottom: 0; right: 0; left: 0;
+        background: var(--primary);
+        border-top: 1px solid var(--border);
+        height: 60px; z-index: 200;
+        justify-content: space-around; align-items: center;
+      }
+      .mob-nav a {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 2px; font-size: 10px; font-weight: 700;
+        color: var(--muted); text-decoration: none;
+        padding: 6px 12px; border-radius: 8px;
+        transition: color 0.15s;
+      }
+      .mob-nav a:hover, .mob-nav a.active { color: var(--accent); }
+      .mn-icon { font-size: 20px; }
+      @media (max-width: 768px) {
+        .mob-nav { display: flex; }
+        body { padding-bottom: 72px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div class="tb-left">
+        <button class="tb-back" onclick="history.back()">← חזרה</button>
+        <div class="tb-divider"></div>
+        <span class="tb-logo">OMDA</span>
+        <div class="tb-divider"></div>
+        <span class="tb-page">תמיכה</span>
+      </div>
+    </div>
+
+    <main>
+
+      <!-- HERO -->
+      <div class="support-hero">
+        <div class="support-hero-icon">💬</div>
+        <h1>איך נוכל לעזור?</h1>
+        <p>צוות OMDA זמין לכל שאלה — טכנית, חשבונית, או כל דבר אחר.</p>
+      </div>
+
+      <!-- MAIN CONTACT CARD -->
+      <div class="card" style="border-top: 3px solid #25d366;">
+        <div class="hours-badge">
+          <div class="hours-dot"></div>
+          זמינות ראשון–שישי, 08:00–18:00
+        </div>
+        <div class="card-title">
+          <span>📲</span> צור קשר בוואטסאפ
+        </div>
+        <div class="card-sub">
+          הדרך המהירה ביותר לקבל מענה. בדרך כלל עונים תוך שעה בשעות פעילות.
+        </div>
+        <a class="btn-wa" href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener">
+          <svg viewBox="0 0 32 32"><path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/></svg>
+          פתח וואטסאפ
+        </a>
+
+        <!-- MESSAGE BUILDER -->
+        <div class="msg-builder">
+          <div class="msg-label">או כתוב הודעה מותאמת</div>
+          <textarea class="msg-textarea" id="customMsg" placeholder="תאר את הבעיה או השאלה..."></textarea>
+          <button class="btn-wa-custom" onclick="sendCustomMsg()">
+            <svg viewBox="0 0 32 32"><path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/></svg>
+            שלח הודעה בוואטסאפ
+          </button>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="section-title">שאלות נפוצות</div>
+      <div class="card">
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>איך מאריכים מנוי?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-a">הארכת המנוי מתבצעת אוטומטית. אם יש בעיה בחיוב — צור קשר ונסדר.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>איבדתי גישה לחשבון שלי</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-a">נסה "שכחתי סיסמה" במסך הכניסה. אם זה לא עוזר — שלח לנו וואטסאפ עם כתובת האימייל הרשומה.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>הדוח לא מתנהג כמצופה</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-a">נסה לרענן את הדף (משוך מטה במובייל). אם הבעיה נמשכת — שלח לנו צילום מסך בוואטסאפ.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>האפליקציה לא נפתחת תקין</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-a">נסה לנקות את מטמון הדפדפן (הגדרות Chrome ← נקה נתונים). אם לא עוזר — צור קשר.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>רוצה לבטל מנוי</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-a">ביטול מנוי מתבצע דרך יצירת קשר. נשמח לשמוע מה הסיבה ולנסות לעזור לפני הביטול.</div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- WhatsApp Float Button -->
+    <style>
+      #waFloat {
+        position: fixed; bottom: 80px; left: 16px;
+        z-index: 8000;
+        display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+        direction: rtl;
+      }
+      #waFloatBtn {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: #25d366;
+        box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; text-decoration: none;
+        transition: transform 0.18s, box-shadow 0.18s;
+        border: none; padding: 0;
+      }
+      #waFloatBtn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(37,211,102,0.55); }
+      #waFloatBtn svg { width: 28px; height: 28px; fill: #fff; }
+      @media (min-width: 769px) {
+        #waFloat { bottom: 24px; left: auto; right: 24px; align-items: flex-end; }
+      }
+    </style>
+    <div id="waFloat">
+      <a id="waFloatBtn" href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener" aria-label="וואטסאפ">
+        <svg viewBox="0 0 32 32"><path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/></svg>
+      </a>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="mob-nav">
+      <a href="/app/dashboard.html"><span class="mn-icon">🏠</span>דשבורד</a>
+      <a href="/app/reports.html"><span class="mn-icon">📄</span>דוחות</a>
+      <a href="/app/payments.html"><span class="mn-icon">💰</span>תשלומים</a>
+      <a href="/app/settings.html"><span class="mn-icon">⚙️</span>הגדרות</a>
+    </nav>
+
+    <script>
+      function toggleFaq(el) {
+        var item = el.closest('.faq-item');
+        var wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(function(i) { i.classList.remove('open'); });
+        if (!wasOpen) item.classList.add('open');
+      }
+
+      function sendCustomMsg() {
+        var msg = document.getElementById('customMsg').value.trim();
+        if (!msg) { document.getElementById('customMsg').focus(); return; }
+        var encoded = encodeURIComponent('שלום, אני משתמש ב-OMDA איתור.\n\n' + msg);
+        window.open('https://wa.me/972503292066?text=' + encoded, '_blank');
+      }
+    </script>
+
+  </body>
+</html>

@@ -665,13 +665,30 @@
         .toolbar {
           flex-wrap: wrap;
         }
+        th:nth-child(1),
+        td:nth-child(1),
         th:nth-child(3),
-        th:nth-child(4),
         td:nth-child(3),
-        td:nth-child(4) {
+        th:nth-child(5),
+        td:nth-child(5) {
           display: none;
         }
-        .mob-badge { display: inline-flex; }
+        td:nth-child(4) {
+          text-align: right;
+          vertical-align: middle;
+          min-width: 90px;
+        }
+        .mob-date { display: block; }
+        .mob-source { display: block; }
+      }
+      .mob-date {
+        display: none;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .mob-source {
+        display: none;
       }
       .mob-badge {
         display: none;
@@ -851,14 +868,21 @@
         .search-wrap {
           max-width: 100% !important;
         }
+        th:nth-child(1),
+        td:nth-child(1),
         th:nth-child(3),
-        td:nth-child(3) {
-          display: none;
-        }
+        td:nth-child(3),
         th:nth-child(5),
         td:nth-child(5) {
           display: none;
         }
+        td:nth-child(4) {
+          text-align: right;
+          vertical-align: middle;
+          min-width: 90px;
+        }
+        .mob-date { display: block; }
+        .mob-source { display: block; }
         .tb-user {
           display: none;
         }
@@ -873,6 +897,10 @@
         .sc .value {
           font-size: 20px;
         }
+      }
+
+      @media (max-width: 768px) {
+        .omdan-footer { display: none; }
       }
 
       /* ── ONBOARDING ── */
@@ -1260,7 +1288,7 @@
                   <th>מספר תיק</th>
                   <th>לקוח / כתובת</th>
                   <th>מקור</th>
-                  <th>סטטוס</th>
+                  <th>תאריך / סטטוס</th>
                   <th>תאריך</th>
                   <th></th>
                 </tr>
@@ -1463,13 +1491,13 @@
         const _toDate = (v) =>
           v?.toDate ? v.toDate() : v ? new Date(v) : null;
         let hasAccess = false;
-        if (billingToken.plan === "trial") {
+        const paidPlans = ["leak", "starter", "pro", "bundle", "bundle-starter-leak"];
+        if (billingToken.plan === "free") {
+          hasAccess = true;
+        } else if (billingToken.plan === "trial") {
           const trialEnd = _toDate(billingToken.trialEnd);
           hasAccess = !!trialEnd && now < trialEnd;
-        } else if (
-          billingToken.plan === "leak" &&
-          billingToken.status === "active"
-        ) {
+        } else if (paidPlans.includes(billingToken.plan) && billingToken.status === "active") {
           const subEnd = _toDate(billingToken.subscriptionEnd);
           hasAccess = !!subEnd && now < subEnd;
         } else if (billingToken.plans?.["omdan-leak"]?.status === "active") {
@@ -1527,38 +1555,106 @@
         loadCases().finally(() => {
           hideSplash();
           setTimeout(maybeStartDashboardOnboarding, 180);
+          // הצג פרומפט התקנת PWA רק אם לא באונבורדינג ולא מותקן כבר
+          if (onboardingUserState.onboardingCompleted) {
+            window.maybeShowPwaBanner && window.maybeShowPwaBanner();
+          }
         });
       });
 
+      const PAGE_SIZE = 25;
+      let _lastDoc = null;
+      let _hasMore = false;
+
+      function _mapDoc(d) {
+        return {
+          id: d.id,
+          ...d.data(),
+          createdAt:
+            d.data().createdAt?.toDate?.()?.toISOString() ||
+            d.data().createdAt,
+        };
+      }
+
       async function loadCases() {
+        _lastDoc = null;
+        _hasMore = false;
+        allCases = [];
         document.getElementById("casesBody").innerHTML =
           `<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:28px;margin-bottom:12px;">⏳</div><div style="font-weight:700;">טוען תיקים...</div></td></tr>`;
         try {
           const snap = await db
             .collection("leakCases")
             .where("uid", "==", currentUser.uid)
-            .limit(100)
+            .orderBy("createdAt", "desc")
+            .limit(PAGE_SIZE + 1)
             .get();
-          allCases = snap.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-            createdAt:
-              d.data().createdAt?.toDate?.()?.toISOString() ||
-              d.data().createdAt,
-          }));
-          allCases.sort(
-            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
-          );
+          _hasMore = snap.docs.length > PAGE_SIZE;
+          const docs = _hasMore ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+          _lastDoc = docs[docs.length - 1] || null;
+          allCases = docs.map(_mapDoc);
           renderStats(allCases);
           renderTable(allCases);
-          document.getElementById("pageSubtitle").textContent = allCases.length
-            ? `${allCases.length} תיקים בסך הכל`
-            : "";
+          _updateSubtitle();
+          _renderLoadMore();
         } catch (e) {
           console.error("loadCases error:", e);
           document.getElementById("casesBody").innerHTML =
             `<tr><td colspan="6"><div class="empty"><div class="icon">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;color:var(--red);">שגיאה בטעינת נתונים</div><p style="margin-bottom:16px;font-size:13px;">${e.message || "אירעה שגיאה"}</p><button class="btn btn-ghost" onclick="location.reload()">🔄 נסה שוב</button></div></td></tr>`;
         }
+      }
+
+      async function loadMoreCases() {
+        if (!_hasMore || !_lastDoc) return;
+        const btn = document.getElementById("loadMoreBtn");
+        if (btn) { btn.disabled = true; btn.textContent = "טוען..."; }
+        try {
+          const snap = await db
+            .collection("leakCases")
+            .where("uid", "==", currentUser.uid)
+            .orderBy("createdAt", "desc")
+            .startAfter(_lastDoc)
+            .limit(PAGE_SIZE + 1)
+            .get();
+          _hasMore = snap.docs.length > PAGE_SIZE;
+          const docs = _hasMore ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+          _lastDoc = docs[docs.length - 1] || _lastDoc;
+          const newCases = docs.map(_mapDoc);
+          allCases = allCases.concat(newCases);
+          // הוסף שורות חדשות לטבלה בלי לצייר מחדש
+          const tbody = document.getElementById("casesBody");
+          const existing = tbody.querySelector(".load-more-row");
+          if (existing) existing.remove();
+          tbody.insertAdjacentHTML("beforeend", newCases.map(renderRow).join(""));
+          _updateSubtitle();
+          _renderLoadMore();
+        } catch (e) {
+          console.error("loadMore error:", e);
+          if (btn) { btn.disabled = false; btn.textContent = "טען עוד"; }
+        }
+      }
+
+      function _updateSubtitle() {
+        const sub = document.getElementById("pageSubtitle");
+        if (!sub) return;
+        if (!allCases.length) { sub.textContent = ""; return; }
+        sub.textContent = _hasMore
+          ? `מציג ${allCases.length} תיקים (יש עוד)`
+          : `${allCases.length} תיקים בסך הכל`;
+      }
+
+      function _renderLoadMore() {
+        const tbody = document.getElementById("casesBody");
+        const existing = tbody.querySelector(".load-more-row");
+        if (existing) existing.remove();
+        if (!_hasMore) return;
+        tbody.insertAdjacentHTML("beforeend",
+          `<tr class="load-more-row"><td colspan="6" style="text-align:center;padding:18px;">
+            <button id="loadMoreBtn" class="btn btn-ghost" onclick="loadMoreCases()" style="font-size:13px;padding:10px 28px;">
+              טען עוד תיקים ▼
+            </button>
+          </td></tr>`
+        );
       }
 
       function renderStats(cases) {
@@ -1635,6 +1731,45 @@
         sub.textContent = "פתח תיק חדש לקריאת איתור חדשה.";
       }
 
+      function renderRow(c) {
+        const caseId = c.id || c.docId;
+        const clientName = c.state?.client?.name || c.name || "";
+        const address = c.state?.client?.address || c.state?.client?.city || "";
+        const _reportDateRaw = c.state?.client?.date;
+        const _createdRaw = c.createdAt;
+        function _parseDate(raw) {
+          if (!raw) return null;
+          if (raw?.toDate) return raw.toDate();
+          if (raw?.seconds) return new Date(raw.seconds * 1000);
+          const d = new Date(raw);
+          return isNaN(d) ? null : d;
+        }
+        const _dateObj = _parseDate(_reportDateRaw) || _parseDate(_createdRaw);
+        const dateStr = _dateObj ? _dateObj.toLocaleDateString("he-IL") : "";
+        const isDone = isCaseDone(c);
+        const status = getDerivedStatus(c);
+        const source = c.state?.client?.source || c.source || "";
+        return `<tr onclick="openCase('${caseId}')">
+      <td><span class="case-num">${caseId?.replace("leak_", "#")?.slice(-6) || ""}</span></td>
+      <td>
+        <div style="font-weight:600;font-size:13px;">${escHtml(clientName || "ללא שם")}</div>
+        ${address ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(address)}</div>` : ""}
+        ${source ? `<div class="mob-source" style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(source === 'direct' ? 'פנייה ישירה' : source === 'insurance' ? 'ביטוח' : source === 'contractor' ? 'קבלן / ועד' : source === 'legal' ? 'עו"ד / שמאי' : source)}</div>` : ""}
+      </td>
+      <td>${sourceTag(source)}</td>
+      <td style="text-align:right;">
+        <div class="mob-date" style="font-size:11px;color:var(--muted);margin-bottom:5px;">${dateStr}</div>
+        ${statusBadge(status)}
+      </td>
+      <td style="color:var(--muted);font-size:12px;">${dateStr}</td>
+      <td style="position:relative;text-align:left;padding-left:8px;">
+        <div class="row-actions">
+          <button class="row-menu-btn" title="אפשרויות" onclick="event.stopPropagation();openRowMenu(event,'${caseId}',${isDone})">⋯</button>
+        </div>
+      </td>
+    </tr>`;
+      }
+
       function renderTable(cases, isSearch = false) {
         const tbody = document.getElementById("casesBody");
         if (!cases.length) {
@@ -1645,45 +1780,8 @@
           }
           return;
         }
-        tbody.innerHTML = cases
-          .map((c) => {
-            const caseId = c.id || c.docId;
-            const clientName = c.state?.client?.name || c.name || "";
-            const address =
-              c.state?.client?.address || c.state?.client?.city || "";
-            // Date: prefer inspection date (state.client.date), fallback to createdAt
-            const _reportDateRaw = c.state?.client?.date;
-            const _createdRaw = c.createdAt;
-            function _parseDate(raw) {
-              if (!raw) return null;
-              if (raw?.toDate) return raw.toDate();
-              if (raw?.seconds) return new Date(raw.seconds * 1000);
-              const d = new Date(raw);
-              return isNaN(d) ? null : d;
-            }
-            const _dateObj = _parseDate(_reportDateRaw) || _parseDate(_createdRaw);
-            const dateStr = _dateObj ? _dateObj.toLocaleDateString("he-IL") : "";
-            const isDone = isCaseDone(c);
-            const status = getDerivedStatus(c);
-            const source = c.state?.client?.source || c.source || "";
-            return `<tr onclick="openCase('${caseId}')">
-      <td><span class="case-num">${caseId?.replace("leak_", "#")?.slice(-6) || ""}</span></td>
-      <td>
-        <div style="font-weight:600;font-size:13px;">${escHtml(clientName || "ללא שם")}</div>
-        ${address ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(address)}</div>` : ""}
-        ${(()=>{const map={draft:["badge-draft","טיוטה"],processing:["badge-processing","בבדיקה"],pending_completion:["badge-review","ממתין"],completed:["badge-done","הושלם"]};const[cls,lbl]=map[status]||["badge-draft","טיוטה"];return `<span class="badge mob-badge ${cls}">${lbl}</span>`;})()}
-      </td>
-      <td>${sourceTag(source)}</td>
-      <td>${statusBadge(status)}</td>
-      <td style="color:var(--muted);font-size:12px;">${dateStr}</td>
-      <td style="position:relative;text-align:left;padding-left:8px;">
-        <div class="row-actions">
-          <button class="row-menu-btn" title="אפשרויות" onclick="event.stopPropagation();openRowMenu(event,'${caseId}',${isDone})">⋯</button>
-        </div>
-      </td>
-    </tr>`;
-          })
-          .join("");
+        tbody.innerHTML = cases.map(renderRow).join("");
+        if (!isSearch) _renderLoadMore();
       }
 
       function filterCases() {
@@ -1952,7 +2050,7 @@
           bullets: [
             "הכפתור הראשי פותח תיק קריאה חדש.",
             "הדשבורד מציג תמונת מצב מיידית.",
-            "מכאן ממשיכים להגדרות.",
+            "בסוף הסיור תגדיר את הפרופיל שלך.",
           ],
           nextLabel: "המשך",
         },
@@ -1982,7 +2080,7 @@
             "פעולות נוספות דרך כפתור ⋯.",
             "חיפוש וסינון מהיר בלי לצאת.",
           ],
-          nextLabel: "עבור להגדרות",
+          nextLabel: "הבנתי",
         },
         {
           target: "#sbSettingsLink",
@@ -1993,7 +2091,7 @@
           text: "לפני תיק ראשון, הגדר לוגו, חתימה ופרטים — יכנסו אוטומטית לדוח הסופי.",
           bullets: [
             "לוגו בראש כל דוח.",
-            "פרטי המאתר ורישיון.",
+            "פרטים חיוניים שחסרים בהגדרות — יחסרו בדוח הסופי.",
             "חתימה דיגיטלית אוטומטית.",
           ],
           nextLabel: "עבור להגדרות",
@@ -2296,6 +2394,137 @@
       }
     </script>
 
+    <!-- ── PWA Install Banner ── -->
+    <style>
+      #pwaInstallBanner {
+        position: fixed;
+        bottom: 72px; /* מעל Mobile Bottom Nav */
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        z-index: 9000;
+        width: calc(100% - 32px);
+        max-width: 420px;
+        background: linear-gradient(135deg, #1f2937, #111827);
+        border: 1px solid rgba(33,150,243,0.35);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(33,150,243,0.12);
+        padding: 18px 18px 16px;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        direction: rtl;
+      }
+      #pwaInstallBanner.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .pwa-banner-top {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .pwa-banner-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(33,150,243,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex: 0 0 auto;
+      }
+      .pwa-banner-texts {
+        flex: 1;
+        min-width: 0;
+      }
+      .pwa-banner-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #f9fafb;
+        margin-bottom: 3px;
+      }
+      .pwa-banner-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        line-height: 1.45;
+      }
+      .pwa-banner-close {
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 2px 4px;
+        line-height: 1;
+        align-self: flex-start;
+      }
+      .pwa-banner-close:hover { color: #9ca3af; }
+      .pwa-banner-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .pwa-btn-install {
+        flex: 1;
+        background: linear-gradient(135deg, #2196f3, #1565c0);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: "Heebo", sans-serif;
+        cursor: pointer;
+        transition: opacity 0.18s;
+      }
+      .pwa-btn-install:hover { opacity: 0.88; }
+      .pwa-btn-later {
+        background: transparent;
+        border: 1px solid #374151;
+        color: #9ca3af;
+        border-radius: 12px;
+        padding: 11px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: "Heebo", sans-serif;
+        cursor: pointer;
+        transition: border-color 0.18s, color 0.18s;
+        white-space: nowrap;
+      }
+      .pwa-btn-later:hover { border-color: #6b7280; color: #f9fafb; }
+      @media (min-width: 769px) {
+        /* בדסקטופ מציגים מימין למטה, לא מעל הנאב */
+        #pwaInstallBanner {
+          bottom: 24px;
+          left: auto;
+          right: 24px;
+          transform: translateY(20px);
+          width: 360px;
+          max-width: 360px;
+        }
+        #pwaInstallBanner.show {
+          transform: translateY(0);
+        }
+      }
+    </style>
+
+    <!-- PWA Install Banner HTML -->
+    <div id="pwaInstallBanner" role="dialog" aria-label="התקנת האפליקציה">
+      <div class="pwa-banner-top">
+        <div class="pwa-banner-icon">💧</div>
+        <div class="pwa-banner-texts">
+          <div class="pwa-banner-title">התקן את OMDA איתור</div>
+          <div class="pwa-banner-sub">גישה מהירה ישירות ממסך הבית — ללא דפדפן, ללא חיפוש.</div>
+        </div>
+        <button class="pwa-banner-close" onclick="dismissPwaBanner()" aria-label="סגור">✕</button>
+      </div>
+      <div class="pwa-banner-actions">
+        <button class="pwa-btn-install" onclick="triggerPwaInstall()">📲 התקן עכשיו</button>
+        <button class="pwa-btn-later" onclick="dismissPwaBanner()">אחר כך</button>
+      </div>
+    </div>
+
     <style>
       .omdan-footer {
         background: #0d1117;
@@ -2321,20 +2550,184 @@
       <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
       <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
       <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-      <a href="/legal/index.html">מסמכים משפטיים</a>
-      <br /><span style="margin-top: 6px; display: block"
-        >© 2026 OMDA. כל הזכויות שמורות.</span
-      >
+      <a href="/legal/index.html">מסמכים משפטיים</a> |
+      <a href="/app/support.html">תמיכה</a>
+        <br /><span style="margin-top:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;direction:ltr">
+        © 2026 OMDA-NET. כל הזכויות שמורות.
+        <img src="/assets/img/omda-ecosystem-color.png" alt="OMDA-NET" style="height:52px;width:52px;object-fit:contain;vertical-align:middle;" />
+      </span>
     </footer>
 
+    <!-- ── PWA Install Logic ── -->
+    <script>
+      (function() {
+        const STORAGE_KEY = 'omda_pwa_prompt_dismissed';
+        let _deferredPrompt = null;
+
+        // תופס את האירוע לפני שהדפדפן מציג אותו
+        window.addEventListener('beforeinstallprompt', function(e) {
+          e.preventDefault();
+          _deferredPrompt = e;
+        });
+
+        // פונקציה גלובלית שנקראת אחרי שהדשבורד נטען
+        window.maybeShowPwaBanner = function() {
+          // לא מציג אם: כבר dismissed, כבר מותקן כ-PWA, אין prompt זמין
+          const dismissed = localStorage.getItem(STORAGE_KEY);
+          if (dismissed) return;
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+          if (isStandalone) return;
+          if (!_deferredPrompt) return;
+
+          // מציג אחרי השהייה קצרה כדי לא להציף את המשתמש
+          setTimeout(function() {
+            const banner = document.getElementById('pwaInstallBanner');
+            if (!banner) return;
+            banner.style.display = 'block';
+            requestAnimationFrame(function() {
+              requestAnimationFrame(function() { banner.classList.add('show'); });
+            });
+          }, 1800);
+        };
+
+        window.triggerPwaInstall = function() {
+          if (!_deferredPrompt) return;
+          _deferredPrompt.prompt();
+          _deferredPrompt.userChoice.then(function(result) {
+            localStorage.setItem(STORAGE_KEY, '1');
+            hidePwaBanner();
+            _deferredPrompt = null;
+          });
+        };
+
+        window.dismissPwaBanner = function() {
+          localStorage.setItem(STORAGE_KEY, '1');
+          hidePwaBanner();
+        };
+
+        function hidePwaBanner() {
+          const banner = document.getElementById('pwaInstallBanner');
+          if (!banner) return;
+          banner.classList.remove('show');
+          setTimeout(function() { banner.style.display = 'none'; }, 380);
+        }
+      })();
+    </script>
+  
     <!-- Mobile Bottom Nav -->
     <nav class="mob-nav">
-      <a href="/app/dashboard.html" class="active"
-        ><span class="mn-icon">📊</span>דשבורד</a
-      >
       <a href="/app/reports.html"><span class="mn-icon">📄</span>דוחות</a>
       <a href="/app/payments.html"><span class="mn-icon">💰</span>תשלומים</a>
+      <a href="/app/clients.html"><span class="mn-icon">👥</span>לקוחות</a>
       <a href="/app/settings.html"><span class="mn-icon">⚙️</span>הגדרות</a>
     </nav>
+    <!--
+  ════════════════════════════════════════════
+  OMDA איתור — כפתור WhatsApp צף
+  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  ════════════════════════════════════════════
+-->
+
+<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<style>
+  #waFloat {
+    position: fixed;
+    bottom: 70px; /* מעל Mobile Bottom Nav */
+    left: 16px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    direction: rtl;
+  }
+  #waFloatTooltip {
+    background: #1f2937;
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f9fafb;
+    font-family: "Heebo", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: waTooltipIn 0.3s ease;
+    display: none;
+  }
+  #waFloatTooltip.show { display: block; }
+  @keyframes waTooltipIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #waFloatBtn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: none;
+    padding: 0;
+  }
+  #waFloatBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(37,211,102,0.55);
+  }
+  #waFloatBtn svg {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+  }
+  /* בדסקטופ — מימין למטה */
+  @media (min-width: 769px) {
+    #waFloat {
+      bottom: 24px;
+      left: auto;
+      right: 24px;
+      align-items: flex-end;
+    }
+  }
+</style>
+
+<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<div id="waFloat">
+  <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
+  <a
+    id="waFloatBtn"
+    href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94."
+    target="_blank"
+    rel="noopener"
+    aria-label="צור קשר בוואטסאפ"
+    title="צור קשר בוואטסאפ"
+  >
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // מציג tooltip אחרי 3 שניות, מסתיר אחרי 5
+  (function() {
+    var shown = sessionStorage.getItem('wa_tooltip_shown');
+    if (shown) return;
+    setTimeout(function() {
+      var t = document.getElementById('waFloatTooltip');
+      if (t) {
+        t.classList.add('show');
+        sessionStorage.setItem('wa_tooltip_shown', '1');
+        setTimeout(function() { t.classList.remove('show'); }, 5000);
+      }
+    }, 3000);
+  })();
+</script>
   </body>
 </html>

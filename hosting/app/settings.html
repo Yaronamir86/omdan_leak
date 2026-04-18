@@ -711,6 +711,52 @@ body::before{
 /* ── Onboarding — זהה לדשבורד (ob-* system) ── */
 .ob-spotlight{ /* handled by 4-strip overlays */ }
 .ob-spotlight-soft{ /* handled by 4-strip overlays */ }
+
+/* Section pulse when onboarding targets it */
+@keyframes ob-section-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(33,150,243,.55), 0 0 0   0  rgba(33,150,243,.25); border-color: rgba(33,150,243,.7); }
+  50%  { box-shadow: 0 0 0 6px rgba(33,150,243,.18), 0 0 28px 4px rgba(33,150,243,.13); border-color: rgba(33,150,243,.9); }
+  100% { box-shadow: 0 0 0 0   rgba(33,150,243,.0),  0 0 0   0  rgba(33,150,243,.0);  border-color: rgba(33,150,243,.7); }
+}
+.ob-section-active {
+  border-color: rgba(33,150,243,.7) !important;
+  animation: ob-section-pulse 1.8s ease-in-out infinite;
+  position: relative;
+  z-index: 243;
+}
+
+/* Skip confirm modal */
+.ob-skip-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,.65);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.ob-skip-overlay.show { display: flex; }
+.ob-skip-box {
+  background: #111827; border: 1px solid #374151;
+  border-radius: 18px; padding: 28px 28px 24px;
+  width: min(400px,92vw); direction: rtl; text-align: center;
+}
+.ob-skip-icon  { font-size: 36px; margin-bottom: 12px; }
+.ob-skip-title { font-size: 17px; font-weight: 900; margin-bottom: 8px; color: #f9fafb; }
+.ob-skip-text  { font-size: 13px; color: #9ca3af; line-height: 1.7; margin-bottom: 22px; }
+.ob-skip-actions { display: flex; gap: 10px; justify-content: center; }
+.ob-skip-cancel {
+  padding: 10px 22px; background: transparent;
+  border: 1px solid #374151; border-radius: 10px;
+  color: #9ca3af; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Heebo',sans-serif; transition: all .2s;
+}
+.ob-skip-cancel:hover { color: #f9fafb; border-color: #6b7280; }
+.ob-skip-confirm {
+  padding: 10px 22px;
+  background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.35);
+  border-radius: 10px; color: #f87171;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Heebo',sans-serif; transition: all .2s;
+}
+.ob-skip-confirm:hover { background: rgba(239,68,68,.25); }
+
 /* 4 overlays במקום אחד — יוצרים frame סביב האלמנט */
 .ob-strip{position:fixed;background:rgba(3,7,18,.82);z-index:241;display:none;pointer-events:none;transition:all .18s ease;}
 .ob-strip.show{display:block;}
@@ -907,7 +953,7 @@ body.ob-lock{overflow:hidden;}
           </div>
           <div class="field">
             <label>ע.מ / ח.פ</label>
-            <input type="text" id="vat" placeholder="033571290" dir="ltr">
+            <input type="text" id="vat" placeholder="מספר עוסק / ח.פ" dir="ltr">
           </div>
         </div>
       </div>
@@ -1108,29 +1154,31 @@ body.ob-lock{overflow:hidden;}
   </div><!-- /ROW 2 -->
 
   <!-- ROW 3: הצהרה, השכלה וניסיון — full width -->
-  <div class="sg-row-full">
-    <div class="section section-report-highlight">
+  <div class="sg-row-full" id="declarationFullRow">
+    <div class="section section-report-highlight" id="settingsDeclarationSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">📜</span> הצהרה, השכלה וניסיון</div>
         <span class="in-report-badge">📋 מופיע בדוח</span>
       </div>
       <div class="section-body">
-        <div class="sg-row sg-row-equal" style="gap:28px;">
-          <div>
+        <div class="sg-row sg-row-equal" style="gap:28px;" id="declarationEducationRow">
+
+          <!-- הצהרת מאתר -->
+          <div id="declarationCol">
             <div class="sub-section-title" style="margin-bottom:12px;">📋 הצהרת מאתר</div>
-            <div class="accordion-field">
+            <div class="accordion-field" id="declarationAccordionField" style="overflow:visible;">
               <div class="accordion-preview" onclick="toggleAccordion('declaration')">
                 <div class="accordion-preview-text" id="acc-declaration-preview">טקסט ההצהרה — לחץ לעריכה</div>
                 <span class="accordion-edit-btn">✏️ עריכה</span>
               </div>
-              <div class="accordion-body" id="acc-declaration-body" style="display:none;">
+              <div class="accordion-body" id="acc-declaration-body" style="display:block;">
                 <div class="field" style="margin-top:10px;">
                   <label>טקסט ההצהרה — יופיע בתחילת הדוח</label>
                   <textarea id="declaration" rows="4" placeholder="הנני מצהיר בזאת כי חוות דעתי זו נערכה על סמך ידיעותיי, השכלתי, וניסיוני המקצועי..."></textarea>
                 </div>
                 <div style="margin-top:8px;">
                   <button class="defaults-suggest-btn" onclick="toggleDefaultsPanel('declarationDefaultsPanel')">💡 הצע נוסח מוכן</button>
-                  <div id="declarationDefaultsPanel" style="display:none;margin-top:8px;display:none;">
+                  <div id="declarationDefaultsPanel" style="display:none;margin-top:8px;">
                     <div class="defaults-panel">
                       <div class="defaults-panel-title">בחר נוסח מוכן:</div>
                       <div class="defaults-option" onclick="applyDefaultDeclaration(0)">
@@ -1148,14 +1196,16 @@ body.ob-lock{overflow:hidden;}
               </div>
             </div>
           </div>
-          <div>
+
+          <!-- השכלה וניסיון -->
+          <div id="educationCol">
             <div class="sub-section-title" style="margin-bottom:12px;">🎓 השכלה וניסיון</div>
-            <div class="accordion-field">
+            <div class="accordion-field" id="educationAccordionField" style="overflow:visible;">
               <div class="accordion-preview" onclick="toggleAccordion('education')">
                 <div class="accordion-preview-text" id="acc-education-preview">פרטי השכלה וניסיון — לחץ לעריכה</div>
                 <span class="accordion-edit-btn">✏️ עריכה</span>
               </div>
-              <div class="accordion-body" id="acc-education-body" style="display:none;">
+              <div class="accordion-body" id="acc-education-body" style="display:block;">
                 <div class="field" style="margin-top:10px;">
                   <label>פרטי השכלה וניסיון — יופיע בכל דוח</label>
                   <textarea id="education" rows="8" placeholder="* לימודי תעודה מערכות שאיבה...&#10;* שנות ניסיון..."></textarea>
@@ -1180,6 +1230,7 @@ body.ob-lock{overflow:hidden;}
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -1217,7 +1268,7 @@ body.ob-lock{overflow:hidden;}
   <div class="sg-row">
 
     <!-- SECTION: מאגר כלים -->
-    <div class="section">
+    <div class="section" id="settingsToolsSection">
       <div class="section-header">
         <div class="section-title"><span class="icon">🔧</span> מאגר כלים</div>
         <span class="in-report-badge">📋 מופיע בדוח</span>
@@ -1374,11 +1425,24 @@ body.ob-lock{overflow:hidden;}
   <div class="ob-text" id="settingsOnboardingText"></div>
   <ul class="ob-list" id="settingsOnboardingList"></ul>
   <div class="ob-actions">
-    <div class="ob-progress" id="settingsOnboardingProgress">1 / 4</div>
+    <div class="ob-progress" id="settingsOnboardingProgress">1 / 8</div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost btn-sm" id="settingsOnboardingSkip" onclick="skipSettingsOnboarding()">דלג</button>
+      <button class="btn btn-ghost btn-sm" id="settingsOnboardingSkip" onclick="confirmSkipStep()">דלג</button>
       <button class="btn btn-secondary btn-sm" id="settingsOnboardingBack" onclick="prevSettingsOnboardingStep()" style="display:none;">חזרה</button>
-      <button class="btn btn-primary btn-sm" id="settingsOnboardingNext" onclick="nextSettingsOnboardingStep()">התחל</button>
+      <button class="btn btn-primary btn-sm" id="settingsOnboardingNext" onclick="nextSettingsOnboardingStep()">מילאתי, המשך</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Skip confirm modal ── -->
+<div class="ob-skip-overlay" id="obSkipOverlay">
+  <div class="ob-skip-box">
+    <div class="ob-skip-icon">⚠️</div>
+    <div class="ob-skip-title" id="obSkipTitle">לדלג על שלב זה?</div>
+    <div class="ob-skip-text" id="obSkipText">אם תדלג, פרטים אלו לא יופיעו בדוח הסופי.</div>
+    <div class="ob-skip-actions">
+      <button class="ob-skip-cancel" onclick="closeSkipConfirm()">חזור למילוי</button>
+      <button class="ob-skip-confirm" onclick="doSkipStep()">דלג בכל זאת</button>
     </div>
   </div>
 </div>
@@ -1950,11 +2014,11 @@ document.addEventListener('input', ()=>setSaveStatus('unsaved'));
 
 // ── beforeunload — התראה על עזיבה עם שינויים לא שמורים ──
 window._hasUnsavedChanges = false;
-const _origSetSaveStatus = setSaveStatus;
-function setSaveStatus(s){
+const _origSetSaveStatus = setSaveStatus.bind({});
+setSaveStatus = function(s){
   _origSetSaveStatus(s);
   window._hasUnsavedChanges = (s === 'unsaved');
-}
+};
 window.addEventListener('beforeunload', e => {
   if(window._hasUnsavedChanges){
     e.preventDefault();
@@ -2048,48 +2112,107 @@ document.addEventListener('DOMContentLoaded', ()=> renderThemeGrid());
 // ══════════════════════════════════════════════════
 const settingsOnboardingSteps = [
   {
-    key: 'logo',
-    target: '#settingsLogoSection',
-    placement: 'left',
-    step: 'שלב 1',
-    chip: 'זהות ויזואלית',
-    title: 'הלוגו שלך נכנס לראש כל דוח',
-    text: 'הלוגו שתגדיר כאן יופיע אוטומטית בראש כל דוח שמאות שתפיק.',
-    bullets: ['בחר אותיות + צבע, או העלה תמונה.', 'הלוגו ייכנס לכל דוח עתידי.', 'ניתן לשנות בכל עת.'],
-    nextLabel: 'המשך'
-  },
-  {
     key: 'personal',
     target: '#settingsPersonalSection',
     placement: 'left',
+    step: 'שלב 1',
+    chip: 'פרופיל מקצועי',
+    title: 'הזהות המקצועית שלך בכל דוח',
+    text: 'שם, תואר, פרטי משרד ופרטי עוסק הם הבסיס שמופיע בדוח ומחזק את הנראות המקצועית שלך מול הלקוח.',
+    bullets: ['שם מלא ותואר מקצועי.', 'כתובת / עיר / פרטי משרד.', 'ע.מ / ח.פ ופרטים רשמיים נוספים.'],
+    skipWarning: 'ללא שם ותואר מקצועי — הדוח ייצא ללא פרטי מאתר וייראה לא מקצועי.',
+    nextLabel: 'מילאתי, המשך'
+  },
+  {
+    key: 'contact',
+    target: '#settingsContactSection',
+    placement: 'left',
     step: 'שלב 2',
-    chip: 'פרטים מקצועיים',
-    title: 'הפרטים שיופיעו בכל דוח',
-    text: 'שם, תואר, רישיון ופרטי משרד — כולם ייכנסו אוטומטית לדוח הסופי.',
-    bullets: ['פרטי המאתר — שם, תואר, רישיון.', 'פרטי המשרד — עיר, כתובת.', 'פרטי קשר — טלפון, אימייל.'],
-    nextLabel: 'המשך'
+    chip: 'פרטי קשר',
+    title: 'כך יוכלו ליצור איתך קשר ישירות מהדוח',
+    text: 'טלפון, אימייל ופרטי קשר נוספים מופיעים בדוח ועוזרים ללקוחות ואנשי מקצוע לחזור אליך בקלות.',
+    bullets: ['טלפון ליצירת קשר.', 'אימייל מקצועי.', 'אתר / רשתות חברתיות — אם רלוונטי.'],
+    skipWarning: 'ללא פרטי קשר — לקוחות ומבטחים לא יוכלו לחזור אליך ישירות מהדוח.',
+    nextLabel: 'מילאתי, המשך'
+  },
+  {
+    key: 'logo',
+    target: '#settingsLogoSection',
+    placement: 'left',
+    step: 'שלב 3',
+    chip: 'לוגו',
+    title: 'המיתוג שלך בראש כל דוח',
+    text: 'הלוגו שלך מעניק לדוח מראה מקצועי וממותג. אין לוגו? אל דאגה — המערכת תייצר לוגו ראשי תיבות באנגלית באופן אוטומטי.',
+    bullets: ['העלאת לוגו קיים.', 'שימוש בראשי תיבות כחלופה זמנית.', 'ניתן לבחור תבנית כותרת וגודל לוגו לדוח.'],
+    skipWarning: 'ללא לוגו — הדוח ייצא ללא זיהוי ויזואלי. ניתן להשתמש בראשי תיבות כחלופה.',
+    nextLabel: 'מילאתי, המשך'
   },
   {
     key: 'signature',
     target: '#settingsSignatureSection',
     placement: 'right',
-    step: 'שלב 3',
-    chip: 'חתימה דיגיטלית',
-    title: 'החתימה נשמרת פעם אחת',
-    text: 'חתום פעם אחת — וכל דוח שתפיק יכלול אותה אוטומטית בתחתית.',
-    bullets: ['חתום עם העכבר או האצבע.', 'נשמרת מוצפנת בחשבון שלך.', 'מתווספת לכל דוח עתידי.'],
-    nextLabel: 'המשך'
+    step: 'שלב 4',
+    chip: 'חתימה',
+    title: 'חתימה אחת לכל הדוחות',
+    text: 'החתימה נשמרת בחשבון ומתווספת אוטומטית לדוחות, כך שכל מסמך יוצא מסודר, חתום ומוכן לשליחה.',
+    bullets: ['חתימה עם אצבע או עכבר.', 'שמירה חד־פעמית בחשבון.', 'שילוב אוטומטי בדוח.'],
+    skipWarning: 'ללא חתימה — הדוח ייצא ללא אישור חתימה דיגיטלי. מומלץ לחתום לפחות פעם אחת.',
+    nextLabel: 'חתמתי ושמרתי, המשך'
+  },
+  {
+    key: 'declaration',
+    target: '#declarationAccordionField',
+    placement: 'left',
+    step: 'שלב 5',
+    chip: 'הצהרת מאתר',
+    title: 'הצהרה שמחזקת את האמינות שלך',
+    text: 'הצהרת המאתר מופיעה בתחילת הדוח ומבססת את המקצועיות שלך מול הלקוח. השתמש בנוסח מוכן לחיסכון בזמן.',
+    bullets: [
+      'הצהרה מקצועית בתחילת הדוח.',
+      'ניתן לבחור נוסח מוכן בלחיצה אחת.',
+      'ניתן לערוך ולהתאים אישית.'
+    ],
+    skipWarning: 'ללא הצהרת מאתר — הדוח ייצא ללא אישור מקצועי. ניתן להשתמש בנוסח מוכן תוך שניות.',
+    nextLabel: 'מילאתי, המשך'
+  },
+  {
+    key: 'education',
+    target: '#educationAccordionField',
+    placement: 'left',
+    step: 'שלב 6',
+    chip: 'השכלה וניסיון',
+    title: 'הרקע המקצועי שלך בכל דוח',
+    text: 'פרטי ההשכלה והניסיון מופיעים בדוח ומציגים את הרקע המקצועי שלך. גם כאן — יש נוסח מוכן שחוסך זמן.',
+    bullets: [
+      'השכלה והכשרות מקצועיות.',
+      'שנות ניסיון ותחומי התמחות.',
+      'ניתן לבחור נוסח מוכן בלחיצה אחת.'
+    ],
+    skipWarning: 'ללא פרטי השכלה וניסיון — הדוח ייצא ללא רקע מקצועי מלא.',
+    nextLabel: 'מילאתי, המשך'
+  },
+  {
+    key: 'tools',
+    target: '#settingsToolsSection',
+    placement: 'right',
+    step: 'שלב 7',
+    chip: 'ציוד וכלים',
+    title: 'הכלים שלך כחלק מהמקצועיות בדוח',
+    text: 'בכל תיק יסומן באופן אוטומטי הציוד שלך על בסיס הבדיקות שבוצעו.',
+    bullets: ['הוספת ציוד קבוע למאגר.', 'המערכת בוחרת אוטומטית בהתאם לבדיקות שבוצעו.', 'שילוב רשימת הכלים בדוח הסופי.'],
+    skipWarning: 'ללא מאגר כלים — הדוח לא יציג את הציוד שבו השתמשת בבדיקה.',
+    nextLabel: 'מילאתי, המשך'
   },
   {
     key: 'save',
     target: '.save-bar',
     placement: 'above-fixed',
-    step: 'שלב 4',
+    step: 'שלב 8',
     chip: 'מוכן לעבודה',
-    title: 'שמור וצא לתיק הראשון',
-    text: 'אחרי השמירה תחזור לדשבורד ותוכל לפתוח את התיק הראשון שלך.',
-    bullets: ['הלוגו, הפרטים והחתימה נשמרים.', 'כל תיק עתידי ייהנה מההגדרות האלה.', 'פתח תיק ראשון לסיום האונבורדינג.'],
-    nextLabel: 'שמור ואפשר לצאת',
+    title: 'מעולה, עכשיו אפשר להתחיל לעבוד נכון',
+    text: 'לאחר שמירה, כל הנתונים שהגדרת ישולבו אוטומטית בדוחות שלך. השלב הבא הוא לחזור לדשבורד ולפתוח את התיק הראשון.',
+    bullets: ['הפרופיל, הלוגו והחתימה נשמרים בחשבון.', 'ההגדרות ישפיעו על כל דוח עתידי.', 'עכשיו אפשר לעבור לדשבורד ולפתוח תיק ראשון.'],
+    nextLabel: 'שמור ועבור לדשבורד',
     final: true
   }
 ];
@@ -2165,8 +2288,9 @@ function updateSpotlightFrame(target){
 }
 
 function clearSettingsOnboardingHighlight(){
-  document.querySelectorAll('.ob-spotlight,.ob-spotlight-soft').forEach(el => el.classList.remove('ob-spotlight','ob-spotlight-soft'));
-  updateSpotlightFrame(null); // מסתיר את כל ה-strips
+  document.querySelectorAll('.ob-spotlight,.ob-spotlight-soft,.ob-section-active')
+    .forEach(el => el.classList.remove('ob-spotlight','ob-spotlight-soft','ob-section-active'));
+  updateSpotlightFrame(null);
 }
 
 function getSettingsOnboardingTarget(step){
@@ -2175,11 +2299,14 @@ function getSettingsOnboardingTarget(step){
   if(direct) return direct;
 
   const fallbackMap = {
-    logo: '#settingsLogoSection, [data-onboarding="logo"]',
-    personal: '#settingsPersonalSection, [data-onboarding="personal"]',
-    contact: '#settingsContactSection, [data-onboarding="contact"]',
-    signature: '#settingsSignatureSection, [data-onboarding="signature"]',
-    save: '.save-bar, [data-onboarding="save"]'
+    personal:    '#settingsPersonalSection, [data-onboarding="personal"]',
+    contact:     '#settingsContactSection, [data-onboarding="contact"]',
+    logo:        '#settingsLogoSection, [data-onboarding="logo"]',
+    signature:   '#settingsSignatureSection, [data-onboarding="signature"]',
+    declaration: '#declarationAccordionField, [data-onboarding="declaration"]',
+    education:   '#educationAccordionField, [data-onboarding="education"]',
+    tools:       '#settingsToolsSection, [data-onboarding="tools"]',
+    save:        '.save-bar, [data-onboarding="save"]'
   };
 
   if(step.key && fallbackMap[step.key]){
@@ -2294,27 +2421,55 @@ function showSettingsOnboardingStep(index){
   document.getElementById('settingsOnboardingText').textContent = step.text;
   document.getElementById('settingsOnboardingProgress').textContent = `${index + 1} / ${settingsOnboardingSteps.length}`;
   document.getElementById('settingsOnboardingBack').style.display = index > 0 ? 'inline-flex' : 'none';
-  document.getElementById('settingsOnboardingNext').textContent = step.nextLabel || 'המשך';
+  document.getElementById('settingsOnboardingNext').textContent = step.nextLabel || 'מילאתי, המשך';
+
+  // הסתר "דלג" בשלב האחרון (final)
+  const skipBtn = document.getElementById('settingsOnboardingSkip');
+  if(skipBtn) skipBtn.style.display = step.final ? 'none' : 'inline-flex';
+
+  // שלב לוגו — טען ראשי תיבות מ-nameEn אוטומטית אם שדה logoInitials ריק
+  if(step.key === 'logo'){
+    const initialsInput = document.getElementById('logoInitials');
+    const nameEnVal = (document.getElementById('nameEn')?.value || '').trim();
+    if(initialsInput && !initialsInput.value.trim() && nameEnVal){
+      const auto = nameEnVal.split(/\s+/).map(w => w[0]?.toUpperCase() || '').join('').slice(0, 3);
+      if(auto) { initialsInput.value = auto; updateLogoPreview(); }
+    }
+  }
+
+  // שלב הצהרה/השכלה — פתח panel "הצע נוסח מוכן" הרלוונטי מראש
+  if(step.key === 'declaration'){
+    const panel = document.getElementById('declarationDefaultsPanel');
+    if(panel) panel.style.display = 'block';
+  }
+  if(step.key === 'education'){
+    const panel = document.getElementById('educationDefaultsPanel');
+    if(panel) panel.style.display = 'block';
+  }
 
   const list = document.getElementById('settingsOnboardingList');
   if(list) list.innerHTML = (step.bullets || []).map((item, i) => `<li><span>${i+1}</span><span>${item}</span></li>`).join('');
 
+  // Pulse על הסקשן הממוקד
+  if(target && getComputedStyle(target).position !== 'fixed'){
+    target.classList.add('ob-section-active');
+  }
+
   card.classList.add('show');
   card.style.visibility = 'hidden';
 
-  if(target){
-    // לאלמנטים fixed (כמו save-bar) — אל תנסה scrollIntoView
-    if(getComputedStyle(target).position !== 'fixed'){
-      target.scrollIntoView({ behavior:'smooth', block:'center' });
-    }
-  }
-
+  // delay קצר לכולם — מבטיח layout יציב לפני spotlight
+  const needsDelay = false;
   setTimeout(() => {
-    // עדכן spotlight frame לפי מיקום הtime אחרי scroll
-    updateSpotlightFrame(target || null);
-    placeSettingsOnboardingCard(target, step.placement);
-    card.style.visibility = 'visible';
-  }, 220);
+    if(target && getComputedStyle(target).position !== 'fixed'){
+      target.scrollIntoView({ behavior:'instant', block:'center' });
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      updateSpotlightFrame(target || null);
+      placeSettingsOnboardingCard(target, step.placement);
+      card.style.visibility = 'visible';
+    }));
+  }, needsDelay ? 150 : 0);
 }
 
 async function nextSettingsOnboardingStep(){
@@ -2345,6 +2500,30 @@ async function nextSettingsOnboardingStep(){
 function prevSettingsOnboardingStep(){
   if(settingsOnboardingIndex > 0){
     showSettingsOnboardingStep(settingsOnboardingIndex - 1);
+  }
+}
+
+function confirmSkipStep() {
+  const step = settingsOnboardingSteps[settingsOnboardingIndex];
+  const overlay = document.getElementById('obSkipOverlay');
+  if(!overlay) return;
+  document.getElementById('obSkipTitle').textContent = `לדלג על "${step.chip || step.step}"?`;
+  document.getElementById('obSkipText').textContent = step.skipWarning || 'אם תדלג, פרטים אלו עלולים לחסור בדוח הסופי.';
+  overlay.classList.add('show');
+}
+
+function closeSkipConfirm() {
+  const overlay = document.getElementById('obSkipOverlay');
+  if(overlay) overlay.classList.remove('show');
+}
+
+async function doSkipStep() {
+  closeSkipConfirm();
+  // דלג על השלב הנוכחי — עבור לבא
+  if(settingsOnboardingIndex < settingsOnboardingSteps.length - 1){
+    showSettingsOnboardingStep(settingsOnboardingIndex + 1);
+  } else {
+    await skipSettingsOnboarding();
   }
 }
 
@@ -2753,7 +2932,8 @@ document.addEventListener('keydown', e=>{
   <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
   <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
   <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-  <a href="/legal/index.html">מסמכים משפטיים</a>
+  <a href="/legal/index.html">מסמכים משפטיים</a> |
+  <a href="/app/support.html">תמיכה</a>
   <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
 </footer>
 
@@ -2790,8 +2970,116 @@ document.addEventListener('keydown', e=>{
 <nav class="settings-mob-nav">
   <button type="button" class="mob-save-btn" id="mobileSaveBtn" onclick="saveAll()"><span style="font-size:20px">💾</span><span id="mobileSaveLabel">שמור</span></button>
   <a href="/app/account-billing.html"><span style="font-size:20px">💳</span>מנוי</a>
-  <a href="/app/case.html"><span style="font-size:20px">➕</span>תיק חדש</a>
-  <button onclick="window._doLogout()"><span style="font-size:20px">🚪</span>יציאה</button>
+  <a href="/app/deshboard.html"><span style="font-size:20px">🏠</span>דשבורד</a>
+  
+  <button onclick="window._doLogout()"><span style="font-size:20px">🚪</span>התנתקות</button>
 </nav>
+<!--
+  ════════════════════════════════════════════
+  OMDA איתור — כפתור WhatsApp צף
+  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  ════════════════════════════════════════════
+-->
+
+<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<style>
+  #waFloat {
+    position: fixed;
+    bottom: 80px; /* מעל Mobile Bottom Nav */
+    left: 16px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    direction: rtl;
+  }
+  #waFloatTooltip {
+    background: #1f2937;
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f9fafb;
+    font-family: "Heebo", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: waTooltipIn 0.3s ease;
+    display: none;
+  }
+  #waFloatTooltip.show { display: block; }
+  @keyframes waTooltipIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #waFloatBtn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: none;
+    padding: 0;
+  }
+  #waFloatBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(37,211,102,0.55);
+  }
+  #waFloatBtn svg {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+  }
+  /* בדסקטופ — מימין למטה */
+  @media (min-width: 769px) {
+    #waFloat {
+      bottom: 24px;
+      left: auto;
+      right: 24px;
+      align-items: flex-end;
+    }
+  }
+</style>
+
+<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<div id="waFloat">
+  <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
+  <a
+    id="waFloatBtn"
+    href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94."
+    target="_blank"
+    rel="noopener"
+    aria-label="צור קשר בוואטסאפ"
+    title="צור קשר בוואטסאפ"
+  >
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // מציג tooltip אחרי 3 שניות, מסתיר אחרי 5
+  (function() {
+    var shown = sessionStorage.getItem('wa_tooltip_shown');
+    if (shown) return;
+    setTimeout(function() {
+      var t = document.getElementById('waFloatTooltip');
+      if (t) {
+        t.classList.add('show');
+        sessionStorage.setItem('wa_tooltip_shown', '1');
+        setTimeout(function() { t.classList.remove('show'); }, 5000);
+      }
+    }, 3000);
+  })();
+</script>
 </body>
 </html>

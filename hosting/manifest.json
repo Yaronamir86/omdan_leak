@@ -31,7 +31,7 @@
       "url": "/app/dashboard.html",
       "icons": [
         {
-          "src": "/assets/omdan-leak-icon-192.png",
+          "src": "/assets/img/omdan-leak-icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -42,7 +42,7 @@
       "url": "/app/case.html",
       "icons": [
         {
-          "src": "/assets/omdan-leak-icon-192.png",
+          "src": "/assets/img/omdan-leak-icon-192.png",
           "sizes": "192x192"
         }
       ]

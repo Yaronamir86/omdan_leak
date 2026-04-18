@@ -677,6 +677,37 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
 @media(max-width:480px){
   .stp-label{font-size:9px;}
 }
+
+      /* ── CLIENT AUTOCOMPLETE ── */
+      .client-ac-wrap { position: relative; }
+      .client-ac-list {
+        position: absolute;
+        top: 100%;
+        right: 0; left: 0;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        z-index: 999;
+        max-height: 220px;
+        overflow-y: auto;
+        box-shadow: 0 8px 24px rgba(0,0,0,.4);
+        display: none;
+      }
+      .client-ac-list.open { display: block; }
+      .client-ac-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 13px;
+        border-bottom: 1px solid #263040;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .client-ac-item:last-child { border-bottom: none; }
+      .client-ac-item:hover { background: rgba(33,150,243,.15); }
+      .client-ac-name { font-weight: 700; color: #e2e8f0; }
+      .client-ac-sub  { font-size: 11px; color: #64748b; }
+      .client-ac-new  { color: #f59e0b; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -830,7 +861,16 @@ main{padding:28px 24px 100px;max-width:960px;width:100%;margin:0 auto;}
       <div class="fields-grid">
         <div class="field"><label>מספר תיק</label><input type="text" id="f-caseNum" readonly placeholder="יופק אוטומטית"></div>
         <div class="field"><label>תאריך הבדיקה</label><input type="date" id="f-date"></div>
-        <div class="field"><label>שם לקוח / לכבוד</label><input type="text" id="f-clientName" placeholder="שם מלא"></div>
+        <div class="field">
+          <label>שם לקוח / לכבוד</label>
+          <div class="client-ac-wrap">
+            <input type="text" id="f-clientName" placeholder="שם מלא" autocomplete="off"
+              oninput="onClientNameInput(this.value)"
+              onblur="setTimeout(closeClientAC, 200)">
+            <div class="client-ac-list" id="clientAcList"></div>
+          </div>
+        </div>
+        <div class="field"><label>טלפון לקוח</label><input type="tel" id="f-clientPhone" placeholder="050-0000000"></div>
         <div class="field"><label>נוכחים בעת הבדיקה</label><input type="text" id="f-present" placeholder="שמות הנוכחים"></div>
         <div class="field"><label>כתובת</label><input type="text" id="f-address" placeholder="רחוב ומספר"></div>
         <div class="field"><label>מספר דירה / קומה</label><input type="text" id="f-floor" placeholder="דירה / קומה"></div>
@@ -1649,6 +1689,7 @@ auth.onAuthStateChanged(async u=>{
   setSaveStatus('unsaved');
   if(!viewMode && !printMode) goSection(1);
   hideCaseLoader();
+  loadClientSuggestions(); // preload לקוחות
 });
 
 // ── CASE NUMBER ──
@@ -1675,8 +1716,20 @@ async function generateCaseNum(){
 // ── LOAD CASE ──
 async function loadCase(id){
   try{
-    const snap=await db.collection('leakCases').doc(id).get();
-    if(!snap.exists){window.location.href='/app/dashboard.html';return;}
+    let snap;
+    try { snap=await db.collection('leakCases').doc(id).get(); }
+    catch(permErr){
+      // document לא קיים עדיין — מטפלים כתיק חדש
+      document.getElementById('f-date').value=todayISO();
+      await generateCaseNum();
+      return;
+    }
+    if(!snap.exists){
+      // תיק חדש — אתחל שדות
+      document.getElementById('f-date').value=todayISO();
+      await generateCaseNum();
+      return;
+    }
     const d=snap.data();
     if(d.uid!==currentUser.uid){window.location.href='/app/dashboard.html';return;}
     const s=d.state||(d['state.client']?{client:d['state.client'],inspector:d['state.inspector']||{},inspection:d['state.inspection']||{},findings:d['state.findings']||'',recommendations:d['state.recommendations']||'',tools:d['state.tools']||{}}:{});
@@ -1685,6 +1738,7 @@ async function loadCase(id){
     setVal('f-date',d.date||cl.date||'');
     setVal('f-status',d.status||'draft');
     setVal('f-clientName',cl.name||'');
+    setVal('f-clientPhone',cl.phone||'');
     setVal('f-present',cl.present||'');
     setVal('f-address',cl.address||'');
     setVal('f-floor',cl.floor||'');
@@ -1744,7 +1798,7 @@ async function loadCase(id){
 // ── BUILD STATE ──
 function buildState(){
   return {
-    client:{name:getVal('f-clientName'),present:getVal('f-present'),address:getVal('f-address'),floor:getVal('f-floor'),city:getVal('f-city'),propertyType:getVal('f-propertyType'),source:getSourceValue(),insCompany:getVal('f-insCompany'),claimNum:getVal('f-claimNum'),problem:getVal('f-problem'),date:getVal('f-date')},
+    client:{name:getVal('f-clientName'),phone:getVal('f-clientPhone'),present:getVal('f-present'),address:getVal('f-address'),floor:getVal('f-floor'),city:getVal('f-city'),propertyType:getVal('f-propertyType'),source:getSourceValue(),insCompany:getVal('f-insCompany'),claimNum:getVal('f-claimNum'),problem:getVal('f-problem'),date:getVal('f-date')},
     inspector:{declaration:getVal('f-declaration'),education:getVal('f-education')},
     inspInstances:inspInstances.map(inst=>({...inst,photos:(inst.photos||[]).filter(ph=>ph.url&&!ph._uploading).map(ph=>({url:ph.url,name:ph.name,annotated:ph.annotated,annotations:ph.annotations||[],_fname:ph._fname||''}))})),
     findings:getVal('f-findings'),
@@ -1781,10 +1835,12 @@ async function saveCase(){
     // ── Deep merge: load existing state, overlay only non-empty fields ──
     // This prevents overwriting fields that weren't loaded into the DOM yet.
     let existingState = {};
+    let _isNewCase = false;
     try{
       const snap = await db.collection('leakCases').doc(currentCaseId).get();
+      _isNewCase = !snap.exists;
       if(snap.exists) existingState = snap.data()?.state || {};
-    }catch(e){}
+    }catch(e){ _isNewCase = true; }
 
     // Merge: existing wins only if the new value is empty AND existing is not
     function safeMergeField(newVal, existingVal){
@@ -1804,6 +1860,7 @@ async function saveCase(){
         source:      safeMergeField(fullState.client?.source,      existingState.client?.source),
         insCompany:  safeMergeField(fullState.client?.insCompany,  existingState.client?.insCompany),
         claimNum:    safeMergeField(fullState.client?.claimNum,    existingState.client?.claimNum),
+        phone:       safeMergeField(fullState.client?.phone,       existingState.client?.phone),
         problem:     safeMergeField(fullState.client?.problem,     existingState.client?.problem),
         date:        safeMergeField(fullState.client?.date,        existingState.client?.date),
       },
@@ -1829,10 +1886,40 @@ async function saveCase(){
       state:     mergedState,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
+    if(_isNewCase) {
+  caseData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+  try {
+    const billingSnap = await db.collection('billing').doc(currentUser.uid).get();
+    const billingToken = billingSnap.exists ? billingSnap.data() : null;
+    const limitCheck = BillingCore.checkReportLimit(billingToken);
+
+    if (!limitCheck.allowed) {
+      setSaveStatus('unsaved');
+      if (limitCheck.reason === 'trial_reports_exceeded') {
+        showToast(`⚠️ הגעת למגבלת ${limitCheck.max} דוחות בתקופת הניסיון. שדרג כדי להמשיך.`);
+        setTimeout(() => { window.location.href = '/pricing.html?reason=trial_limit'; }, 2500);
+      } else {
+        showToast(`⚠️ הגעת למגבלת ${limitCheck.max} דוחות החודש. שדרג למסלול פרו להמשך.`);
+        setTimeout(() => { window.location.href = '/pricing.html?reason=monthly_limit'; }, 2500);
+      }
+      return;
+    }
+
+    // מותר — מעלה את המונה ב-billing ב-1
+    await db.collection('billing').doc(currentUser.uid).update({
+      reportsThisMonth: firebase.firestore.FieldValue.increment(1),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch(e) {
+    console.warn('checkReportLimit failed, allowing save:', e);
+  }
+}
 
     await db.collection('leakCases').doc(currentCaseId).set(caseData, {merge:true});
     setSaveStatus('saved');
     showToast('✓ נשמר בהצלחה');
+    syncClientRecord(mergedState); // ברקע — לא מחכים
     if(currentSection===4) renderReport();
   }catch(e){
     setSaveStatus('unsaved');
@@ -1840,6 +1927,123 @@ async function saveCase(){
     console.error('saveCase error:',e);
   }
 }
+
+// ── CLIENT AUTOCOMPLETE ──
+let _allClients = [];
+let _clientsLoaded = false;
+
+async function loadClientSuggestions() {
+  if (_clientsLoaded) return;
+  try {
+    const snap = await db.collection('leakClients')
+      .where('uid', '==', currentUser.uid)
+      .orderBy('name')
+      .get();
+    _allClients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    _clientsLoaded = true;
+  } catch(e) {
+    // index לא קיים עדיין — ללא מיון
+    try {
+      const snap = await db.collection('leakClients')
+        .where('uid', '==', currentUser.uid)
+        .get();
+      _allClients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      _allClients.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'he'));
+      _clientsLoaded = true;
+    } catch(e2) {}
+  }
+}
+
+function onClientNameInput(val) {
+  loadClientSuggestions();
+  const list = document.getElementById('clientAcList');
+  const q = val.trim().toLowerCase();
+  if (!q) { list.classList.remove('open'); return; }
+  const matches = _allClients.filter(c =>
+    (c.name||'').toLowerCase().includes(q) ||
+    (c.phone||'').includes(q)
+  ).slice(0, 8);
+  const items = matches.map(c => `
+    <div class="client-ac-item" onmousedown="selectClient('${c.id}')">
+      <span class="client-ac-name">${escHtml(c.name)}</span>
+      <span class="client-ac-sub">${[c.phone, c.sourceLabel].filter(Boolean).join(' · ')}</span>
+    </div>`).join('');
+  list.innerHTML = items || `<div class="client-ac-item"><span class="client-ac-new">+ לקוח חדש: "${escHtml(val)}"</span></div>`;
+  list.classList.add('open');
+}
+
+function selectClient(clientId) {
+  const c = _allClients.find(x => x.id === clientId);
+  if (!c) return;
+  setVal('f-clientName', c.name || '');
+  setVal('f-clientPhone', c.phone || '');
+  if (c.source) {
+    const sel = document.getElementById('f-source');
+    if (sel) sel.value = c.source;
+    toggleSourceOther && toggleSourceOther(c.source);
+  }
+  closeClientAC();
+  document.getElementById('f-clientName')._clientId = clientId;
+}
+
+function closeClientAC() {
+  const list = document.getElementById('clientAcList');
+  if (list) list.classList.remove('open');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function syncClientRecord(mergedState) {
+  try {
+    const name  = (mergedState.client?.name || '').trim();
+    const phone = (mergedState.client?.phone || '').trim();
+    const source = mergedState.client?.source || 'direct';
+    const srcLabels = {direct:'פנייה ישירה',insurance:'ביטוח',contractor:'קבלן / ועד',legal:'עו"ד / שמאי'};
+    if (!name) return;
+    const inputEl = document.getElementById('f-clientName');
+    const existingId = inputEl?._clientId || null;
+    if (existingId) {
+      // עדכן לקוח קיים — רק שם/טלפון/מקור
+      await db.collection('leakClients').doc(existingId).update({
+        name, phone, source,
+        sourceLabel: srcLabels[source] || source,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      // בדוק אם קיים לפי שם+uid
+      const existing = await db.collection('leakClients')
+        .where('uid', '==', currentUser.uid)
+        .where('name', '==', name)
+        .limit(1).get();
+      if (!existing.empty) {
+        const doc = existing.docs[0];
+        await doc.ref.update({
+          phone: phone || doc.data().phone,
+          source: source || doc.data().source,
+          sourceLabel: srcLabels[source] || source,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        if (inputEl) inputEl._clientId = doc.id;
+      } else {
+        // לקוח חדש
+        const ref = await db.collection('leakClients').add({
+          uid: currentUser.uid,
+          name, phone, source,
+          sourceLabel: srcLabels[source] || source,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        if (inputEl) inputEl._clientId = ref.id;
+        _clientsLoaded = false; // רענן cache
+      }
+    }
+  } catch(e) {
+    console.warn('syncClientRecord:', e.message);
+  }
+}
+
 window.saveCase=saveCase;
 
 // ── CLOSE CASE (with validation) ──
@@ -1971,24 +2175,32 @@ function hidePdfProgress(){
 // ── PDF Ready Actions ─────────────────────────────────────────────────────────
 function _pdfActionOpen(){
   if(!_currentPdfUrl) return;
-  // Build filename same as share
   const _cl = (typeof buildState==='function' ? buildState()?.client : null) || {};
   const _cn = (_cl.name||'').trim();
   const _ca = [_cl.address,_cl.city].filter(Boolean).join(' ');
   const _cnum = getVal('f-caseNum')||'';
   const _fn = ['דוח איתור נזילות',_cnum,_cn,_ca].filter(Boolean).join(' ')+'.pdf';
-  // Download with correct filename via blob
-  fetch(_currentPdfUrl)
-    .then(r=>r.blob())
-    .then(blob=>{
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download=_fn;
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  showToast('מוריד...');
+  fetch(_currentPdfUrl, {mode:'cors'})
+    .then(r => {
+      if(!r.ok) throw new Error('fetch failed');
+      return r.blob();
     })
-    .catch(()=>window.open(_currentPdfUrl,'_blank')); // fallback
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = _fn;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    })
+    .catch(() => {
+      // CORS fallback — שם קובץ לא יישמר
+      window.open(_currentPdfUrl, '_blank');
+    });
 }
+
 async function _pdfActionShare(){
   if(!_currentPdfUrl) return;
   const _cl = buildState()?.client || {};
@@ -2182,7 +2394,8 @@ window.updateStatusBadge=updateStatusBadge;
 // ── AUTO-FILL FINDINGS ──
 function autoFillFindings(){
   const date=document.getElementById('f-date')?.value||new Date().toISOString().split('T')[0];
-  const dateHe=new Date(date).toLocaleDateString('he-IL',{day:'numeric',month:'2-digit',year:'numeric'});
+  function _fmtDDMMYYYY(d){ const dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear(); return dd+'/'+mm+'/'+yy; }
+  const _rawDate=getVal('f-date'); const dateHe=_fmtDDMMYYYY(_rawDate ? new Date(_rawDate+'T12:00:00') : new Date());
   const name=document.getElementById('f-clientName')?.value||'הלקוח';
   const addr=[document.getElementById('f-address')?.value,document.getElementById('f-floor')?.value].filter(Boolean).join(' דירה ');
   const city=document.getElementById('f-city')?.value||'';
@@ -2206,8 +2419,9 @@ function renderReport(){
   const cl=s.client;
   const p=profileData;
   const caseNum=getVal('f-caseNum');
-  const today=new Date().toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
-  const dateHe=new Date(getVal('f-date')||new Date()).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
+  function _fmtDDMMYYYY(d){ const dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear(); return dd+'/'+mm+'/'+yy; }
+  const today=_fmtDDMMYYYY(new Date());
+  const _rawDateRpt=getVal('f-date'); const dateHe=_fmtDDMMYYYY(_rawDateRpt ? new Date(_rawDateRpt+'T12:00:00') : new Date());
   const profName=p.nameHe||p.fullName||'___________';
   const profTitle=p.title||'מאתר נזילות מוסמך';
   const profLicense=p.license||'';
@@ -2353,7 +2567,8 @@ ${_headerHtml}
     <table><tbody>
       ${cl.name?`<tr><td>לכבוד</td><td>${escHtml(cl.name)}</td></tr>`:''}
       ${cl.present?`<tr><td>נוכחים</td><td>${escHtml(cl.present)}</td></tr>`:''}
-      ${cl.address||cl.floor?`<tr><td>כתובת</td><td>${escHtml([cl.address,cl.floor].filter(Boolean).join(', '))}</td></tr>`:''}
+      ${cl.address?`<tr><td>כתובת</td><td>${escHtml(cl.address)}</td></tr>`:''}
+      ${cl.floor?`<tr><td>דירה</td><td>${escHtml(cl.floor)}</td></tr>`:''}
       ${cl.city?`<tr><td>ישוב</td><td>${escHtml(cl.city)}</td></tr>`:''}
       ${cl.insCompany?`<tr><td>חברת ביטוח</td><td>${escHtml(cl.insCompany)}</td></tr>`:''}
       ${cl.claimNum?`<tr><td>מספר תביעה</td><td>${escHtml(cl.claimNum)}</td></tr>`:''}
@@ -2867,15 +3082,57 @@ function onEditorPointerUp(evt){
   if(editorDragMode==='create'&&editorIsDrawing&&editorPointerStart){const ann=createAnnotationFromDrag(editorPointerStart,pt);editorIsDrawing=false;editorDragMode=null;editorDragStart=null;editorPreviewAnnotation=null;if(isAnnotationMeaningful(ann)){maybeAttachLabelToAnnotation(ann);editorAnnotations.push(ann);editorRedoStack=[];editorSelectedIndex=editorAnnotations.length-1;}redrawEditorCanvas();}
 }
 function moveAnnotation(ann,dx,dy){if(!ann) return;if(ann.tool==='circle'){ann.cx+=dx;ann.cy+=dy;if(ann.label){ann.label.x+=dx;ann.label.y+=dy;}return;}ann.x1+=dx;ann.y1+=dy;ann.x2+=dx;ann.y2+=dy;if(ann.label){ann.label.x+=dx;ann.label.y+=dy;}}
-function maybeAttachLabelToAnnotation(ann){const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');if(!text||!text.trim()) return;const W=editorCanvas?.width||800;const H=editorCanvas?.height||600;const estW=text.trim().length*20+30;const estH=50;let lx,ly;if(ann.tool==='circle'){lx=ann.cx+ann.rx+16;ly=ann.cy;}else{const dx=ann.x2-ann.x1;const dy=ann.y2-ann.y1;const arrowLen=Math.hypot(dx,dy)||1;const offset=Math.max(80,arrowLen*0.45);lx=ann.x2+(dx/arrowLen)*offset;ly=ann.y2+(dy/arrowLen)*offset;}lx=Math.min(Math.max(lx,estW/2+8),W-estW/2-8);ly=Math.min(Math.max(ly,estH/2+8),H-estH/2-8);ann.label={text:text.trim(),x:lx,y:ly,color:ann.color};}
+function maybeAttachLabelToAnnotation(ann){const text=window.prompt('הוסף טקסט ליד הסימון (אופציונלי):','');if(!text||!text.trim()) return;ann.label={text:text.trim(),x:0,y:0,color:'#ffffff'};}
 function createAnnotationFromDrag(start,end){if(editorCurrentTool==='circle'){const cx=(start.x+end.x)/2;const cy=(start.y+end.y)/2;const rx=Math.abs(end.x-start.x)/2;const ry=Math.abs(end.y-start.y)/2;return{tool:'circle',cx,cy,rx,ry,color:editorCurrentColor,lineWidth:editorCurrentLineWidth};}return{tool:'arrow',x1:start.x,y1:start.y,x2:end.x,y2:end.y,color:editorCurrentColor,lineWidth:editorCurrentLineWidth};}
 function isAnnotationMeaningful(ann){if(!ann) return false;if(ann.tool==='circle') return ann.rx>8&&ann.ry>8;return Math.hypot(ann.x2-ann.x1,ann.y2-ann.y1)>12;}
 function findAnnotationHit(x,y){for(let i=editorAnnotations.length-1;i>=0;i--){const ann=editorAnnotations[i];if(ann.label?.text){const labelW=Math.max(80,ann.label.text.length*22)+20;const labelH=52;const lx=ann.label.x-labelW/2;const ly=ann.label.y-labelH/2;if(x>=lx&&x<=lx+labelW&&y>=ly&&y<=ly+labelH) return i;}if(ann.tool==='circle'){const dx=(x-ann.cx)/(ann.rx||1);const dy=(y-ann.cy)/(ann.ry||1);const dist=Math.abs((dx*dx+dy*dy)-1);if(dist<0.22||(dx*dx+dy*dy)<=1) return i;}else{const d=distanceToSegment(x,y,ann.x1,ann.y1,ann.x2,ann.y2);if(d<=Math.max(12,ann.lineWidth+8)) return i;}}return -1;}
 function distanceToSegment(px,py,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;if(dx===0&&dy===0) return Math.hypot(px-x1,py-y1);const t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/(dx*dx+dy*dy)));const sx=x1+t*dx,sy=y1+t*dy;return Math.hypot(px-sx,py-sy);}
-function redrawEditorCanvas(){if(!editorCtx||!editorCanvas||!editorBaseImage) return;editorCtx.clearRect(0,0,editorCanvas.width,editorCanvas.height);editorCtx.drawImage(editorBaseImage,0,0,editorCanvas.width,editorCanvas.height);editorAnnotations.forEach((ann,index)=>drawAnnotation(ann,index===editorSelectedIndex));if(editorPreviewAnnotation) drawAnnotation(editorPreviewAnnotation,false,true);}
-function drawAnnotation(ann,isSelected=false,isPreview=false){if(!editorCtx||!ann) return;editorCtx.save();editorCtx.strokeStyle=ann.color;editorCtx.fillStyle=ann.color;editorCtx.lineWidth=ann.lineWidth;editorCtx.globalAlpha=isPreview?0.7:1;if(ann.tool==='circle'){editorCtx.beginPath();editorCtx.ellipse(ann.cx,ann.cy,Math.max(ann.rx,1),Math.max(ann.ry,1),0,0,Math.PI*2);editorCtx.stroke();}else{drawArrowShape(ann);}drawAnnotationLabel(ann,isSelected);if(isSelected) drawSelectionBox(ann);editorCtx.restore();}
-function drawArrowShape(ann){const headLength=Math.max(14,ann.lineWidth*5.2);const angle=Math.atan2(ann.y2-ann.y1,ann.x2-ann.x1);const p1x=ann.x2-headLength*Math.cos(angle-Math.PI/6);const p1y=ann.y2-headLength*Math.sin(angle-Math.PI/6);const p2x=ann.x2-headLength*Math.cos(angle+Math.PI/6);const p2y=ann.y2-headLength*Math.sin(angle+Math.PI/6);editorCtx.save();editorCtx.strokeStyle='rgba(0,0,0,0.55)';editorCtx.lineWidth=ann.lineWidth+4;editorCtx.lineCap='round';editorCtx.beginPath();editorCtx.moveTo(ann.x1,ann.y1);editorCtx.lineTo(ann.x2,ann.y2);editorCtx.stroke();editorCtx.restore();editorCtx.lineCap='round';editorCtx.beginPath();editorCtx.moveTo(ann.x1,ann.y1);editorCtx.lineTo(ann.x2,ann.y2);editorCtx.stroke();editorCtx.beginPath();editorCtx.moveTo(ann.x2,ann.y2);editorCtx.lineTo(p1x,p1y);editorCtx.lineTo(p2x,p2y);editorCtx.closePath();editorCtx.fill();}
-function drawAnnotationLabel(ann,isSelected=false){if(!ann.label?.text) return;editorCtx.save();const W=editorCanvas?.width||800;const fontSize=Math.max(24,Math.min(56,Math.round(W*0.04)));editorCtx.font=`900 ${fontSize}px Heebo, Arial, sans-serif`;editorCtx.textAlign='center';editorCtx.textBaseline='middle';const text=ann.label.text;const x=ann.label.x;const y=ann.label.y;editorCtx.shadowColor='rgba(0,0,0,1)';editorCtx.shadowBlur=6;editorCtx.strokeStyle='rgba(0,0,0,0.9)';editorCtx.lineWidth=Math.max(5,fontSize*0.2);editorCtx.lineJoin='round';editorCtx.strokeText(text,x,y);editorCtx.shadowBlur=5;editorCtx.fillStyle=ann.label.color||ann.color;editorCtx.fillText(text,x,y);if(isSelected){const m=editorCtx.measureText(text);editorCtx.shadowBlur=0;editorCtx.setLineDash([4,3]);editorCtx.strokeStyle='#FFFFFF';editorCtx.lineWidth=1.5;editorCtx.strokeRect(x-m.width/2-4,y-fontSize/2-4,m.width+8,fontSize+8);}editorCtx.restore();}
+function redrawEditorCanvas(){if(!editorCtx||!editorCanvas||!editorBaseImage) return;editorCtx.clearRect(0,0,editorCanvas.width,editorCanvas.height);editorCtx.drawImage(editorBaseImage,0,0,editorCanvas.width,editorCanvas.height);editorAnnotations.forEach((ann,index)=>drawAnnotation(ann,index===editorSelectedIndex,false,index));if(editorPreviewAnnotation) drawAnnotation(editorPreviewAnnotation,false,true,-1);drawTopLabelStrip();}
+function drawAnnotation(ann,isSelected=false,isPreview=false,annIndex=-1){if(!editorCtx||!ann) return;editorCtx.save();editorCtx.strokeStyle=ann.color;editorCtx.fillStyle=ann.color;editorCtx.lineWidth=ann.lineWidth;editorCtx.globalAlpha=isPreview?0.6:1;if(ann.tool==='circle'){editorCtx.beginPath();editorCtx.ellipse(ann.cx,ann.cy,Math.max(ann.rx,1),Math.max(ann.ry,1),0,0,Math.PI*2);editorCtx.stroke();}else{drawArrowShape(ann);}if(isSelected) drawSelectionBox(ann);editorCtx.restore();if(!isPreview&&annIndex>=0) drawAnnotationBadge(ann,annIndex);}
+function drawArrowShape(ann){
+  const ctx=editorCtx;
+  const headLen=Math.max(18,ann.lineWidth*6);
+  const angle=Math.atan2(ann.y2-ann.y1,ann.x2-ann.x1);
+  // shorten tip so arrowhead sits cleanly
+  const tipX=ann.x2,tipY=ann.y2;
+  const p1x=tipX-headLen*Math.cos(angle-Math.PI/7);
+  const p1y=tipY-headLen*Math.sin(angle-Math.PI/7);
+  const p2x=tipX-headLen*Math.cos(angle+Math.PI/7);
+  const p2y=tipY-headLen*Math.sin(angle+Math.PI/7);
+  // shadow pass
+  ctx.save();ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=ann.lineWidth+5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(ann.x1,ann.y1);ctx.lineTo(tipX,tipY);ctx.stroke();ctx.restore();
+  // line
+  ctx.lineCap='round';ctx.lineWidth=ann.lineWidth;
+  ctx.beginPath();ctx.moveTo(ann.x1,ann.y1);ctx.lineTo(tipX,tipY);ctx.stroke();
+  // filled arrowhead
+  ctx.beginPath();ctx.moveTo(tipX,tipY);ctx.lineTo(p1x,p1y);ctx.lineTo(p2x,p2y);ctx.closePath();ctx.fill();
+}
+function drawAnnotationBadge(ann,annIndex){
+  if(!editorCtx||!editorCanvas) return;
+  const W=editorCanvas.width;
+  const r=Math.max(14,Math.round(W*0.022));
+  let bx,by;
+  if(ann.tool==='circle'){bx=ann.cx+ann.rx*0.7;by=ann.cy-ann.ry*0.7;}
+  else{const _hl=Math.max(18,ann.lineWidth*6);const _ang=Math.atan2(ann.y2-ann.y1,ann.x2-ann.x1);bx=ann.x2-_hl*(2/3)*Math.cos(_ang);by=ann.y2-_hl*(2/3)*Math.sin(_ang);}
+  const num=String(annIndex+1);
+  const ctx=editorCtx;
+  ctx.save();
+  // outer white ring
+  ctx.beginPath();ctx.arc(bx,by,r+2,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
+  // black filled circle
+  ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);
+  ctx.fillStyle='#111111';ctx.fill();
+  // number
+  ctx.font=`800 ${Math.round(r*1.1)}px Heebo,Arial,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#ffffff';ctx.shadowBlur=0;
+  ctx.fillText(num,bx,by+1);
+  ctx.restore();
+}
+function drawAnnotationLabel(ann,isSelected=false){/* labels drawn in top strip via drawTopLabelStrip */}
+function drawTopLabelStrip(){if(!editorCtx||!editorCanvas||!editorAnnotations.length) return;const labeled=editorAnnotations.filter(a=>a.label?.text);if(!labeled.length) return;const W=editorCanvas.width;const fontSize=Math.max(21, Math.min(36, Math.round(W * 0.036)));const pad=9;const lineH=fontSize+pad*2;editorCtx.save();editorCtx.fillStyle='rgba(0,0,0,0.88)';editorCtx.fillRect(0,0,W,lineH);editorCtx.font=`600 ${fontSize}px Heebo, Arial, sans-serif`;editorCtx.textBaseline='middle';editorCtx.textAlign='right';editorCtx.fillStyle='#ffffff';editorCtx.shadowBlur=0;const parts=labeled.map((a,i)=>{const globalIdx=editorAnnotations.indexOf(a);return`${globalIdx+1}. ${a.label.text}`;});const fullText=parts.join('    |    ');editorCtx.fillText(fullText,W-14,lineH/2);editorCtx.restore();}
 function drawSelectionBox(ann){editorCtx.save();editorCtx.setLineDash([8,6]);editorCtx.strokeStyle='#FFFFFF';editorCtx.lineWidth=1.5;const b=getAnnotationBounds(ann);editorCtx.strokeRect(b.x-6,b.y-6,b.w+12,b.h+12);editorCtx.restore();}
 function getAnnotationBounds(ann){let base;if(ann.tool==='circle'){base={x:ann.cx-ann.rx,y:ann.cy-ann.ry,w:ann.rx*2,h:ann.ry*2};}else{base={x:Math.min(ann.x1,ann.x2),y:Math.min(ann.y1,ann.y2),w:Math.abs(ann.x2-ann.x1),h:Math.abs(ann.y2-ann.y1)};}if(ann.label?.text){const labelW=Math.max(80,ann.label.text.length*22)+20;const labelH=52;const lx=ann.label.x-labelW/2;const ly=ann.label.y-labelH/2;const minX=Math.min(base.x,lx),minY=Math.min(base.y,ly);const maxX=Math.max(base.x+base.w,lx+labelW),maxY=Math.max(base.y+base.h,ly+labelH);return{x:minX,y:minY,w:maxX-minX,h:maxY-minY};}return base;}
 function rotateSelectedArrow(delta){if(editorSelectedIndex<0) return;const ann=editorAnnotations[editorSelectedIndex];if(ann.tool!=='arrow') return;const cx=(ann.x1+ann.x2)/2,cy=(ann.y1+ann.y2)/2;const angle=(delta*Math.PI)/180;const cos=Math.cos(angle),sin=Math.sin(angle);const rotate=(px,py)=>({x:cos*(px-cx)-sin*(py-cy)+cx,y:sin*(px-cx)+cos*(py-cy)+cy});const p1=rotate(ann.x1,ann.y1),p2=rotate(ann.x2,ann.y2);ann.x1=p1.x;ann.y1=p1.y;ann.x2=p2.x;ann.y2=p2.y;redrawEditorCanvas();}
@@ -2883,7 +3140,7 @@ function undoEditor(){if(!editorAnnotations.length) return;const ann=editorAnnot
 function redoEditor(){if(!editorRedoStack.length) return;const ann=editorRedoStack.pop();editorAnnotations.push(JSON.parse(JSON.stringify(ann)));editorSelectedIndex=editorAnnotations.length-1;redrawEditorCanvas();}
 function clearEditorAnnotations(){if(!editorAnnotations.length) return;editorRedoStack.push(...editorAnnotations.map(a=>JSON.parse(JSON.stringify(a))));editorAnnotations=[];editorSelectedIndex=-1;redrawEditorCanvas();}
 function deleteSelectedAnnotation(){if(editorSelectedIndex<0) return;editorRedoStack.push(JSON.parse(JSON.stringify(editorAnnotations[editorSelectedIndex])));editorAnnotations.splice(editorSelectedIndex,1);editorSelectedIndex=Math.min(editorSelectedIndex,editorAnnotations.length-1);redrawEditorCanvas();}
-function editSelectedAnnotationText(){if(editorSelectedIndex<0) return;const ann=editorAnnotations[editorSelectedIndex];const current=ann.label?.text||'';const next=window.prompt('ערוך טקסט ליד הסימון. להשאיר ריק כדי למחוק.',current);if(next===null) return;if(!next.trim()){delete ann.label;}else{const W2=editorCanvas?.width||800,H2=editorCanvas?.height||600;const estW2=next.trim().length*20+30,estH2=50;let lx2=ann.label?.x,ly2=ann.label?.y;if(lx2==null){if(ann.tool==='circle'){lx2=ann.cx+ann.rx+16;ly2=ann.cy;}else{const dx2=ann.x1-ann.x2,dy2=ann.y1-ann.y2,len2=Math.hypot(dx2,dy2)||1;lx2=ann.x2+(dx2/len2)*60;ly2=ann.y2+(dy2/len2)*60;}}lx2=Math.min(Math.max(lx2,estW2/2+8),W2-estW2/2-8);ly2=Math.min(Math.max(ly2,estH2/2+8),H2-estH2/2-8);ann.label={text:next.trim(),x:lx2,y:ly2,color:ann.color};}redrawEditorCanvas();}
+function editSelectedAnnotationText(){if(editorSelectedIndex<0) return;const ann=editorAnnotations[editorSelectedIndex];const current=ann.label?.text||'';const next=window.prompt('ערוך טקסט ליד הסימון. להשאיר ריק כדי למחוק.',current);if(next===null) return;if(!next.trim()){delete ann.label;}else{ann.label={text:next.trim(),x:0,y:0,color:'#ffffff'};}redrawEditorCanvas();}
 async function saveEditedImage(){if(editorCurrentTypeId==null||editorCurrentPhotoIndex==null||!editorCanvas) return;const instanceId=editorCurrentTypeId,idx=editorCurrentPhotoIndex;const inst=inspInstances.find(i=>i.instanceId===instanceId);if(!inst) return;const currentPhoto=inst.photos[idx];const hasAnnotations=editorAnnotations.length>0;const updatedPhoto={...currentPhoto,annotations:editorAnnotations.map(a=>JSON.parse(JSON.stringify(a))),annotated:hasAnnotations};if(hasAnnotations){showToast('מעלה תמונה עם סימונים...');try{const blob=await new Promise(res=>editorCanvas.toBlob(res,'image/jpeg',0.85));const fname=currentPhoto._fname||`annotated_${Date.now()}.jpg`;const ref=storage.ref(storagePath(instanceId,fname));await ref.put(blob);const newUrl=await ref.getDownloadURL();updatedPhoto.url=newUrl;updatedPhoto._fname=fname;}catch(e){showToast('שגיאה בשמירת סימונים: '+e.message);return;}}inst.photos[idx]=updatedPhoto;if(_activeInstanceId===instanceId) renderActiveInspForm();setSaveStatus('unsaved');showToast(hasAnnotations?'✓ התמונה והסימונים נשמרו':'✓ הסימונים הוסרו');closeEditor();}
 function normalizeColor(c){return String(c||'').replace(/\s+/g,'').toLowerCase();}
 
@@ -2907,6 +3164,113 @@ window.toggleVoice=toggleVoice;
 // ── EXPOSE GLOBALS ──
 window.openEditor=openEditor;window.closeEditor=closeEditor;window.setEditorTool=setEditorTool;window.setEditorColor=setEditorColor;window.setEditorLineWidth=setEditorLineWidth;window.rotateSelectedArrow=rotateSelectedArrow;window.undoEditor=undoEditor;window.redoEditor=redoEditor;window.clearEditorAnnotations=clearEditorAnnotations;window.deleteSelectedAnnotation=deleteSelectedAnnotation;window.editSelectedAnnotationText=editSelectedAnnotationText;window.saveEditedImage=saveEditedImage;window.toggleEditorMore=toggleEditorMore;
 window.saveCase=saveCase;window.closeCase=closeCase;window.autoFillFindings=autoFillFindings;window.renderInspRows=renderInspRows;window.updateAutoTools=updateAutoTools;window.updateStatusBadge=updateStatusBadge;window.doLogout=doLogout;
+</script>
+<!--
+  ════════════════════════════════════════════
+  OMDA איתור — כפתור WhatsApp צף
+  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  ════════════════════════════════════════════
+-->
+
+<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<style>
+  #waFloat {
+    position: fixed;
+    bottom: 80px; /* מעל Mobile Bottom Nav */
+    left: 16px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    direction: rtl;
+  }
+  #waFloatTooltip {
+    background: #1f2937;
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f9fafb;
+    font-family: "Heebo", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: waTooltipIn 0.3s ease;
+    display: none;
+  }
+  #waFloatTooltip.show { display: block; }
+  @keyframes waTooltipIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #waFloatBtn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: none;
+    padding: 0;
+  }
+  #waFloatBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(37,211,102,0.55);
+  }
+  #waFloatBtn svg {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+  }
+  /* בדסקטופ — מימין למטה */
+  @media (min-width: 769px) {
+    #waFloat {
+      bottom: 24px;
+      left: auto;
+      right: 24px;
+      align-items: flex-end;
+    }
+  }
+</style>
+
+<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<div id="waFloat">
+  <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
+  <a
+    id="waFloatBtn"
+    href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94."
+    target="_blank"
+    rel="noopener"
+    aria-label="צור קשר בוואטסאפ"
+    title="צור קשר בוואטסאפ"
+  >
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // מציג tooltip אחרי 3 שניות, מסתיר אחרי 5
+  (function() {
+    var shown = sessionStorage.getItem('wa_tooltip_shown');
+    if (shown) return;
+    setTimeout(function() {
+      var t = document.getElementById('waFloatTooltip');
+      if (t) {
+        t.classList.add('show');
+        sessionStorage.setItem('wa_tooltip_shown', '1');
+        setTimeout(function() { t.classList.remove('show'); }, 5000);
+      }
+    }, 3000);
+  })();
 </script>
 </body>
 </html>

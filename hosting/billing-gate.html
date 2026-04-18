@@ -82,7 +82,13 @@ const plan = params.get('plan');
 const reason = params.get('reason');
 
 if(plan){
-  const names={leak:'OMDA איתור — מאתר נזילות',trial:'ניסיון חינמי 14 יום'};
+ const names={
+  leak:    'OMDA איתור (legacy)',
+  starter: 'OMDA איתור — Starter',
+  pro:     'OMDA איתור — Pro',
+  bundle:  'Bundle — רכוש + איתור',
+  trial:   'ניסיון חינמי 28 יום',
+};
   document.getElementById('planName').textContent = names[plan]||plan;
   document.getElementById('planInfo').style.display='block';
 }
@@ -90,6 +96,10 @@ if(reason==='trial_expired'){
   document.getElementById('gateMsg').textContent='תקופת הניסיון שלך הסתיימה. שדרג כדי להמשיך להשתמש במערכת.';
 } else if(reason==='subscription_expired'){
   document.getElementById('gateMsg').textContent='המנוי שלך פג. חדש את המנוי כדי להמשיך.';
+} else if(reason==='trial_limit'){
+  document.getElementById('gateMsg').textContent='הגעת למגבלת 8 הדוחות בתקופת הניסיון. שדרג כדי להמשיך.';
+} else if(reason==='monthly_limit'){
+  document.getElementById('gateMsg').textContent='הגעת למגבלת הדוחות החודשית. שדרג לפרו להמשך ללא הגבלה.';
 }
 
 auth.onAuthStateChanged(user=>{

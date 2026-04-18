@@ -714,6 +714,7 @@
           import {
             getAuth,
             onAuthStateChanged,
+            signOut,
           } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
           import {
             getFirestore,
@@ -726,6 +727,7 @@
             orderBy,
             limit,
             getDocs,
+            Timestamp,
           } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
           import { firebaseConfig } from './config/firebase-config.js';
@@ -734,11 +736,13 @@
           const db = getFirestore(app);
 
           const PLANS = {
-            trial: { name: "ניסיון חינמי", monthly: 0, annual: 0 },
-            leak: { name: "OMDA איתור", monthly: 29, annual: 290 },
-            pro: { name: "Pro", monthly: 249, annual: 2190 },
-            office: { name: "Office", monthly: 499, annual: 4500 },
-            trial: { name: "ניסיון חינמי", monthly: 0, annual: 0 },
+            trial:   { name: "ניסיון חינמי",          monthly: 0,   annual: 0    },
+            free:    { name: "חינמי",                  monthly: 0,   annual: 0    },
+            leak:    { name: "OMDA איתור (legacy)",    monthly: 29,  annual: 290  }, // legacy
+            starter: { name: "OMDA איתור — Starter",  monthly: 39,  annual: 374  },
+            pro:     { name: "OMDA איתור — Pro",       monthly: 79,  annual: 756  },
+            bundle:  { name: "Bundle — רכוש + איתור", monthly: 129, annual: 1238 },
+            'bundle-starter-leak': { name: "Bundle (legacy)", monthly: 109, annual: 890 }, // legacy
           };
           const BILLING_LABELS = { monthly: "חודשי", annual: "שנתי" };
 
@@ -790,26 +794,52 @@
             }
           }
 
+          async function countCasesThisMonth(uid) {
+            try {
+              const now = new Date();
+              const startOfMonth = Timestamp.fromDate(new Date(now.getFullYear(), now.getMonth(), 1));
+              const q = query(
+                collection(db, "leakCases"),
+                where("uid", "==", uid),
+                where("createdAt", ">=", startOfMonth),
+              );
+              const snap = await getDocs(q);
+              return snap.size;
+            } catch (e) {
+              return 0;
+            }
+          }
+
           async function render(user, billing) {
             const plan = PLANS[billing?.plan] || PLANS.trial;
+            const isFree  = billing?.plan === "free";
             const isTrial = !billing || billing.plan === "trial";
             const isActive =
               billing?.status === "active" &&
-              (billing?.plan === "leak" || billing?.plan?.startsWith("bundle"));
+              ["leak", "starter", "pro", "bundle", "bundle-starter-leak"].includes(billing?.plan);
             const isCanceled = billing?.cancelAtEnd === true;
             const subEnd = billing?.subscriptionEnd;
             const trialEnd = billing?.trialEnd;
-            const usage = billing?.reportsThisMonth || 0;
 
-            // Usage limit by plan
-            const usageLimits = { trial: 999, leak: 999 };
-            const usageLimit = usageLimits[billing?.plan] || 5;
-            const usagePct = Math.min(
-              100,
-              Math.round((usage / usageLimit) * 100),
-            );
+            // Usage — count from leakCases for all users
+            const usage = await countCasesThisMonth(user.uid);
 
-            // Payment history
+            // Usage limit by plan (null = ללא הגבלה)
+            const usageLimits = {
+              trial:               8,
+              free:                null,
+              leak:                20,   // legacy
+              starter:             20,
+              pro:                 null,
+              bundle:              null,
+              'bundle-starter-leak': null,
+            };
+            const usageLimit = usageLimits[billing?.plan] ?? null;
+            const usagePct = usageLimit !== null
+              ? Math.min(100, Math.round((usage / usageLimit) * 100))
+              : 0;
+
+            // Payment history — not shown for free plan
             const history = isActive ? await loadPaymentHistory(user.uid) : [];
 
             let html = "";
@@ -823,7 +853,23 @@
                 ? fmtDate(subEnd)
                 : null;
 
-            if (isTrial) {
+            if (isFree) {
+              html += `<div class="section-label">סטטוס מנוי</div>
+    <div class="card">
+    <div class="plan-hero">
+      <div>
+        <div class="plan-hero-name">מסלול חינמי</div>
+      </div>
+      <span class="plan-badge badge-active">✓ פעיל</span>
+    </div>
+    <div class="details-grid">
+      <div class="detail-item">
+        <div class="detail-label">סטטוס</div>
+        <div class="detail-value green">חינמי — ללא עלות</div>
+      </div>
+    </div>
+    </div>`;
+            } else if (isTrial) {
               const end = trialEnd ? new Date(trialEnd) : null;
               const daysLeft = end
                 ? Math.max(
@@ -837,7 +883,7 @@
               html += `<a href="/pricing.html" class="upgrade-banner" style="display:flex;">
       <div class="upgrade-banner-text">
         <div class="upgrade-banner-title">⚡ שדרג עכשיו לגרסה מלאה</div>
-        <div class="upgrade-banner-sub">29₪/חודש — ביטול בכל עת, ללא התחייבות</div>
+        <div class="upgrade-banner-sub">החל מ-39₪/חודש — ביטול בכל עת, ללא התחייבות</div>
       </div>
       <span class="btn-upgrade">בחר מסלול →</span>
     </a>`;
@@ -852,7 +898,7 @@
         </div>
         <div style="flex:1;">
           ${end ? `<div class="trial-end-date">הניסיון מסתיים ב-<strong>${fmtDate({ toDate: () => end })}</strong></div>` : ""}
-          <div class="trial-end-date" style="margin-top:4px;">אחרי הניסיון: <strong>29₪/חודש</strong></div>
+          <div class="trial-end-date" style="margin-top:4px;">אחרי הניסיון: <strong>החל מ-39₪/חודש</strong></div>
           ${isUrgent ? `<div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--red);">⚠️ פחות מ-3 ימים נותרו — שדרג כדי לא לאבד גישה</div>` : ""}
         </div>
       </div>
@@ -866,7 +912,7 @@
       </div>
       <div class="detail-item">
         <div class="detail-label">מחיר לאחר הניסיון</div>
-        <div class="detail-value">29₪/חודש</div>
+        <div class="detail-value">החל מ-39₪/חודש</div>
       </div>`;
             } else {
               html += `<div class="section-label">סטטוס מנוי</div>
@@ -905,17 +951,17 @@
             const usageCta =
               usage === 0
                 ? `<a href="/app/case.html" class="usage-cta">📄 צור דוח ראשון →</a>`
-                : usagePct >= 80 && usageLimit !== 999
+                : usagePct >= 80 && usageLimit !== null
                   ? `<a href="/pricing.html" class="usage-cta" style="color:var(--red);border-color:rgba(239,68,68,.3);">⚠️ קרוב למגבלה — שדרג</a>`
                   : "";
             html += `<div class="card">
     <div class="card-title">📊 שימוש החודש</div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
       <span style="font-size:20px;font-weight:900;color:var(--text);">${usage}</span>
-      <span style="font-size:13px;color:var(--muted);">${usageLimit === 999 ? "ללא הגבלה" : `מתוך ${usageLimit} דוחות`}</span>
+      <span style="font-size:13px;color:var(--muted);">${usageLimit === null ? "ללא הגבלה" : `מתוך ${usageLimit} דוחות`}</span>
     </div>
     ${
-      usageLimit !== 999
+      usageLimit !== null
         ? `
     <div class="usage-bar-wrap">
       <div class="usage-bar" style="width:${usagePct}%;${usagePct > 80 ? "background:linear-gradient(90deg,#2196F3,#ef4444)" : ""}"></div>
@@ -931,7 +977,9 @@
   <div class="card">
     <div class="actions">`;
 
-            if (isTrial || !isActive || isCanceled) {
+            if (isFree) {
+              // מסלול חינמי — ללא כפתורים
+            } else if (isTrial || !isActive || isCanceled) {
               html += `<a class="btn btn-primary" href="/pricing.html">⚡ בחר מסלול ושדרג</a>`;
               html += `<div class="cancel-note">קבל גישה מלאה לכל הדוחות והתכונות — ביטול בכל עת</div>`;
             } else {
@@ -942,7 +990,8 @@
 
             html += `</div></div>`;
 
-            // ── 3: Payment History — clean table ──
+            // ── 3: Payment History — not shown for free plan ──
+            if (!isFree) {
             html += `<div class="section-label">היסטוריית תשלומים</div>`;
             if (history.length > 0) {
               html += `<div class="card" style="padding:20px 0 0;">
@@ -973,6 +1022,8 @@
       <div style="font-size:12px;">התשלומים יופיעו כאן לאחר החיוב הראשון</div>
     </div>`;
             }
+
+            } // end !isFree history block
 
             // ── Account Info ──
             html += `<div class="card">
@@ -1131,10 +1182,119 @@
       <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
       <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
       <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-      <a href="/legal/index.html">מסמכים משפטיים</a>
-      <br /><span style="margin-top: 6px; display: block"
-        >© 2026 OMDA. כל הזכויות שמורות.</span
-      >
+      <a href="/legal/index.html">מסמכים משפטיים</a> |
+      <a href="/app/support.html">תמיכה</a> 
+        <br /><span style="margin-top:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;direction:ltr">
+        © 2026 OMDA-NET. כל הזכויות שמורות.
+        <img src="/assets/img/omda-ecosystem-color.png" alt="OMDA-NET" style="height:52px;width:52px;object-fit:contain;vertical-align:middle;" />
+      </span>
     </footer>
+    <!--
+  ════════════════════════════════════════════
+  OMDA איתור — כפתור WhatsApp צף
+  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  ════════════════════════════════════════════
+-->
+
+<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<style>
+  #waFloat {
+    position: fixed;
+    bottom: 80px; /* מעל Mobile Bottom Nav */
+    left: 16px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    direction: rtl;
+  }
+  #waFloatTooltip {
+    background: #1f2937;
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f9fafb;
+    font-family: "Heebo", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: waTooltipIn 0.3s ease;
+    display: none;
+  }
+  #waFloatTooltip.show { display: block; }
+  @keyframes waTooltipIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #waFloatBtn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: none;
+    padding: 0;
+  }
+  #waFloatBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(37,211,102,0.55);
+  }
+  #waFloatBtn svg {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+  }
+  /* בדסקטופ — מימין למטה */
+  @media (min-width: 769px) {
+    #waFloat {
+      bottom: 24px;
+      left: auto;
+      right: 24px;
+      align-items: flex-end;
+    }
+  }
+</style>
+
+<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<div id="waFloat">
+  <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
+  <a
+    id="waFloatBtn"
+    href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94."
+    target="_blank"
+    rel="noopener"
+    aria-label="צור קשר בוואטסאפ"
+    title="צור קשר בוואטסאפ"
+  >
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // מציג tooltip אחרי 3 שניות, מסתיר אחרי 5
+  (function() {
+    var shown = sessionStorage.getItem('wa_tooltip_shown');
+    if (shown) return;
+    setTimeout(function() {
+      var t = document.getElementById('waFloatTooltip');
+      if (t) {
+        t.classList.add('show');
+        sessionStorage.setItem('wa_tooltip_shown', '1');
+        setTimeout(function() { t.classList.remove('show'); }, 5000);
+      }
+    }, 3000);
+  })();
+</script>
   </body>
 </html>

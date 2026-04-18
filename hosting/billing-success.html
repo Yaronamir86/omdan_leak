@@ -73,11 +73,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const planNames = {
-  starter: 'Starter',
-  pro: 'Pro',
-  office: 'Office'
+  starter: 'OMDA איתור — Starter',
+  pro:     'OMDA איתור — Pro',
+  bundle:  'Bundle — רכוש + איתור',
+  'bundle-starter-leak': 'Bundle (legacy)',
+  leak:    'OMDA איתור (legacy)',
 };
-
 const billingLabels = {
   monthly: 'חודשי',
   annual: 'שנתי'
@@ -172,7 +173,7 @@ async function verifySession() {
         const data = snap.data();
         lastStatus = data.status || null;
 
-        if (data.status === 'paid') {
+        if (data.status === 'paid' || data.status === 'completed') {
           showSuccess(data.planId, data.billingMode);
           return;
         }

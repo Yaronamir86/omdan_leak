@@ -171,6 +171,28 @@
         color: var(--muted);
       }
 
+      /* ── Back button (mobile only) ── */
+      .tb-back {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 8px;
+        margin-left: 4px;
+        border-radius: 10px;
+        transition: background 0.15s;
+        flex-shrink: 0;
+      }
+      .tb-back:hover {
+        background: rgba(33, 150, 243, 0.1);
+      }
+      @media (max-width: 768px) {
+        .tb-back { display: flex; }
+      }
+
       /* ── Main ── */
       main {
         max-width: 1100px;
@@ -643,9 +665,12 @@
 
       <div class="main-wrap">
         <div id="topbar">
-          <div class="tb-left">
-            <div class="tb-page">דוחות איתור</div>
-          </div>
+          <button class="tb-back" onclick="history.back()" aria-label="חזרה">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+          <div class="tb-page">דוחות איתור</div>
         </div>
 
         <main>
@@ -676,7 +701,7 @@
           </div>
 
           <div class="toolbar">
-            <div class="toolbar-title">כל דוחות האיתור</div>
+            <div class="toolbar-title">דוחות איתור שהושלמו</div>
             <div class="filters">
               <div class="search-wrap">
                 <span class="ico">🔍</span>
@@ -707,9 +732,10 @@
                 <tr>
                   <th>מספר</th>
                   <th>שם / כותרת</th>
-                  <th>סוג נכס</th>
+                  <th>מקור פנייה</th>
                   <th>מקור נזילה</th>
                   <th>תאריך סגירה</th>
+                  <th>תשלום</th>
                   <th></th>
                 </tr>
               </thead>
@@ -785,13 +811,35 @@
 
       async function loadReports() {
         try {
-          const snap = await db
-            .collection("leakCases")
-            .where("uid", "==", currentUser.uid)
-            .limit(200)
-            .get();
-          allReports = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+          const [casesSnap, paysSnap] = await Promise.all([
+            db.collection("leakCases").where("uid", "==", currentUser.uid).limit(200).get(),
+            db.collection("leakPayments").where("uid", "==", currentUser.uid).get(),
+          ]);
+
+          // בנה מפת תשלומים לפי caseId
+          const payMap = {};
+          paysSnap.docs.forEach(d => {
+            const p = d.data();
+            if (!p.caseId) return;
+            if (!payMap[p.caseId]) payMap[p.caseId] = { total: 0, paid: 0 };
+            payMap[p.caseId].total += Number(p.amount) || 0;
+            if (p.status === "paid") payMap[p.caseId].paid += Number(p.amount) || 0;
+          });
+
+          allReports = casesSnap.docs
+            .map((d) => {
+              const data = { id: d.id, ...d.data() };
+              // צרף נתוני תשלום מ-leakPayments (עדיף) או מה-case עצמו
+              const pm = payMap[d.id];
+              if (pm) {
+                data.totalAmount    = pm.total;
+                data.totalPaid      = pm.paid;
+                data.paymentStatus  = pm.paid >= pm.total && pm.total > 0 ? "paid"
+                                    : pm.paid > 0 ? "partial"
+                                    : pm.total > 0 ? "unpaid" : "none";
+              }
+              return data;
+            })
             .filter(isCaseDone)
             .sort((a, b) => {
               const ta = a.updatedAt?.seconds || a.createdAt?.seconds || 0;
@@ -855,6 +903,13 @@
       <td>${sourceTag(src)}</td>
       <td style="font-size:12px;">${ev}</td>
       <td style="color:var(--muted);font-size:12px;">${date}</td>
+      <td>${(()=>{
+        const status=c.paymentStatus||"none";
+        if(status==="paid")    return '<span style="color:var(--green);font-size:12px;font-weight:700;">שולם ✓</span>';
+        if(status==="partial") return '<span style="color:var(--accent);font-size:12px;font-weight:700;">חלקי</span>';
+        if(status==="unpaid")  return '<span style="color:#f87171;font-size:12px;">לא שולם</span>';
+        return '<span style="color:var(--subtle);font-size:12px;">—</span>';
+      })()}</td>
       <td style="position:relative;text-align:left;padding-left:8px;">
         <div class="row-actions">
           <button class="row-menu-btn" onclick="event.stopPropagation();openMenu(event,'${c.id}')">⋯</button>
@@ -949,5 +1004,145 @@
           .replace(/>/g, "&gt;");
       }
     </script>
+
+    <style>
+      .omdan-footer {
+        display: none;
+        background: #030712;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 20px 5%;
+        text-align: center;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .omdan-footer a {
+        color: #9ca3af;
+        text-decoration: none;
+        margin: 0 6px;
+        transition: color 0.2s;
+      }
+      .omdan-footer a:hover { color: #2196f3; }
+      @media (min-width: 769px) {
+        .omdan-footer { display: block; }
+      }
+    </style>
+    <footer class="omdan-footer">
+      <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
+      <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
+      <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
+      <a href="/legal/index.html">מסמכים משפטיים</a> |
+      <a href="/app/support.html">תמיכה</a>
+      <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr">
+  © 2026 OMDA-NET. כל הזכויות שמורות.
+  <img src="/assets/img/omda-ecosystem-color.png" alt="OMDA-NET" style="height:52px;width:52px;object-fit:contain;" />
+</div>
+    </footer>
+    <!--
+  ════════════════════════════════════════════
+  OMDA איתור — כפתור WhatsApp צף
+  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  ════════════════════════════════════════════
+-->
+
+<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<style>
+  #waFloat {
+    position: fixed;
+    bottom: 80px; /* מעל Mobile Bottom Nav */
+    left: 16px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    direction: rtl;
+  }
+  #waFloatTooltip {
+    background: #1f2937;
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f9fafb;
+    font-family: "Heebo", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: waTooltipIn 0.3s ease;
+    display: none;
+  }
+  #waFloatTooltip.show { display: block; }
+  @keyframes waTooltipIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #waFloatBtn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: none;
+    padding: 0;
+  }
+  #waFloatBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(37,211,102,0.55);
+  }
+  #waFloatBtn svg {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+  }
+  /* בדסקטופ — מימין למטה */
+  @media (min-width: 769px) {
+    #waFloat {
+      bottom: 24px;
+      left: auto;
+      right: 24px;
+      align-items: flex-end;
+    }
+  }
+</style>
+
+<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<div id="waFloat">
+  <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
+  <a
+    id="waFloatBtn"
+    href="https://wa.me/972503292066?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%91-OMDA%20%D7%90%D7%99%D7%AA%D7%95%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94."
+    target="_blank"
+    rel="noopener"
+    aria-label="צור קשר בוואטסאפ"
+    title="צור קשר בוואטסאפ"
+  >
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.003 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.363.638 4.572 1.749 6.481L2.667 29.333l7.052-1.726A13.264 13.264 0 0 0 16.003 29.333C23.37 29.333 29.333 23.363 29.333 16S23.37 2.667 16.003 2.667zm0 2.4c5.96 0 10.93 4.97 10.93 10.933 0 5.964-4.97 10.933-10.93 10.933a10.88 10.88 0 0 1-5.56-1.524l-.398-.237-4.184 1.024 1.057-4.065-.261-.42A10.88 10.88 0 0 1 5.07 16c0-5.963 4.97-10.933 10.933-10.933zm-3.02 5.6c-.197 0-.517.074-.789.37-.271.296-1.037 1.013-1.037 2.47s1.062 2.866 1.21 3.065c.148.197 2.07 3.26 5.07 4.443 2.51.99 3.02.794 3.565.744.544-.049 1.754-.717 2.002-1.41.247-.692.247-1.285.173-1.41-.074-.123-.272-.197-.568-.346-.296-.148-1.754-.864-2.025-.963-.272-.099-.47-.148-.668.148-.197.297-.766.963-.938 1.16-.173.198-.346.223-.642.075-.297-.148-1.252-.462-2.385-1.473-.881-.787-1.476-1.759-1.65-2.055-.172-.297-.018-.457.13-.605.133-.133.297-.346.445-.519.148-.173.197-.297.297-.494.099-.198.05-.371-.025-.52-.074-.147-.662-1.61-.912-2.203-.24-.578-.487-.5-.668-.51a12.07 12.07 0 0 0-.568-.012z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // מציג tooltip אחרי 3 שניות, מסתיר אחרי 5
+  (function() {
+    var shown = sessionStorage.getItem('wa_tooltip_shown');
+    if (shown) return;
+    setTimeout(function() {
+      var t = document.getElementById('waFloatTooltip');
+      if (t) {
+        t.classList.add('show');
+        sessionStorage.setItem('wa_tooltip_shown', '1');
+        setTimeout(function() { t.classList.remove('show'); }, 5000);
+      }
+    }, 3000);
+  })();
+</script>
   </body>
 </html>

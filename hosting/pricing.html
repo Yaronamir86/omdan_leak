@@ -4,579 +4,267 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OMDA | תמחור</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/assets/img/omdan-leak-icon.png">
     <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
         --bg: #030712;
         --surface: #0d1117;
         --card: #111827;
-        --border: rgba(255, 255, 255, 0.07);
+        --border: rgba(255,255,255,0.07);
         --accent: #2196F3;
-        --accent2: #fbbf24;
+        --accent-hover: #1976D2;
+        --accent-light: rgba(33,150,243,0.12);
         --green: #10b981;
-        --blue: #3b82f6;
         --text: #f9fafb;
         --muted: #9ca3af;
         --subtle: #4b5563;
       }
-      html {
-        scroll-behavior: smooth;
-      }
-      body {
-        font-family: "Heebo", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
+      html { scroll-behavior: smooth; }
+      body { font-family: "Heebo", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
 
       /* ── NAV ── */
       nav {
-        position: fixed;
-        top: 0;
-        inset-inline: 0;
-        z-index: 100;
-        padding: 14px 6%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(3, 7, 18, 0.92);
-        backdrop-filter: blur(18px);
+        position: fixed; top: 0; inset-inline: 0; z-index: 100;
+        padding: 14px 6%; display: flex; align-items: center; justify-content: space-between;
+        background: rgba(3,7,18,0.92); backdrop-filter: blur(18px);
         border-bottom: 1px solid var(--border);
       }
-      .nav-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 900;
-        font-size: 18px;
-        color: var(--text);
-        text-decoration: none;
-        letter-spacing: -0.02em;
-      }
-      .nav-logo span {
-        color: var(--accent);
-      }
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-      }
-      .nav-links a {
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        transition: color 0.2s;
-      }
-      .nav-links a:hover {
-        color: var(--text);
-      }
+      .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+      .nav-links { display: flex; align-items: center; gap: 24px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+      .nav-links a:hover { color: var(--text); }
       .btn-nav {
-        background: var(--accent);
-        color: #000;
-        border: none;
-        border-radius: 10px;
-        padding: 8px 20px;
-        font-size: 14px;
-        font-weight: 800;
-        cursor: pointer;
-        font-family: inherit;
-        text-decoration: none;
-        transition: background 0.2s;
+        background: var(--accent); color: #fff; border: none; border-radius: 10px;
+        padding: 8px 20px; font-size: 14px; font-weight: 800; cursor: pointer;
+        font-family: inherit; text-decoration: none; transition: background .2s;
       }
-      .btn-nav:hover {
-        background: var(--accent2);
-      }
+      .btn-nav:hover { background: var(--accent-hover); }
 
       /* ── HERO ── */
-      .hero {
-        padding: 120px 6% 60px;
-        text-align: center;
-      }
+      .hero { padding: 120px 6% 60px; text-align: center; }
       .hero-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(245, 158, 11, 0.1);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        color: var(--accent);
-        font-size: 12px;
-        font-weight: 700;
-        padding: 6px 16px;
-        border-radius: 20px;
-        margin-bottom: 24px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--accent-light); border: 1px solid rgba(33,150,243,0.25);
+        color: var(--accent); font-size: 12px; font-weight: 700;
+        padding: 6px 16px; border-radius: 20px; margin-bottom: 24px;
+        letter-spacing: .05em; text-transform: uppercase;
       }
-      .hero h1 {
-        font-size: clamp(28px, 5vw, 52px);
-        font-weight: 900;
-        margin-bottom: 14px;
-        letter-spacing: -0.03em;
-      }
-      .hero-sub {
-        font-size: 17px;
-        color: var(--muted);
-        max-width: 500px;
-        margin: 0 auto 40px;
-      }
+      .hero h1 { font-size: clamp(28px,5vw,52px); font-weight: 900; margin-bottom: 14px; letter-spacing: -.03em; }
+      .hero-sub { font-size: 17px; color: var(--muted); max-width: 500px; margin: 0 auto 40px; }
 
       /* ── TOGGLE ── */
       .billing-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 40px;
-        padding: 6px;
-        margin-bottom: 56px;
-        position: relative;
+        display: inline-flex; align-items: center; gap: 12px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 40px; padding: 6px; margin-bottom: 56px;
       }
       .toggle-btn {
-        padding: 8px 24px;
-        border-radius: 30px;
-        border: none;
-        background: transparent;
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.2s;
-        position: relative;
-        z-index: 1;
+        padding: 8px 24px; border-radius: 30px; border: none;
+        background: transparent; color: var(--muted); font-size: 14px;
+        font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s;
       }
-      .toggle-btn.active {
-        background: var(--accent);
-        color: #000;
-      }
+      .toggle-btn.active { background: var(--accent); color: #fff; }
       .save-badge {
-        background: rgba(16, 185, 129, 0.15);
-        color: var(--green);
-        font-size: 11px;
-        font-weight: 800;
-        padding: 2px 8px;
-        border-radius: 10px;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        background: rgba(16,185,129,.15); color: var(--green);
+        font-size: 11px; font-weight: 800; padding: 2px 8px;
+        border-radius: 10px; border: 1px solid rgba(16,185,129,.3);
       }
+
+      /* ── TRIAL BANNER ── */
+      .trial-card {
+        background: linear-gradient(135deg, rgba(33,150,243,.1), rgba(16,185,129,.06));
+        border: 1px solid rgba(33,150,243,0.25); border-radius: 20px;
+        padding: 28px; max-width: 1100px; margin: 0 auto 32px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 20px; flex-wrap: wrap;
+      }
+      .trial-info { display: flex; align-items: center; gap: 16px; }
+      .trial-icon { font-size: 36px; }
+      .trial-title { font-size: 18px; font-weight: 800; }
+      .trial-sub { font-size: 14px; color: var(--muted); }
+      .btn-trial {
+        background: linear-gradient(135deg, #2196F3, #1565C0);
+        color: #fff; border: none; border-radius: 12px;
+        padding: 12px 28px; font-size: 15px; font-weight: 800;
+        cursor: pointer; font-family: inherit; text-decoration: none;
+        white-space: nowrap; transition: opacity .2s, transform .2s;
+        box-shadow: 0 4px 20px rgba(33,150,243,.35);
+      }
+      .btn-trial:hover { opacity: .9; transform: translateY(-1px); }
 
       /* ── PRICING GRID ── */
-      .pricing-section {
-        padding: 0 5% 80px;
-      }
+      .pricing-section { padding: 0 5% 80px; }
       .pricing-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-        max-width: 1100px;
-        margin: 0 auto;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px; max-width: 1100px; margin: 0 auto;
       }
       .plan-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 32px 28px;
-        position: relative;
-        transition:
-          transform 0.2s,
-          border-color 0.2s;
+        background: var(--card); border: 1px solid var(--border);
+        border-radius: 20px; padding: 32px 28px; position: relative;
+        transition: transform .2s, border-color .2s;
+        display: flex; flex-direction: column;
       }
-      .plan-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--subtle);
-      }
+      .plan-card:hover { transform: translateY(-3px); border-color: var(--subtle); }
       .plan-card.popular {
         border: 2px solid var(--accent);
-        background: linear-gradient(160deg,rgba(245,158,11,.07) 0%,var(--card) 60%);
-        box-shadow: 0 0 0 1px rgba(245,158,11,.15), 0 20px 60px rgba(245,158,11,.12);
-        transform: scale(1.04);
-        z-index: 1;
+        background: linear-gradient(160deg, rgba(33,150,243,.08) 0%, var(--card) 60%);
+        box-shadow: 0 0 0 1px rgba(33,150,243,.2), 0 20px 60px rgba(33,150,243,.15);
+        transform: scale(1.04); z-index: 1;
       }
-      .plan-card.popular:hover {
-        transform: scale(1.06) translateY(-3px);
-      }
+      .plan-card.popular:hover { transform: scale(1.06) translateY(-3px); }
       .popular-badge {
-        position: absolute;
-        top: -14px;
-        right: 50%;
-        transform: translateX(50%);
-        background: var(--accent);
-        color: #000;
-        font-size: 12px;
-        font-weight: 800;
-        padding: 4px 18px;
-        border-radius: 20px;
-        white-space: nowrap;
+        position: absolute; top: -14px; right: 50%; transform: translateX(50%);
+        background: var(--accent); color: #fff; font-size: 12px; font-weight: 800;
+        padding: 4px 18px; border-radius: 20px; white-space: nowrap;
       }
-      .plan-icon {
-        font-size: 28px;
-        margin-bottom: 14px;
-      }
-      .plan-name {
-        font-size: 13px;
-        font-weight: 800;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 4px;
-      }
-      .plan-name-he {
-        font-size: 18px;
-        font-weight: 900;
-        color: var(--text);
-        margin-bottom: 20px;
-      }
-      .plan-price {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        margin-bottom: 6px;
-      }
-      .price-num {
-        font-size: 42px;
-        font-weight: 900;
-        color: var(--text);
-        letter-spacing: -0.03em;
-      }
-      .price-currency {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--accent);
-      }
-      .price-period {
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .price-annual {
-        font-size: 13px;
-        color: var(--green);
-        margin-bottom: 24px;
-        height: 20px;
-      }
-      .plan-divider {
-        height: 1px;
-        background: var(--border);
-        margin-bottom: 22px;
-      }
-      .plan-features {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 32px;
-      }
-      .plan-features li {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 14px;
-        color: var(--muted);
-      }
-      .plan-features li::before {
-        content: "✓";
-        color: var(--green);
-        font-weight: 800;
-        font-size: 13px;
-        flex-shrink: 0;
-      }
-      .plan-features li.highlight {
-        color: var(--text);
-        font-weight: 700;
+      .plan-icon { font-size: 28px; margin-bottom: 14px; }
+      .plan-name { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+      .plan-name-he { font-size: 20px; font-weight: 900; color: var(--text); margin-bottom: 20px; }
+      .plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+      .price-num { font-size: 44px; font-weight: 900; color: var(--text); letter-spacing: -.03em; }
+      .price-currency { font-size: 18px; font-weight: 700; color: var(--accent); }
+      .price-period { font-size: 13px; color: var(--muted); }
+      .price-annual { font-size: 13px; color: var(--green); margin-bottom: 24px; height: 20px; }
+      .plan-divider { height: 1px; background: var(--border); margin-bottom: 22px; }
+      .plan-benefit { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; margin-bottom: 10px; }
+      .plan-benefit .b-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+      .plan-benefit .b-text { color: var(--text); font-weight: 600; line-height: 1.4; }
+      .plan-benefit .b-sub { font-size: 11px; color: var(--muted); display: block; }
+      .coming-soon-tag {
+        display: inline-block; background: rgba(245,158,11,.12);
+        border: 1px solid rgba(245,158,11,.25); color: #f59e0b;
+        font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 8px;
+        margin-right: 4px; vertical-align: middle; letter-spacing: .03em;
       }
       .btn-plan {
-        width: 100%;
-        padding: 13px;
-        border-radius: 12px;
-        border: none;
-        font-size: 15px;
-        font-weight: 800;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.2s;
+        width: 100%; padding: 13px; border-radius: 12px; border: none;
+        font-size: 15px; font-weight: 800; cursor: pointer;
+        font-family: inherit; transition: all .2s; margin-top: auto;
       }
-      .btn-plan-primary {
-        background: var(--accent);
-        color: #000;
-      }
-      .btn-plan-primary:hover {
-        background: var(--accent2);
-        transform: translateY(-1px);
-      }
-      .btn-plan-outline {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-      .btn-plan-outline:hover {
-        border-color: var(--accent);
-        color: var(--accent);
-      }
+      .btn-plan-primary { background: var(--accent); color: #fff; }
+      .btn-plan-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+      .btn-plan-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+      .btn-plan-outline:hover { border-color: var(--accent); color: var(--accent); }
+      .urgency-note { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--green); margin-top: 10px; opacity: .9; }
 
-      /* Trial card */
-      .trial-card {
-        background: linear-gradient(
-          135deg,
-          rgba(59, 130, 246, 0.08),
-          rgba(16, 185, 129, 0.06)
-        );
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 20px;
-        padding: 28px;
-        max-width: 1100px;
-        margin: 0 auto 32px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        flex-wrap: wrap;
+      /* ── FEATURES SECTION ── */
+      .features-wrap { max-width: 1100px; margin: 0 auto 80px; padding: 0 5%; }
+      .section-label {
+        font-size: 11px; font-weight: 800; text-transform: uppercase;
+        letter-spacing: .12em; color: var(--accent); margin-bottom: 12px;
       }
-      .trial-info {
-        display: flex;
-        align-items: center;
-        gap: 16px;
+      .section-title { font-size: clamp(22px,3.5vw,36px); font-weight: 900; margin-bottom: 12px; letter-spacing: -.02em; }
+      .section-sub { font-size: 15px; color: var(--muted); max-width: 540px; margin-bottom: 48px; }
+      .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 20px; }
+      .feature-card {
+        background: var(--card); border: 1px solid var(--border);
+        border-radius: 16px; padding: 28px 24px; position: relative; overflow: hidden;
+        transition: transform .2s, border-color .2s;
       }
-      .trial-icon {
-        font-size: 36px;
+      .feature-card::before {
+        content: ''; position: absolute; top: 0; right: 0;
+        width: 120px; height: 120px;
+        background: radial-gradient(circle at top right, rgba(33,150,243,.08), transparent 70%);
+        pointer-events: none;
       }
-      .trial-title {
-        font-size: 18px;
-        font-weight: 800;
-      }
-      .trial-sub {
-        font-size: 14px;
-        color: var(--muted);
-      }
-      .btn-trial {
-        background: linear-gradient(135deg, var(--blue), #2563eb);
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 28px;
-        font-size: 15px;
-        font-weight: 800;
-        cursor: pointer;
-        font-family: inherit;
-        text-decoration: none;
-        white-space: nowrap;
-      }
-      .btn-trial:hover {
-        opacity: 0.9;
-      }
+      .feature-card:hover { transform: translateY(-2px); border-color: rgba(33,150,243,.25); }
+      .feature-icon { display: block; margin-bottom: 16px; }
+      .feature-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+      .feature-text { font-size: 13px; color: var(--muted); line-height: 1.65; }
 
-      /* FAQ */
-      .faq-section {
-        padding: 60px 5% 80px;
-        max-width: 760px;
-        margin: 0 auto;
+      /* ── WORKFLOW ── */
+      .workflow-wrap { max-width: 800px; margin: 0 auto 80px; padding: 0 5%; }
+      .workflow-steps { display: flex; flex-direction: column; gap: 0; }
+      .step-item {
+        display: flex; align-items: flex-start; gap: 16px;
+        padding: 20px 0; border-bottom: 1px solid var(--border); position: relative;
       }
-      .faq-title {
-        font-size: 26px;
-        font-weight: 900;
-        text-align: center;
-        margin-bottom: 32px;
+      .step-item:last-child { border-bottom: none; }
+      .step-num {
+        width: 36px; height: 36px; border-radius: 50%; background: var(--accent-light);
+        border: 1px solid rgba(33,150,243,.3); color: var(--accent);
+        font-size: 14px; font-weight: 900; display: flex; align-items: center;
+        justify-content: center; flex-shrink: 0; margin-top: 2px;
       }
-      .faq-item {
-        border-bottom: 1px solid var(--border);
-        padding: 18px 0;
-      }
-      .faq-q {
-        font-size: 15px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-      }
-      .faq-q:hover {
-        color: var(--accent);
-      }
-      .faq-icon {
-        font-size: 18px;
-        transition: transform 0.2s;
-        color: var(--muted);
-      }
-      .faq-a {
-        font-size: 14px;
-        color: var(--muted);
-        line-height: 1.7;
-        margin-top: 12px;
-        display: none;
-      }
-      .faq-item.open .faq-a {
-        display: block;
-      }
-      .faq-item.open .faq-icon {
-        transform: rotate(45deg);
-      }
+      .step-content { flex: 1; }
+      .step-content-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+      .step-content-text { font-size: 13px; color: var(--muted); }
+      .step-time { font-size: 12px; font-weight: 800; color: var(--green); white-space: nowrap; margin-top: 4px; }
 
+      /* ── FAQ ── */
+      .faq-section { padding: 0 5% 80px; max-width: 760px; margin: 0 auto; }
+      .faq-title { font-size: 26px; font-weight: 900; text-align: center; margin-bottom: 32px; }
+      .faq-item { border-bottom: 1px solid var(--border); padding: 18px 0; }
+      .faq-q { font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .faq-q:hover { color: var(--accent); }
+      .faq-icon { font-size: 18px; transition: transform .2s; color: var(--muted); }
+      .faq-a { font-size: 14px; color: var(--muted); line-height: 1.7; margin-top: 12px; display: none; }
+      .faq-item.open .faq-a { display: block; }
+      .faq-item.open .faq-icon { transform: rotate(45deg); }
 
-      /* Comparison table */
-      .comparison-wrap {
-        max-width:1100px;margin:0 auto 48px;padding:0 5%;
+      /* ── FOOTER ── */
+      .omdan-footer {
+        background: #0d1117; border-top: 1px solid rgba(255,255,255,.07);
+        padding: 20px 5%; text-align: center; font-size: 12px; color: #6b7280; margin-top: 40px;
       }
-      .comparison-title {
-        font-size:20px;font-weight:900;text-align:center;margin-bottom:24px;
-      }
-      .comparison-table {
-        width:100%;border-collapse:collapse;font-size:13px;
-        background:var(--card);border-radius:16px;overflow:hidden;
-        border:1px solid var(--border);
-      }
-      .comparison-table th {
-        padding:14px 16px;text-align:center;font-size:12px;font-weight:800;
-        color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
-        border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);
-      }
-      .comparison-table th.pop {color:var(--accent);}
-      .comparison-table td {
-        padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);
-        text-align:center;color:var(--muted);
-      }
-      .comparison-table td:first-child {text-align:right;font-weight:600;color:var(--text);}
-      .comparison-table tbody tr:last-child td {border-bottom:none;}
-      .comparison-table tbody tr:hover td {background:rgba(255,255,255,.02);}
-      .ct-yes {color:var(--green);font-weight:800;font-size:16px;}
-      .ct-no  {color:var(--subtle);font-size:16px;}
-      .ct-val {color:var(--text);font-weight:700;}
+      .omdan-footer a { color: #9ca3af; text-decoration: none; margin: 0 6px; transition: color .2s; }
+      .omdan-footer a:hover { color: var(--accent); }
 
-      /* Urgency badge */
-      .urgency-note {
-        display:inline-flex;align-items:center;gap:6px;
-        font-size:11px;font-weight:700;color:var(--green);
-        margin-top:8px;opacity:.9;
+      @media(max-width:900px) {
+        .pricing-grid { grid-template-columns: 1fr; max-width: 440px; }
+        .plan-card.popular { transform: scale(1); order: -1; }
+        .plan-card.popular:hover { transform: translateY(-3px); }
       }
-
-      /* Benefit bullets */
-      .plan-benefit {
-        display:flex;align-items:flex-start;gap:8px;
-        font-size:13px;margin-bottom:8px;
-      }
-      .plan-benefit .b-icon {font-size:14px;flex-shrink:0;margin-top:1px;}
-      .plan-benefit .b-text {color:var(--text);font-weight:600;line-height:1.4;}
-      .plan-benefit .b-sub  {font-size:11px;color:var(--muted);display:block;}
-
-      @media(max-width:768px){
-        .plan-card.popular{transform:scale(1);}
-        .comparison-wrap{overflow-x:auto;}
-        .comparison-table{min-width:520px;}
-      }
-
-      /* Footer */
-      footer {
-        border-top: 1px solid var(--border);
-        padding: 28px 6%;
-        text-align: center;
-        font-size: 13px;
-        color: var(--subtle);
-      }
-      footer a {
-        color: var(--muted);
-        text-decoration: none;
-      }
-      footer a:hover {
-        color: var(--text);
-      }
-
-      @media (max-width: 768px) {
-        nav {
-          padding: 12px 4%;
-        }
-        .hero {
-          padding: 90px 4% 40px;
-        }
-        .pricing-section {
-          padding: 0 4% 60px;
-        }
-        .trial-card {
-          flex-direction: column;
-          text-align: center;
-        }
+      @media(max-width:768px) {
+        nav { padding: 12px 4%; }
+        .nav-links { display: none; }
+        .hero { padding: 90px 4% 40px; }
+        .pricing-section { padding: 0 4% 60px; }
+        .trial-card { flex-direction: column; text-align: center; }
+        .hero h1 { font-size: 28px; }
+        .features-wrap, .workflow-wrap, .faq-section { padding: 0 4%; }
       }
     </style>
-  
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyBZlf3YfVAYQ2f2MFrlDiGOD6mRaJcHAtg",
-  authDomain:"omdan-leak.firebaseapp.com",
-  projectId:"omdan-leak",
-  storageBucket:"omdan-leak.firebasestorage.app",
-  messagingSenderId:"123456789012",
-  appId:"1:123456789012:web:01731ca2a152b700ea6bc7"
-});
-firebase.auth().onAuthStateChanged(user => {
-  const cta = document.getElementById('navCta');
-  const trialBtn = document.querySelector('.btn-trial');
-  if(user) {
-    if(cta) { cta.textContent = 'דשבורד →'; cta.href = '/app/dashboard.html'; }
-    if(trialBtn) { trialBtn.textContent = 'נסה דמו 👁'; trialBtn.href = '/demo.html'; }
-  }
-});
-</script>
 
-<style>
-@media(max-width:768px){
-  nav{padding:10px 4% !important;flex-wrap:nowrap;}
-  .nav-links{display:none;}
-  .hero h1,.hero-title{font-size:28px !important;}
-  .pricing-grid{grid-template-columns:1fr !important;}
-  .pricing-section{padding:0 16px !important;}
-  .plan-card.popular{order:-1;}
-  .faq-section{padding:0 16px !important;}
-}
-@media(max-width:480px){
-  body{font-size:13px;}
-  h1{font-size:24px !important;}
-  .card{padding:24px 16px !important;}
-  .btn{font-size:13px !important;}
-}
-</style>
-<link rel="icon" type="image/png" href="/assets/img/omdan-leak-icon.png">
-</head>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="/app/config/firebase-config-global.js"></script>
+<script>
+  if (!firebase.apps.length) {
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+  }
+  firebase.auth().onAuthStateChanged(user => {
+    window._firebaseUser = user || null;
+    const cta = document.getElementById('navCta');
+    if(user && cta) { cta.textContent = 'דשבורד →'; cta.href = '/app/dashboard.html'; }
+  });
+</script>
+  </head>
+
   <body>
     <nav>
-      <a class="nav-logo" href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;"><img src="/assets/img/omdan-leak-icon.png" alt="" style="height:34px;width:34px;object-fit:contain;"> <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:28px;object-fit:contain;filter:brightness(0) invert(1);"></div></a>
+      <a class="nav-logo" href="/">
+        <img src="/assets/img/omdan-leak-icon.png" alt="" style="height:34px;width:34px;object-fit:contain;">
+        <img src="/assets/img/omdan-leak-logo.png" alt="OMDA איתור" style="height:28px;object-fit:contain;filter:brightness(0) invert(1);">
+      </a>
       <div class="nav-links">
+        <a href="#features">יכולות</a>
         <a href="#faq">שאלות נפוצות</a>
-        <a href="/demo.html">דמו</a>
         <a href="/register.html" class="btn-nav" id="navCta">התחל ניסיון</a>
       </div>
     </nav>
 
+    <!-- HERO -->
     <div class="hero">
       <div class="hero-tag">💳 תמחור שקוף</div>
       <h1>המסלול הנכון לך</h1>
-      <p class="hero-sub">14 ימי ניסיון חינם בכל מסלול. ביטול בכל עת.</p>
-
+      <p class="hero-sub">28 ימי ניסיון חינם בכל מסלול. ביטול בכל עת.</p>
       <div class="billing-toggle">
-        <button
-          class="toggle-btn active"
-          id="btnMonthly"
-          onclick="setBilling('monthly')"
-        >
-          חודשי
-        </button>
-        <button
-          class="toggle-btn"
-          id="btnAnnual"
-          onclick="setBilling('annual')"
-        >
-          שנתי <span class="save-badge">חיסכון 30%+</span>
-        </button>
+        <button class="toggle-btn active" id="btnMonthly" onclick="setBilling('monthly')">חודשי</button>
+        <button class="toggle-btn" id="btnAnnual" onclick="setBilling('annual')">שנתי <span class="save-badge">חיסכון 20%+</span></button>
       </div>
     </div>
 
@@ -586,37 +274,39 @@ firebase.auth().onAuthStateChanged(user => {
         <div class="trial-info">
           <div class="trial-icon">🎁</div>
           <div>
-            <div class="trial-title">14 ימי ניסיון חינם — ללא כרטיס אשראי</div>
-            <div class="trial-sub">
-              גישה מלאה לכל תכונות ה-Pro. מתחיל תוך שניות.
-            </div>
+            <div class="trial-title">28 ימי ניסיון חינם — ללא כרטיס אשראי</div>
+            <div class="trial-sub">עד 8 דוחות בתקופת הניסיון. מתחיל תוך שניות.</div>
           </div>
         </div>
-        <a href="/register.html" class="btn-trial" id="trialBtn">התחל חינם ←</a>
+        <a href="/register.html" class="btn-trial" id="trialBtn">התחל ניסיון ←</a>
       </div>
 
       <!-- Pricing Cards -->
-      <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:680px;margin:0 auto;">
-        <!-- OMDA איתור -->
-        <div class="plan-card popular">
-          <div class="popular-badge">⭐ הכי פופולרי</div>
-          <div class="plan-icon">💧</div>
-          <div class="plan-name">OMDA איתור</div>
-          <div class="plan-name-he">מאתר נזילות</div>
+      <div class="pricing-grid">
+
+        <!-- STARTER -->
+        <div class="plan-card">
+          <div class="plan-icon">🚀</div>
+          <div class="plan-name">Starter</div>
+          <div class="plan-name-he">סטרטר</div>
           <div class="plan-price">
             <span class="price-currency">₪</span>
-            <span class="price-num" id="price-leak">29</span>
+            <span class="price-num" id="price-starter">39</span>
             <span class="price-period">/חודש</span>
           </div>
-          <div class="price-annual" id="annual-leak"></div>
+          <div class="price-annual" id="annual-starter"></div>
           <div class="plan-divider"></div>
           <div class="plan-benefit">
             <span class="b-icon">📄</span>
-            <span class="b-text">דוחות איתור ללא הגבלה<span class="b-sub">דוח מקצועי בכל קריאה</span></span>
+            <span class="b-text">עד 20 דוחות בחודש<span class="b-sub">דוח מקצועי בכל קריאה</span></span>
           </div>
           <div class="plan-benefit">
             <span class="b-icon">🔬</span>
             <span class="b-text">טפסי בדיקה מקצועיים<span class="b-sub">תרמית, לחות, לחץ, אקוסטיקה</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">📸</span>
+            <span class="b-text">תמונות עם אנוטציות<span class="b-sub">חיצים, עיגולים, תוויות על התמונה</span></span>
           </div>
           <div class="plan-benefit">
             <span class="b-icon">✍️</span>
@@ -626,185 +316,283 @@ firebase.auth().onAuthStateChanged(user => {
             <span class="b-icon">💰</span>
             <span class="b-text">מעקב תשלומים<span class="b-sub">קבלות וחשבוניות לכל קריאה</span></span>
           </div>
-          <button class="btn-plan btn-plan-primary" onclick="startCheckout('leak')" style="margin-top:auto;font-size:16px;padding:15px;">
-            התחל עכשיו
+          <button class="btn-plan btn-plan-outline" onclick="startCheckout('starter')" style="margin-top:auto;">
+            בחר סטרטר
           </button>
           <div class="urgency-note">✓ ללא התחייבות · ביטול בכל עת</div>
         </div>
 
-        <!-- Bundle -->
+        <!-- PRO (popular) -->
+        <div class="plan-card popular">
+          <div class="popular-badge">⭐ הכי פופולרי</div>
+          <div class="plan-icon">💧</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-name-he">פרו</div>
+          <div class="plan-price">
+            <span class="price-currency">₪</span>
+            <span class="price-num" id="price-pro">79</span>
+            <span class="price-period">/חודש</span>
+          </div>
+          <div class="price-annual" id="annual-pro"></div>
+          <div class="plan-divider"></div>
+          <div class="plan-benefit">
+            <span class="b-icon">♾️</span>
+            <span class="b-text">ללא הגבלת דוחות<span class="b-sub">כמה קריאות שצריך בחודש</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">🔬</span>
+            <span class="b-text">טפסי בדיקה מקצועיים<span class="b-sub">תרמית, לחות, לחץ, אקוסטיקה</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">📸</span>
+            <span class="b-text">תמונות עם אנוטציות<span class="b-sub">חיצים, עיגולים, תוויות על התמונה</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">✍️</span>
+            <span class="b-text">חתימה דיגיטלית<span class="b-sub">מראה מקצועי ללקוח</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">💰</span>
+            <span class="b-text">מעקב תשלומים<span class="b-sub">קבלות וחשבוניות לכל קריאה</span></span>
+          </div>
+          <div class="plan-benefit">
+            <span class="b-icon">📅</span>
+            <span class="b-text">
+              חיבור ליומן פגישות
+              <span class="coming-soon-tag">בקרוב</span>
+              <span class="b-sub">תיאום קריאות ישירות מהמערכת</span>
+            </span>
+          </div>
+          <button class="btn-plan btn-plan-primary" onclick="startCheckout('pro')" style="font-size:16px;padding:15px;">
+            התחל עכשיו — Pro
+          </button>
+          <div class="urgency-note">✓ ללא התחייבות · ביטול בכל עת</div>
+        </div>
+
+        <!-- BUNDLE -->
         <div class="plan-card">
           <div class="plan-icon">📦</div>
           <div class="plan-name">Bundle</div>
           <div class="plan-name-he">רכוש + איתור</div>
           <div class="plan-price">
             <span class="price-currency">₪</span>
-            <span class="price-num" id="price-bundle">109</span>
+            <span class="price-num" id="price-bundle">129</span>
             <span class="price-period">/חודש</span>
           </div>
           <div class="price-annual" id="annual-bundle"></div>
-          <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px;">חיסכון של ₪9/חודש לעומת נפרד</div>
+          <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:16px;">שני המוצרים · ללא הגבלה</div>
           <div class="plan-divider"></div>
           <div class="plan-benefit">
             <span class="b-icon">🏠</span>
-            <span class="b-text">OMDA רכוש Starter<span class="b-sub">שמאות + BOQ + ספריית מחירון</span></span>
+            <span class="b-text">OMDA רכוש — ללא הגבלה<span class="b-sub">שמאות, BOQ, ספריית מחירון</span></span>
           </div>
           <div class="plan-benefit">
             <span class="b-icon">💧</span>
-            <span class="b-text">OMDA איתור<span class="b-sub">כל תכונות מסלול האיתור</span></span>
+            <span class="b-text">OMDA איתור — ללא הגבלה<span class="b-sub">כל יכולות מסלול הפרו</span></span>
           </div>
           <div class="plan-benefit">
             <span class="b-icon">🔗</span>
             <span class="b-text">מנוי משולב יחיד<span class="b-sub">חשבון אחד לשני המוצרים</span></span>
           </div>
-          <button class="btn-plan btn-plan-outline" onclick="startCheckout('bundle-starter-leak')" style="margin-top:auto;">
-            Bundle — ₪109/חודש
+          <div class="plan-benefit">
+            <span class="b-icon">📅</span>
+            <span class="b-text">
+              חיבור ליומן פגישות
+              <span class="coming-soon-tag">בקרוב</span>
+              <span class="b-sub">תיאום קריאות ישירות מהמערכת</span>
+            </span>
+          </div>
+          <button class="btn-plan btn-plan-outline" onclick="startCheckout('bundle')" style="margin-top:auto;">
+            Bundle — ₪129/חודש
           </button>
-          <div class="urgency-note">✓ 14 יום חינם — ללא כרטיס אשראי</div>
+          <div class="urgency-note">✓ ללא התחייבות · ביטול בכל עת</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features-wrap" id="features">
+      <div class="section-label">יכולות המערכת</div>
+      <h2 class="section-title">כל מה שצריך<br>כדי לעבוד נכון</h2>
+      <p class="section-sub">מהבדיקה בשטח ועד הדוח הסופי — הכל במקום אחד, מהנייד שלך.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </span>
+          <div class="feature-title">דבר — והדוח נכתב מהר יותר</div>
+          <div class="feature-text">הקלט הערות בקול תוך כדי הבדיקה — המערכת ממירה לטקסט ומוסיפה לדוח אוטומטית. ידיים פנויות, ראש פנוי.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </span>
+          <div class="feature-title">צלם — והלקוח מבין מיד</div>
+          <div class="feature-text">צלם ישירות מהמצלמה, הוסף חיצים, עיגולים ותוויות על התמונה — כדי שהלקוח יבין בדיוק היכן הבעיה.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </span>
+          <div class="feature-title">שלח דוח שנראה מקצועי מהדקה הראשונה</div>
+          <div class="feature-text">לוגו, חתימה קבועה, פרטי מאתר, תמונות מוערות — הכל מוכן לשליחה ישירות ללקוח או לחברת הביטוח.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </span>
+          <div class="feature-title">ממצאים בניסוח אוטומטי</div>
+          <div class="feature-text">המערכת מושכת את נתוני הבדיקה, ההערות והתמונות — ומציעה ניסוח מקצועי מוכן. אתה עובר, מדייק ושולח.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </span>
+          <div class="feature-title">חתימה קבועה בלי להתעסק כל פעם</div>
+          <div class="feature-text">חתום פעם אחת עם האצבע — החתימה שלך תופיע בכל דוח עתידי אוטומטית. אחיד, מקצועי, מהיר.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </span>
+          <div class="feature-title">מוכן לעבודה אמיתית מהנייד</div>
+          <div class="feature-text">ממשק מותאם לשימוש עם כפפות, בתאורה ירודה, לחוץ בזמן. כל הכפתורים גדולים וברורים — עוד בזמן הבדיקה.</div>
         </div>
       </div>
     </div>
 
-
-    <!-- Comparison Table -->
-    <div class="comparison-wrap">
-      <div class="comparison-title">השוואה מהירה</div>
-      <table class="comparison-table">
-        <thead>
-          <tr>
-            <th style="text-align:right;">פיצ'ר</th>
-            <th>Starter</th>
-            <th class="pop">⭐ Pro</th>
-            <th>Office</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>דוחות חודשיים</td>
-            <td class="ct-val">20</td>
-            <td class="ct-val" style="color:var(--accent);">ללא הגבלה</td>
-            <td class="ct-val">ללא הגבלה</td>
-          </tr>
-          <tr>
-            <td>BOQ + ספריית מחירון</td>
-            <td class="ct-no">—</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-          </tr>
-          <tr>
-            <td>חתימה דיגיטלית</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-          </tr>
-          <tr>
-            <td>נושאי צבע לדוח</td>
-            <td class="ct-no">—</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-          </tr>
-          <tr>
-            <td>ייצוא Excel / PDF</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-            <td class="ct-yes">✓</td>
-          </tr>
-          <tr>
-            <td>מספר משתמשים</td>
-            <td class="ct-val">1</td>
-            <td class="ct-val">1</td>
-            <td class="ct-val">עד 5</td>
-          </tr>
-          <tr>
-            <td>הרשאות עובדים</td>
-            <td class="ct-no">—</td>
-            <td class="ct-no">—</td>
-            <td class="ct-yes">✓</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- WORKFLOW -->
+    <div class="workflow-wrap">
+      <div class="section-label">זרימת העבודה</div>
+      <h2 class="section-title">דוח מוכן בעשר דקות</h2>
+      <p class="section-sub" style="margin-bottom:32px;">מהרגע שפותחים תיק ועד שהדוח יוצא — תהליך אחיד ומהיר שחוסך שעות עבודה.</p>
+      <div class="workflow-steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-content-title">פתח תיק קריאה</div>
+            <div class="step-content-text">הזן פרטי לקוח, כתובת ומקור הפניה</div>
+          </div>
+          <div class="step-time">1 דקה</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-content-title">בדיקה וצילום בשטח</div>
+            <div class="step-content-text">צלם, הקלט הערות קוליות, ערוך תמונות עם אנוטציות</div>
+          </div>
+          <div class="step-time">5 דקות</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-content-title">הממצאים נוצרים אוטומטית</div>
+            <div class="step-content-text">המערכת מציעה ניסוח מקצועי לפי הבדיקה, ההערות והתמונות — ואתה רק מדייק ומאשר</div>
+          </div>
+          <div class="step-time">3 דקות</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-content-title">הפק ושלח דוח</div>
+            <div class="step-content-text">PDF מוכן עם לוגו, חתימה ותמונות — ישירות ללקוח</div>
+          </div>
+          <div class="step-time">1 דקה</div>
+        </div>
+      </div>
     </div>
 
     <!-- FAQ -->
-    <div class="faq-section">
+    <div class="faq-section" id="faq">
       <div class="faq-title">שאלות נפוצות</div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
           <span>האם צריך כרטיס אשראי להתחלת הניסיון?</span>
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">
-          לא. תקופת הניסיון ל-14 ימים לא דורשת כרטיס אשראי. תוסיף פרטי תשלום רק
-          אם תחליט להמשיך.
-        </div>
+        <div class="faq-a">לא. תקופת הניסיון ל-28 ימים לא דורשת כרטיס אשראי. תוסיף פרטי תשלום רק אם תחליט להמשיך.</div>
       </div>
-
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>כמה דוחות ניתן לשלוח בניסיון?</span>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">בתקופת הניסיון תוכל לשלוח עד 8 דוחות מלאים — מספיק כדי לחוות את המערכת בעבודה אמיתית בשטח.</div>
+      </div>
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
           <span>האם ניתן לשנות מסלול?</span>
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">
-          כן. אפשר לשדרג, לשנמך או לבטל בכל עת. שינוי מסלול נכנס לתוקף מחזור
-          החיוב הבא.
-        </div>
+        <div class="faq-a">כן. אפשר לשדרג, לשנמך או לבטל בכל עת. שינוי מסלול נכנס לתוקף מחזור החיוב הבא.</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
           <span>מה קורה עם הנתונים שלי אם אני מבטל?</span>
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">
-          הנתונים שלך נשמרים 30 ימים לאחר הביטול. תוכל לייצא את כל התיקים בכל עת
-          לפני ביטול.
-        </div>
+        <div class="faq-a">הנתונים שלך נשמרים 30 ימים לאחר הביטול. תוכל לייצא את כל התיקים בכל עת לפני ביטול.</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
           <span>האם יש חוזה מחייב?</span>
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">
-          לא. כל המסלולים הם חודש לחודש (או שנה לשנה אם בחרת שנתי). ביטול ללא
-          קנסות.
-        </div>
+        <div class="faq-a">לא. כל המסלולים הם חודש לחודש (או שנה לשנה אם בחרת שנתי). ביטול ללא קנסות.</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
-          <span>מה הכוונה ב"מחירוני BOQ"?</span>
+          <span>מה ההבדל בין סטרטר לפרו?</span>
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">
-          ספריית 277 סעיפי שיקום בעברית, מאורגנת ב-15 פרקים לפי לוגיקת שמאות.
-          כולל יצירת כתב כמויות אוטומטי מהממצאים.
-        </div>
+        <div class="faq-a">סטרטר מגביל ל-20 דוחות בחודש ומתאים למאתר שמתחיל. פרו ללא הגבלת דוחות, ועם גישה לחיבור יומן פגישות כשיצא.</div>
       </div>
     </div>
 
     <script>
       let billingMode = "monthly";
       const prices = {
-        starter: { monthly: 89, annual: 680 },
-        pro:     { monthly: 129, annual: 990 },
-        office:  { monthly: 499, annual: 4500 },
+        starter: { monthly: 39, annual: 31 },
+        pro:     { monthly: 79, annual: 63 },
+        bundle:  { monthly: 129, annual: 103 },
       };
 
       function setBilling(mode) {
         billingMode = mode;
         document.getElementById("btnMonthly").classList.toggle("active", mode === "monthly");
         document.getElementById("btnAnnual").classList.toggle("active", mode === "annual");
-        ["starter","pro","office"].forEach(plan => {
+        ["starter","pro","bundle"].forEach(plan => {
           const p = prices[plan];
+          const annualEl = document.getElementById("annual-"+plan);
           if(mode === "annual"){
-            document.getElementById("price-"+plan).textContent = Math.round(p.annual/12);
-            document.getElementById("annual-"+plan).textContent = `₪${p.annual.toLocaleString()} לשנה — חיסכון ₪${(p.monthly*12-p.annual).toLocaleString()}`;
+            document.getElementById("price-"+plan).textContent = p.annual;
+            const annualTotal = p.annual * 12;
+            const saving = p.monthly * 12 - annualTotal;
+            annualEl.textContent = `₪${annualTotal.toLocaleString()} לשנה — חיסכון ₪${saving.toLocaleString()}`;
           } else {
             document.getElementById("price-"+plan).textContent = p.monthly;
-            document.getElementById("annual-"+plan).textContent = "";
+            annualEl.textContent = "";
           }
         });
       }
@@ -813,7 +601,7 @@ firebase.auth().onAuthStateChanged(user => {
         el.closest(".faq-item").classList.toggle("open");
       }
 
-      // Check if user came from trial expiry
+      // Trial expired banner
       const params = new URLSearchParams(window.location.search);
       if(params.get("reason") === "trial_expired"){
         const banner = document.createElement("div");
@@ -824,50 +612,40 @@ firebase.auth().onAuthStateChanged(user => {
 
       let _firebaseUser = null;
 
-      // Reset buttons — called on pageshow (bfcache restore) and on error
       function _resetCheckoutBtns() {
-        const labels = { starter: 'התחל עכשיו', pro: 'התחל עכשיו — Pro', office: 'התחל עכשיו' };
         document.querySelectorAll('.btn-plan').forEach(b => {
           b.disabled = false;
           b.style.opacity = '';
           b.style.pointerEvents = '';
-          // Restore original label from data attribute
           if(b.dataset.origText) b.textContent = b.dataset.origText;
         });
       }
 
-      // Restore on back-navigation (bfcache)
       window.addEventListener('pageshow', e => {
         if(e.persisted) _resetCheckoutBtns();
       });
 
       async function startCheckout(planId) {
-        if (!_firebaseUser) {
-          window.location.href = `/register.html?plan=${planId}&billing=${billingMode}`;
-          return;
-        }
+
+  if (!window._firebaseUser) {
+    window.location.href = `/register.html?plan=${planId}&billing=${billingMode}`;
+    return;
+  }
         const btns = document.querySelectorAll('.btn-plan');
         btns.forEach(b => {
           if(!b.dataset.origText) b.dataset.origText = b.textContent;
-          b.disabled = true;
-          b.style.opacity = '.5';
-          b.style.pointerEvents = 'none';
+          b.disabled = true; b.style.opacity = '.5'; b.style.pointerEvents = 'none';
         });
-        const clicked = [...btns].find(b => b.onclick?.toString().includes(planId));
+        const clicked = [...btns].find(b => b.getAttribute('onclick')?.includes(planId));
         if(clicked) clicked.textContent = '⏳ מעביר לתשלום...';
-
         try {
-          const token = await _firebaseUser.getIdToken(true);
+          const token = await window._firebaseUser.getIdToken(true);
           const res = await fetch(
             'https://us-central1-omdan-leak.cloudfunctions.net/cardcomCreatePayment',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-              body: JSON.stringify({ planId, billingMode }),
-            }
+            { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({planId,billingMode}) }
           );
           const data = await res.json();
-          if (data.url) { window.location.href = data.url; return; }
+          if(data.url){ window.location.href = data.url; return; }
           throw new Error(data.error || 'שגיאה ביצירת תשלום');
         } catch(e) {
           console.error('Checkout error:', e);
@@ -882,43 +660,14 @@ firebase.auth().onAuthStateChanged(user => {
       }
     </script>
 
-    <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-      import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-      const app  = initializeApp({
-        apiKey:"AIzaSyBZlf3YfVAYQ2f2MFrlDiGOD6mRaJcHAtg",
-        authDomain:"omdan-leak.firebaseapp.com",
-        projectId:"omdan-leak",
-      });
-      const auth = getAuth(app);
-
-      // צור Promise שמסתיים כשauth יתבהר — startCheckout ממתין לזה
-      onAuthStateChanged(auth, user => {
-        window._firebaseUser = user || null;
-      });
-    </script>
-  
-<style>
-.site-footer{margin-top:40px;padding:20px 5% 28px;text-align:center;font-size:12px;color:#6b7280;border-top:1px solid rgba(255,255,255,.06);}
-.site-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;}
-.site-footer a:hover{color:#2196F3;}
-</style>
-
-
-
-<style>
-.omdan-footer{background:#0d1117;border-top:1px solid rgba(255,255,255,.07);padding:20px 5%;text-align:center;font-size:12px;color:#6b7280;margin-top:40px;}
-.omdan-footer a{color:#9ca3af;text-decoration:none;margin:0 6px;transition:color .2s;}
-.omdan-footer a:hover{color:#2196F3;}
-</style>
-<footer class="omdan-footer">
-  <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
-  <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
-  <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
-  <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
-  <a href="/legal/index.html">מסמכים משפטיים</a>
-  <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
-</footer>
-</body>
+    <footer class="omdan-footer">
+      <a href="/legal/terms-of-service/terms-he.html">תנאי שימוש</a> |
+      <a href="/legal/privacy-policy/privacy-he.html">פרטיות</a> |
+      <a href="/legal/refund-policy/refunds-he.html">החזרים</a> |
+      <a href="/legal/subscription-terms/subscription-he.html">תנאי מנוי</a> |
+      <a href="/legal/index.html">מסמכים משפטיים</a>
+      <br><span style="margin-top:6px;display:block;">© 2026 OMDA. כל הזכויות שמורות.</span>
+    </footer>
+  </body>
 </html>
