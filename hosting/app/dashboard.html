@@ -1429,11 +1429,13 @@
       function isWaitingCompletion(c) {
         return !isCaseDone(c) && getProgressScore(c) >= 3;
       }
+      const VALID_STATUSES = new Set(["draft","processing","pending_completion","completed"]);
       function getDerivedStatus(c) {
         if (isCaseDone(c)) return "completed";
         if (isWaitingCompletion(c)) return "pending_completion";
         if (c.status === "processing") return "processing";
-        return c.status || "draft";
+        const s = c.status || "draft";
+        return VALID_STATUSES.has(s) ? s : "draft";
       }
 
       // ── Splash bar animation ──
