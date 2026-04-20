@@ -85,7 +85,7 @@ auth.onAuthStateChanged(async u => {
     if (window._settingsOnboarding && window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
   setTimeout(() => {
     if (window._settingsOnboarding.completed !== true && window._settingsOnboarding.active !== true) {
-      maybeStartSettingsOnboarding();
+      if (typeof maybeStartSettingsOnboarding === 'function') maybeStartSettingsOnboarding();
     }
   }, 220);
 }
@@ -2470,8 +2470,8 @@ function showSettingsOnboardingStep(index){
 async function nextSettingsOnboardingStep(){
   const current = settingsOnboardingSteps[settingsOnboardingIndex];
   if(current?.final){
-    try{
-      await saveAll();
+    const finishOnboarding = async () => {
+      await _doSaveAll();
       if(window._currentUser?.uid && window._settingsOnboarding){
         await window._saveProfile({
           onboardingCompleted: false,
@@ -2480,9 +2480,21 @@ async function nextSettingsOnboardingStep(){
         window._settingsOnboarding.completed = false;
         window._settingsOnboarding.step = 'first_case';
       }
-    }catch(e){ console.warn('settings onboarding save:', e); }
-    closeSettingsOnboarding();
-    window.location.href = '/app/dashboard.html?onboarding=first_case';
+      closeSettingsOnboarding();
+      window.location.href = '/app/dashboard.html?onboarding=first_case';
+    };
+    try{
+      const missing = checkMissingFields();
+      if(missing.length > 0){
+        showMissingFieldsModal(missing, finishOnboarding);
+        return; // ממתינים לכפתור במודל
+      }
+      await finishOnboarding();
+    }catch(e){
+      console.warn('settings onboarding save:', e);
+      closeSettingsOnboarding();
+      window.location.href = '/app/dashboard.html?onboarding=first_case';
+    }
     return;
   }
   if(settingsOnboardingIndex >= settingsOnboardingSteps.length - 1){
