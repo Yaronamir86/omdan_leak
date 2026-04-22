@@ -12,12 +12,11 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const https = require("https");
 const querystring = require("querystring");
 
-
 const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
 
 // ── Secrets ──────────────────────────────────────────────
 const CARDCOM_TERMINAL = defineSecret("CARDCOM_TERMINAL");
