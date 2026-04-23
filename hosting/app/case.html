@@ -3529,7 +3529,7 @@
         { value: "anomaly", label: "בוצע — נמצא חריג" },
       ];
       const INSP_LOCATION_OPTIONS = [
-        { value: "client_side", label: "נכס נבדק" },
+        { value: "client_side", label: "נכס הנבדק " },
         { value: "third_party", label: "נכס צד ג׳" },
       ];
       let inspData = {};
@@ -5704,8 +5704,11 @@ ${customAfterDetails}
               ? inst.customLocation || "מיקום חופשי"
               : INSP_LOCATION_OPTIONS.find((l) => l.value === inst.location)
                   ?.label || "—";
+          const subTypeLabelB = inst.subType
+            ? (inst.subType === "אחר..." && inst.subTypeOther ? inst.subTypeOther : inst.subType)
+            : null;
           return `<tr style="background:${bgRow};">
-          <td style="padding:10px 14px;border:1px solid #e8edf3;">${t.name}</td>
+          <td style="padding:10px 14px;border:1px solid #e8edf3;">${t.name}${subTypeLabelB ? `<br><span style="font-size:12px;color:#6b7280;">מערכת: ${subTypeLabelB}</span>` : ""}</td>
           <td style="padding:9px 14px;border:1px solid #e8edf3;color:#64748b;">${loc}</td>
           <td style="padding:9px 14px;border:1px solid #e8edf3;font-weight:700;color:${color};">${lbl}</td>
         </tr>`;
