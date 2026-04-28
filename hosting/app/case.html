@@ -5405,11 +5405,11 @@
         );
         const activeInsts = inspInstances.filter((i) => i.status);
         const INSP_STATUS_HE = {
-          ok: "בוצעה — נמצאה תקינה",
-          fail: "בוצעה — נמצא כשל",
-          partial: "בוצעה — ממצאים חלקיים",
-          no_finding: "בוצע — ללא ממצאים חריגים",
-          anomaly: "בוצע — נמצא חריג",
+          ok: "נמצאה תקינה",
+          fail: "נמצא כשל",
+          partial: "ממצאים חלקיים",
+          no_finding: "ללא ממצאים חריגים",
+          anomaly: "נמצא חריג",
           "": "לא בוצעה",
         };
         const inspTableHtml = `<table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:20px;">
@@ -5465,16 +5465,17 @@
                 ? inst.subTypeOther
                 : inst.subType
               : null;
-            return `<div style="margin-bottom:20px;page-break-inside:avoid;">
-      <div style="font-size:17px;font-weight:800;color:#1e3a5f;background:#eef2f7;border-right:4px solid #1565C0;padding:7px 12px;margin-bottom:10px;border-radius:0 6px 6px 0;">${t.name}${subTypeLabelDetail ? " — מערכת " + subTypeLabelDetail : ""}${loc ? " — " + loc : ""}</div>
+            const photoCountForGroup = inst.photos?.filter((ph) => ph.url)?.length || 0;
+            return `<div class="rpt-photo-group" style="margin-bottom:20px;page-break-inside:avoid;">
+      <div class="rpt-photo-group-title"><span>${t.name}${subTypeLabelDetail ? " — מערכת " + subTypeLabelDetail : ""}${loc ? " — " + loc : ""}</span><strong>${photoCountForGroup} תמונות</strong></div>
       ${inst.notes ? `<p style="font-size:18px;color:#374151;margin-bottom:10px;">${escHtml(inst.notes)}</p>` : ""}
       ${
-        inst.photos?.filter((ph) => ph.url)?.length
-          ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">${inst.photos
+        photoCountForGroup
+          ? `<div class="rpt-photo-grid">${inst.photos
               .filter((ph) => ph.url)
               .map(
                 (ph, pi) =>
-                  `<div style="border:1.5px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#f8fafc;display:flex;flex-direction:column;"><div style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;"><img src="${ph.url}" style="max-width:100%;max-height:220px;object-fit:contain;border-radius:6px;display:block;" crossorigin="anonymous"></div><div style="min-height:36px;padding:6px 10px;font-size:15px;color:#6b7280;border-top:1px solid #e5e7eb;text-align:center;">${escHtml(ph.caption || "")}</div></div>`,
+                  `<div class="rpt-photo-card" style="border:1.5px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#f8fafc;display:flex;flex-direction:column;"><div class="rpt-photo-media" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;"><img src="${ph.url}" style="max-width:100%;max-height:220px;object-fit:contain;border-radius:6px;display:block;" crossorigin="anonymous"></div><div class="rpt-photo-caption" style="min-height:36px;padding:6px 10px;font-size:15px;color:#6b7280;border-top:1px solid #e5e7eb;text-align:center;">${escHtml(ph.caption || "")}</div></div>`,
               )
               .join("")}</div>`
           : ""
@@ -5486,7 +5487,7 @@
           (profileData.tools || []).map((t) => [t.name, t]),
         );
         const toolsHtml = selectedTools.length
-          ? `<ol style="margin:8px 0 0 0;padding-right:20px;font-size:18px;color:#1a1a1a;line-height:2;">${selectedTools
+          ? `<ol style="margin:8px 0 0 0;padding-right:20px;font-size:12.5px;color:#344054;line-height:1.9;background:#fbfdff;border:1px solid #edf2f7;border-radius:14px;padding-top:10px;padding-bottom:10px;">${selectedTools
               .map((name) => {
                 const obj = _toolsMap[name];
                 const model = obj?.model
@@ -5591,20 +5592,20 @@
         } else {
           // A (default): logo right, name+title right-side, contact left — identical to רכוש
           _headerHtml =
-            '<div style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;margin-bottom:20px;border-bottom:2px solid #E5E7EB;">' +
-            '<div style="flex-shrink:0;">' +
+            '<div style="display:flex;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid #d8e2ee;">' +
+            '<div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;">' +
             logoHtml +
             "</div>" +
-            '<div style="flex:1;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">' +
             "<div>" +
-            '<div style="font-size:22px;font-weight:900;color:#111;margin-bottom:2px;">' +
+            '<div style="font-size:17px;font-weight:900;color:#0f172a;line-height:1.2;margin-bottom:3px;">' +
             _n +
             "</div>" +
-            _titleRow +
-            _licRow +
+            (profTitle ? '<div style="font-size:11px;color:#667085;font-weight:600;line-height:1.4;">' + _ti + "</div>" : "") +
+            (profLicense ? '<div style="font-size:10.5px;color:#475467;font-weight:700;margin-top:2px;">רישיון מס\' ' + _li + "</div>" : "") +
             "</div>" +
-            '<div style="text-align:left;font-size:12px;color:#6b7280;line-height:2;">' +
+            '<div style="text-align:left;font-size:10.5px;color:#667085;line-height:1.7;font-weight:500;">' +
             _phoneRow +
             _emailRow +
             _vatRow +
@@ -5638,30 +5639,106 @@
         }
         _fbarEl.innerHTML = _footerBar;
 
+        const educationLinesHtml = (s.inspector?.education || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => `<div class="rpt-dashed-row">${escHtml(line)}</div>`)
+          .join("");
+
         document.getElementById("reportOutput").innerHTML = `
-<div style="font-family:'Heebo',sans-serif;direction:rtl;color:#1a1a1a;background:#fff;">
+<div class="rpt-shell" style="font-family:'Heebo',sans-serif;direction:rtl;color:#1f2937;background:#fff;">
 
 <div data-report-brand-header="1">${_headerHtml}</div>
 
 <!-- ═══ כותרת הדוח ═══ -->
-<div style="text-align:center;padding:22px 0 18px;border-bottom:3px solid #1565C0;margin-bottom:24px;">
-  <div style="font-size:31px;font-weight:900;color:#0d1b2a;letter-spacing:-.02em;">דו"ח איתור נזילה</div>
-  <div style="font-size:16px;color:#6b7280;margin-top:5px;font-weight:600;">מספר תיק: ${escHtml(caseNum)}</div>
+<div class="rpt-title-card">
+  <div class="rpt-title-main">דו"ח איתור נזילה</div>
+  <div class="rpt-title-case">
+    <span>מספר תיק</span>
+    <strong>${escHtml(caseNum)}</strong>
+  </div>
 </div>
 
 <!-- ═══ גריד פרטים ═══ -->
 <style>
-.rpt-data-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
-.rpt-data-panel{background:#f9fafb;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;}
-.rpt-data-panel-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:#1e3a5f;padding:9px 14px;background:#eef2f7;border-bottom:1px solid #dde3ed;}
-.rpt-data-panel table{width:100%;border-collapse:collapse;font-size:16px;}
-.rpt-data-panel td{padding:8px 14px;border-bottom:1px solid #f1f5f9;line-height:1.7;}
+.rpt-title-card{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#f8fbff,#eef7ff);border:1px solid #d7ebff;border-right:5px solid #2196f3;border-radius:14px;padding:16px 18px;margin-bottom:18px;page-break-inside:avoid;}
+.rpt-title-main{font-size:25px;font-weight:900;color:#0f172a;letter-spacing:-.015em;line-height:1.2;}
+.rpt-title-case{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:158px;padding:9px 13px;background:#fff;border:1px solid #cfe6ff;border-radius:12px;box-shadow:0 2px 8px rgba(33,150,243,.06);}
+.rpt-title-case span{font-size:9px;color:#667085;font-weight:800;letter-spacing:.08em;text-transform:uppercase;line-height:1.1;}
+.rpt-title-case strong{font-size:17px;color:#1565C0;font-weight:900;line-height:1.2;}
+.rpt-data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.rpt-data-panel{background:#fbfdff;border:1px solid #edf2f7;border-radius:14px;overflow:hidden;}
+.rpt-data-panel-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:900;color:#0f172a;padding:9px 14px;background:#fbfdff;border-bottom:1px solid #edf2f7;}
+.rpt-data-panel-title::before{content:'';width:7px;height:20px;border-radius:999px;background:#2196f3;display:inline-block;}
+.rpt-data-panel table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
+.rpt-data-panel td{padding:6px 14px;border-bottom:1px dashed #e4edf6;line-height:1.55;}
 .rpt-data-panel tr:last-child td{border-bottom:none;}
-.rpt-data-panel td:first-child{color:#64748b;font-weight:600;width:42%;}
-.rpt-data-panel td:last-child{font-weight:700;color:#111;}
-.rpt-section-title{font-size:17px;font-weight:800;color:#1e3a5f;padding-bottom:7px;margin-bottom:14px;border-bottom:2px solid #dde3ed;display:flex;align-items:center;gap:6px;}
-.rpt-section-title::before{content:'';display:inline-block;width:4px;height:16px;background:#1565C0;border-radius:2px;}
-</style>
+.rpt-data-panel td:first-child{color:#667085;font-weight:800;width:42%;}
+.rpt-data-panel td:last-child{font-weight:700;color:#111827;}
+.rpt-soft-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;border:1px solid #dfe9f3;border-radius:14px;overflow:hidden;background:#fff;}
+.rpt-soft-table th{padding:10px 12px;text-align:right;background:#f0f7ff;color:#155e9f;font-weight:900;border-bottom:1px solid #dfe9f3;}
+.rpt-soft-table td{padding:10px 12px;border-bottom:1px solid #edf2f7;color:#344054;line-height:1.65;font-weight:600;}
+.rpt-soft-table tbody tr:last-child td{border-bottom:none;}
+.rpt-soft-table th:not(:last-child),.rpt-soft-table td:not(:last-child){border-left:none;}
+.rpt-soft-table tr.rpt-row-fail td{background:#fffafa;}
+.rpt-soft-table tr.rpt-row-ok td{background:#f7fef9;}
+.rpt-section-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:900;color:#0f172a;margin:18px 0 10px;padding:0;border-bottom:none;}
+.rpt-section-title::before{content:'';width:7px;height:20px;border-radius:999px;background:#2196f3;display:inline-block;}
+.rpt-text-block{background:#fbfdff;border:1px solid #edf2f7;border-radius:14px;padding:12px 16px;font-size:12.5px;line-height:1.8;color:#344054;white-space:pre-line;}
+.rpt-soft-note{background:#fbfdff;border:1px solid #e3edf7;border-right:4px solid #9bd2ff;border-radius:13px;padding:12px 14px;font-size:12px;line-height:1.75;color:#344054;}
+.rpt-warning-note{background:#fff8eb;border:1px solid #fed7aa;border-right:4px solid #f59e0b;border-radius:11px;padding:8px 11px;margin-bottom:10px;color:#7c2d12;font-weight:700;font-size:11.5px;line-height:1.7;}
+
+	/* refined report UI overrides */
+	.rpt-shell{padding-top:8px!important;}
+	.rpt-shell::before{height:4px!important;border-radius:999px!important;background:linear-gradient(90deg,#1565c0,#2196f3,#8bd3ff)!important;}
+	.rpt-title-card{margin:14px 0 18px!important;border-right-width:4px!important;padding:15px 18px!important;}
+	.rpt-title-main{font-size:24px!important;font-weight:850!important;}
+	.rpt-data-panel{border-color:#dce8f3!important;}
+	.rpt-data-panel-title{font-weight:850!important;}
+	.rpt-section-title{font-weight:850!important;line-height:1.2!important;}
+	.rpt-section-title::before,.rpt-data-panel-title::before,.rpt-photo-section-title::before,.rpt-photo-group-title::before{width:6px!important;height:19px!important;flex:0 0 6px!important;}
+	.rpt-card{background:#fbfdff;border:1px solid #dce8f3;border-radius:14px;overflow:hidden;}
+	.rpt-dashed-row{font-size:12.5px;color:#344054;line-height:1.65;padding:7px 16px;border-bottom:1px dashed #dfe9f3;font-weight:500;}
+	.rpt-dashed-row:last-child{border-bottom:none;}
+	.rpt-soft-table{border-color:#dce8f3!important;box-shadow:none!important;}
+	.rpt-soft-table th{background:linear-gradient(180deg,#f3f9ff,#eef6ff)!important;border-bottom-color:#dce8f3!important;font-weight:850!important;color:#155e9f!important;}
+	.rpt-soft-table td{background:#fff!important;border-bottom-color:#e7eef6!important;}
+	.rpt-soft-table tbody tr:nth-child(even) td{background:#fbfdff!important;}
+	.rpt-soft-table tr.rpt-row-fail td,.rpt-soft-table tr.rpt-row-ok td{background:#fff!important;}
+	/* exact clean inspection table */
+	.rpt-soft-table{border:1px solid #dbe7f2!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important;font-size:12.5px!important;}
+	.rpt-soft-table th{background:linear-gradient(180deg,#f3f9ff,#eaf4ff)!important;color:#12619d!important;font-weight:900!important;padding:14px 26px!important;text-align:center!important;border-bottom:1px solid #dbe7f2!important;letter-spacing:.015em!important;}
+	.rpt-soft-table td{background:#fff!important;color:#334155!important;font-weight:700!important;padding:12px 22px!important;text-align:center!important;border-bottom:1px solid #e5edf5!important;line-height:1.55!important;}
+	.rpt-soft-table tbody tr:nth-child(even) td{background:#fbfdff!important;}
+	.rpt-soft-table tbody tr:last-child td{border-bottom:none!important;}
+	.rpt-soft-table th:not(:last-child),.rpt-soft-table td:not(:last-child){border-left:none!important;}
+	.rpt-soft-table td:first-child{text-align:right!important;}
+	.rpt-soft-table tr.rpt-row-fail td,.rpt-soft-table tr.rpt-row-ok td{background:inherit!important;}
+	.rpt-status-pill,.rpt-status-badge{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:84px!important;border-radius:999px!important;padding:4px 13px!important;font-size:11.5px!important;line-height:1.25!important;font-weight:900!important;white-space:nowrap!important;border:1px solid transparent!important;background:#f8fafc!important;color:#475569!important;text-decoration:none!important;}
+	.rpt-status-ok{background:#ecfdf5!important;color:#047857!important;border-color:#a7f3d0!important;}
+	.rpt-status-fail{background:#fff1f2!important;color:#be123c!important;border-color:#fecdd3!important;}
+	.rpt-status-partial{background:#fff7ed!important;color:#c2410c!important;border-color:#fed7aa!important;}
+	.rpt-status-neutral{background:#f8fafc!important;color:#64748b!important;border-color:#e2e8f0!important;}
+
+	/* photo group header + compact two-column cards */
+	/* findings table: horizontal lines only */
+	.rpt-soft-table th,.rpt-soft-table td{border-left:none!important;border-right:none!important;}
+	.rpt-soft-table th{padding-left:26px!important;padding-right:26px!important;}
+	.rpt-soft-table th:nth-child(1),.rpt-soft-table td:nth-child(1){width:34%!important;}
+	.rpt-soft-table th:nth-child(2),.rpt-soft-table td:nth-child(2){width:32%!important;}
+	.rpt-soft-table th:nth-child(3),.rpt-soft-table td:nth-child(3){width:34%!important;}
+	.rpt-photo-group-title{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;background:#f3f8fe!important;border:1px solid #dce8f3!important;border-right:5px solid #2196f3!important;border-radius:14px!important;padding:8px 13px!important;margin:18px 0 12px!important;color:#123b63!important;font-size:14px!important;font-weight:900!important;line-height:1.25!important;}
+	.rpt-photo-group-title::before{display:none!important;content:none!important;}
+	.rpt-photo-group-title span{font:inherit!important;color:inherit!important;}
+	.rpt-photo-group-title strong{margin-right:auto!important;color:#52677f!important;font-size:11px!important;font-weight:900!important;white-space:nowrap!important;}
+	.rpt-photo-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;align-items:start!important;width:96%!important;margin:10px auto 0!important;}
+	.rpt-photo-grid>div,.rpt-photo-card{min-width:0!important;width:100%!important;break-inside:avoid!important;page-break-inside:avoid!important;border-color:#dce8f3!important;border-radius:14px!important;background:#fbfdff!important;}
+	.rpt-photo-media{background:#f8fbff!important;padding:7px!important;min-height:0!important;}
+	.rpt-photo-grid img{width:auto!important;max-width:100%!important;max-height:195px!important;object-fit:contain!important;display:block!important;margin:0 auto!important;border-radius:9px!important;}
+	.rpt-photo-caption{min-height:30px!important;padding:5px 9px!important;font-size:11px!important;line-height:1.45!important;color:#667085!important;border-top:1px solid #e7eef6!important;background:#fff!important;}
+
+	@media(max-width:640px){.rpt-title-card{align-items:stretch;flex-direction:column;}.rpt-title-case{align-items:flex-start;width:100%;} .rpt-data-grid,.rpt-photo-grid{grid-template-columns:1fr!important;}}</style>
 <div class="rpt-data-grid">
   <div class="rpt-data-panel">
     <div class="rpt-data-panel-title">פרטי הלקוח</div>
@@ -5691,7 +5768,7 @@ ${
     ? `
 <div style="margin-bottom:22px;page-break-inside:avoid;">
   <div class="rpt-section-title">הצהרת מאתר</div>
-  <p style="font-size:17px;line-height:1.9;color:#1a1a1a;margin:0;">${escHtml(s.inspector.declaration)}</p>
+  <div class="rpt-soft-note">${escHtml(s.inspector.declaration)}</div>
 </div>`
     : ""
 }
@@ -5701,7 +5778,7 @@ ${
     ? `
 <div style="margin-bottom:22px;page-break-inside:avoid;">
   <div class="rpt-section-title">השכלה וניסיון</div>
-  <div style="font-size:17px;line-height:2;color:#1a1a1a;white-space:pre-line;">${escHtml(s.inspector.education)}</div>
+  <div class="rpt-card">${educationLinesHtml}</div>
 </div>`
     : ""
 }
@@ -5711,12 +5788,12 @@ ${customAfterDetails}
 <!-- ═══ טבלת בדיקות ═══ -->
 <div style="margin-bottom:24px;page-break-inside:avoid;">
   <div class="rpt-section-title">תיאור הבדיקות שבוצעו</div>
-  <table style="width:100%;border-collapse:collapse;font-size:16px;">
+  <table class="rpt-soft-table">
     <thead>
-      <tr style="background:#eef2f7;">
-        <th style="padding:11px 14px;text-align:right;border:1px solid #dde3ed;color:#1e3a5f;font-weight:800;">סוג הבדיקה</th>
-        <th style="padding:11px 14px;text-align:right;border:1px solid #dde3ed;color:#1e3a5f;font-weight:800;">מיקום</th>
-        <th style="padding:11px 14px;text-align:right;border:1px solid #dde3ed;color:#1e3a5f;font-weight:800;">סטטוס</th>
+      <tr>
+        <th>סוג הבדיקה</th>
+        <th>מיקום</th>
+        <th>סטטוס</th>
       </tr>
     </thead>
     <tbody>
@@ -5752,10 +5829,24 @@ ${customAfterDetails}
               ? inst.subTypeOther
               : inst.subType
             : null;
-          return `<tr style="background:${bgRow};">
-          <td style="padding:10px 14px;border:1px solid #e8edf3;">${t.name}${subTypeLabelB ? `<br><span style="font-size:12px;color:#6b7280;">מערכת: ${subTypeLabelB}</span>` : ""}</td>
-          <td style="padding:9px 14px;border:1px solid #e8edf3;color:#64748b;">${loc}</td>
-          <td style="padding:9px 14px;border:1px solid #e8edf3;font-weight:700;color:${color};">${lbl}</td>
+          const rowClass =
+            inst.status === "fail" || inst.status === "anomaly"
+              ? "rpt-row-fail"
+              : inst.status === "ok" || inst.status === "no_finding"
+                ? "rpt-row-ok"
+                : "";
+          return `<tr class="${rowClass}">
+          <td>${t.name}${subTypeLabelB ? `<br><span style="font-size:12px;color:#6b7280;">מערכת: ${subTypeLabelB}</span>` : ""}</td>
+          <td style="color:#64748b;">${loc}</td>
+          <td><span class="rpt-status-badge ${
+            inst.status === "ok" || inst.status === "no_finding"
+              ? "rpt-status-ok"
+              : inst.status === "fail" || inst.status === "anomaly"
+                ? "rpt-status-fail"
+                : inst.status === "partial"
+                  ? "rpt-status-partial"
+                  : "rpt-status-neutral"
+          }">${lbl}</span></td>
         </tr>`;
         })
         .join("")}
@@ -5778,10 +5869,10 @@ ${
     ? `
 <div style="margin-bottom:22px;page-break-inside:avoid;">
   <div class="rpt-section-title">ממצאים</div>
-  <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:16px;color:#78350f;line-height:1.7;margin-bottom:12px;">
+  <div class="rpt-warning-note">
     ⚠️ ממצאי הבדיקה נכונים לתאריך הבדיקה בלבד. המאתר אינו אחראי על כשלים או נזקים נוספים שיתגלו בעתיד.
   </div>
-  <div style="font-size:17px;line-height:2;color:#1a1a1a;white-space:pre-line;">${escHtml(s.findings)}</div>
+  <div class="rpt-text-block">${escHtml(s.findings)}</div>
 </div>`
     : ""
 }
@@ -5791,7 +5882,7 @@ ${
     ? `
 <div style="margin-bottom:22px;page-break-inside:avoid;">
   <div class="rpt-section-title">המלצות להמשך טיפול</div>
-  <div style="font-size:17px;line-height:2;color:#1a1a1a;white-space:pre-line;">${escHtml(s.recommendations)}</div>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #10b981;border-radius:14px;padding:12px 14px;line-height:1.7;font-size:12.5px;color:#14532d;font-weight:700;white-space:pre-line;">${escHtml(s.recommendations)}</div>
 </div>`
     : ""
 }
@@ -5809,11 +5900,11 @@ ${
 ${customEnd}
 
 <!-- ═══ חתימה וסיום ═══ -->
-<div style="margin-top:40px;padding-top:28px;border-top:2px solid #e2e8f0;text-align:center;page-break-inside:avoid;">
-  <div style="font-size:19px;font-weight:700;line-height:2;color:#1a1a1a;white-space:pre-line;">${escHtml(getVal("f-closing") || getDefaultClosingText(profName))}</div>
-  <div style="margin-top:20px;font-size:17px;color:#6b7280;">בברכה,</div>
+<div style="margin-top:28px;padding-top:16px;border-top:1px solid #e5edf5;text-align:center;page-break-inside:avoid;">
+  <div style="font-size:12px;font-weight:600;line-height:1.8;color:#344054;white-space:pre-line;">${escHtml(getVal("f-closing") || getDefaultClosingText(profName))}</div>
+  <div style="margin-top:16px;font-size:12px;color:#667085;">בברכה,</div>
   <div style="margin:14px auto;width:160px;">${sigHtml}</div>
-  <div style="font-size:18px;font-weight:800;color:#0d1b2a;">${escHtml(profName)}</div>
+  <div style="font-size:12.5px;font-weight:900;color:#111827;">${escHtml(profName)}</div>
   ${profTitle ? `<div style="font-size:13px;color:#6b7280;margin-top:2px;">${escHtml(profTitle)}</div>` : ""}
   ${profLicense ? `<div style="font-size:13px;color:#374151;font-weight:700;">רישיון מס' ${escHtml(profLicense)}</div>` : ""}
   <div style="margin-top:10px;font-size:13px;color:#64748b;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;">
