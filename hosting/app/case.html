@@ -3511,7 +3511,7 @@
           id: "camera",
           icon: "📷",
           name: "צילום פנים צנרת",
-          subTypes: ["קולטן ביוב", "דלוחין", 'צמ"ג',"אחר..."],
+          subTypes: ["קולטן ביוב", "דלוחין", 'צמ"ג', "אחר..."],
         },
         { id: "sealing", icon: "🔍", name: "בדיקת כשלי איטום" },
         { id: "gas", icon: "⚗️", name: "בדיקה באמצעות גז" },
@@ -5088,6 +5088,35 @@
       }
 
       // ── CORE: generate PDF via Cloud Function ─────────────────────────────────────
+      function _getPdfLogoMode() {
+        return profileData?.pdfLogoMode === "allPages"
+          ? "allPages"
+          : "firstPageOnly";
+      }
+
+      function _buildPdfBrandingPayload() {
+        const p = profileData || {};
+        const logoSizePx = Math.max(
+          40,
+          Math.min(160, Number(p.logoSizePx || 70)),
+        );
+        return {
+          pdfLogoMode: _getPdfLogoMode(),
+          logoImageData: p.logoImageData || null,
+          logoInitials: p.logoLetters || p.logoInitials || "",
+          logoColor: p.logoColor || "#2196F3",
+          logoTextColor: p.logoTextColor || "#fff",
+          logoSizePx,
+          logoLayout: p.logoLayout || "A",
+          nameHe: p.nameHe || p.fullName || "",
+          title: p.title || "",
+          license: p.license || "",
+          phone: p.phone || "",
+          email: p.email || "",
+          vat: p.vat || "",
+        };
+      }
+
       async function _generatePdf() {
         showPdfProgress();
         try {
@@ -5108,6 +5137,8 @@
           // Step 2 — prepare payload
           setPdfStep(1);
           await new Promise((r) => setTimeout(r, 300));
+          const pdfBranding = _buildPdfBrandingPayload();
+          const pdfLogoMode = pdfBranding.pdfLogoMode;
           const logoUrl = profileData?.logoUrl || null;
           const logoDataUri = profileData?.logoImageData || null;
           const signatureUrl = profileData?.signatureUrl || null;
@@ -5128,6 +5159,13 @@
             .replace(/data-logo-placeholder[^>]*>.*?<\/[^>]+>/gs, logoHtml)
             .replace(/data-sig-placeholder[^>]*>.*?<\/[^>]+>/gs, sigHtml);
 
+          if (pdfLogoMode === "allPages") {
+            payload = payload.replace(
+              /<div\s+data-report-brand-header="1"[\s\S]*?<\/div>\s*/i,
+              "",
+            );
+          }
+
           // Step 3 — call Function (puppeteer)
           setPdfStep(2);
           const fn = firebase
@@ -5138,6 +5176,7 @@
             htmlPayload: payload,
             logoUrl: logoUrl || null,
             signatureUrl: signatureUrl || null,
+            pdfBranding,
           });
 
           // Optimistic step 4 while waiting
@@ -5308,9 +5347,9 @@
                 : INSP_LOCATION_OPTIONS.find((l) => l.value === inst.location)
                     ?.label;
             const subTypeLabel = inst.subType
-              ? (inst.subType === "אחר..." && inst.subTypeOther
-                  ? inst.subTypeOther
-                  : inst.subType)
+              ? inst.subType === "אחר..." && inst.subTypeOther
+                ? inst.subTypeOther
+                : inst.subType
               : null;
             text += `${t.name}${subTypeLabel ? " במערכת " + subTypeLabel : ""}${loc ? " ב" + loc : ""}: ${lbl}.`;
             if (inst.notes) text += ` ${inst.notes}`;
@@ -5326,7 +5365,7 @@
       function renderReport() {
         const s = buildState();
         const cl = s.client;
-        const p = profileData;
+        const p = profileData || {};
         const caseNum = getVal("f-caseNum");
         function _fmtDDMMYYYY(d) {
           const dd = String(d.getDate()).padStart(2, "0"),
@@ -5401,7 +5440,9 @@
             : INSP_LOCATION_OPTIONS.find((l) => l.value === inst.location)
                 ?.label || "—";
         const subTypeLabel = inst.subType
-          ? (inst.subType === "אחר..." && inst.subTypeOther ? inst.subTypeOther : inst.subType)
+          ? inst.subType === "אחר..." && inst.subTypeOther
+            ? inst.subTypeOther
+            : inst.subType
           : null;
         return `<tr><td style="padding:10px 14px;border:1px solid #e5e7eb;">${t.icon} ${t.name}${subTypeLabel ? `<br><span style="font-size:12px;color:#6b7280;">מערכת: ${subTypeLabel}</span>` : ""}</td><td style="padding:10px 14px;border:1px solid #e5e7eb;color:#6b7280;">${loc}</td><td style="padding:10px 14px;border:1px solid #e5e7eb;font-weight:700;color:${color};">${lbl}</td></tr>`;
       })
@@ -5420,7 +5461,9 @@
                 : INSP_LOCATION_OPTIONS.find((l) => l.value === inst.location)
                     ?.label || "";
             const subTypeLabelDetail = inst.subType
-              ? (inst.subType === "אחר..." && inst.subTypeOther ? inst.subTypeOther : inst.subType)
+              ? inst.subType === "אחר..." && inst.subTypeOther
+                ? inst.subTypeOther
+                : inst.subType
               : null;
             return `<div style="margin-bottom:20px;page-break-inside:avoid;">
       <div style="font-size:17px;font-weight:800;color:#1e3a5f;background:#eef2f7;border-right:4px solid #1565C0;padding:7px 12px;margin-bottom:10px;border-radius:0 6px 6px 0;">${t.name}${subTypeLabelDetail ? " — מערכת " + subTypeLabelDetail : ""}${loc ? " — " + loc : ""}</div>
@@ -5598,7 +5641,7 @@
         document.getElementById("reportOutput").innerHTML = `
 <div style="font-family:'Heebo',sans-serif;direction:rtl;color:#1a1a1a;background:#fff;">
 
-${_headerHtml}
+<div data-report-brand-header="1">${_headerHtml}</div>
 
 <!-- ═══ כותרת הדוח ═══ -->
 <div style="text-align:center;padding:22px 0 18px;border-bottom:3px solid #1565C0;margin-bottom:24px;">
@@ -5705,7 +5748,9 @@ ${customAfterDetails}
               : INSP_LOCATION_OPTIONS.find((l) => l.value === inst.location)
                   ?.label || "—";
           const subTypeLabelB = inst.subType
-            ? (inst.subType === "אחר..." && inst.subTypeOther ? inst.subTypeOther : inst.subType)
+            ? inst.subType === "אחר..." && inst.subTypeOther
+              ? inst.subTypeOther
+              : inst.subType
             : null;
           return `<tr style="background:${bgRow};">
           <td style="padding:10px 14px;border:1px solid #e8edf3;">${t.name}${subTypeLabelB ? `<br><span style="font-size:12px;color:#6b7280;">מערכת: ${subTypeLabelB}</span>` : ""}</td>

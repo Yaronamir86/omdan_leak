@@ -23,6 +23,7 @@ exports.generateLeakPdf = functions
       htmlPayload,  // full report HTML string
       logoUrl,      // optional: absolute URL (Firebase Storage signed URL)
       signatureUrl, // optional: absolute URL
+      pdfBranding,  // optional: repeated PDF header branding
     } = data;
 
     if (!htmlPayload) {
@@ -31,6 +32,13 @@ exports.generateLeakPdf = functions
 
     // ── Build full HTML page ──
     const fullHtml = buildHtmlPage(htmlPayload, logoUrl, signatureUrl);
+    const pdfLogoMode = pdfBranding?.pdfLogoMode === 'allPages' ? 'allPages' : 'firstPageOnly';
+    const repeatedHeaderTemplate = pdfLogoMode === 'allPages'
+      ? buildPdfHeaderTemplate(pdfBranding || {})
+      : '<div></div>';
+    const repeatedHeaderTopMargin = pdfLogoMode === 'allPages'
+      ? `${calculatePdfHeaderTopMargin(pdfBranding || {})}px`
+      : '15mm';
 
     // ── Puppeteer → PDF ──
     let browser;
@@ -74,9 +82,9 @@ exports.generateLeakPdf = functions
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
-        margin: { top: '15mm', bottom: '20mm', left: '12mm', right: '12mm' },
+        margin: { top: repeatedHeaderTopMargin, bottom: '20mm', left: '12mm', right: '12mm' },
         displayHeaderFooter: true,
-        headerTemplate: '<div></div>',
+        headerTemplate: repeatedHeaderTemplate,
         footerTemplate: `
           <div style="
             width:100%;font-size:9px;color:#9ca3af;
@@ -134,6 +142,113 @@ const signedUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 // • Page-break rules
 // • Dynamic logo / signature via <img> if URLs provided
 // ─────────────────────────────────────────────────────────────────────────────
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeXml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+function svgInitialsLogoDataUri({ initials, size, bg, fg }) {
+  const safeInitials = escapeXml(initials || 'OM').slice(0, 4);
+  const safeBg = /^#[0-9a-fA-F]{3,8}$/.test(String(bg || '')) ? bg : '#2196F3';
+  const safeFg = /^#[0-9a-fA-F]{3,8}$/.test(String(fg || '')) ? fg : '#ffffff';
+  const radius = Math.round(size * 0.18);
+  const fontSize = Math.round(size * 0.36);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" rx="${radius}" fill="${safeBg}"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="900" fill="${safeFg}">${safeInitials}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+
+function calculatePdfHeaderTopMargin(branding) {
+  const logoSize = clampNumber(branding.logoSizePx, 80, 160, 90);
+  const layout = ['A', 'B', 'C'].includes(branding.logoLayout) ? branding.logoLayout : 'A';
+
+  // Puppeteer renders headerTemplate inside the top margin box.
+  // The margin must include the actual logo size + the branding text row + breathing space.
+  // Without this, large logos visually collide with the report title/content.
+  if (layout === 'B') {
+    return Math.round(logoSize + 120);
+  }
+
+  return Math.round(Math.max(150, logoSize + 85));
+}
+
+function buildPdfHeaderTemplate(branding) {
+  const logoSize = clampNumber(branding.logoSizePx, 80, 160, 90);
+  const layout = ['A', 'B', 'C'].includes(branding.logoLayout) ? branding.logoLayout : 'A';
+
+  const name = escapeHtml(branding.nameHe || branding.fullName || '');
+  const title = escapeHtml(branding.title || '');
+  const license = escapeHtml(branding.license || '');
+  const phone = escapeHtml(branding.phone || '');
+  const email = escapeHtml(branding.email || '');
+  const vat = escapeHtml(branding.vat || '');
+  const initials = escapeHtml(branding.logoInitials || 'OM');
+  const logoColor = branding.logoColor || '#2196F3';
+  const logoTextColor = branding.logoTextColor || '#ffffff';
+
+  const logoSrc = branding.logoImageData || svgInitialsLogoDataUri({ initials, size: logoSize, bg: logoColor, fg: logoTextColor });
+  const logoHtml = `<img src="${logoSrc}" style="height:${logoSize}px;max-width:${Math.round(logoSize * 2.6)}px;object-fit:contain;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`;
+
+  const nameBlock = `
+    ${name ? `<div style="font-size:15px;font-weight:900;color:#111827;line-height:1.35;margin-bottom:2px;">${name}</div>` : ''}
+    ${title ? `<div style="font-size:11px;font-weight:700;color:#6b7280;line-height:1.35;">${title}</div>` : ''}
+    ${license ? `<div style="font-size:10px;font-weight:700;color:#374151;line-height:1.35;margin-top:2px;">רישיון מס׳ ${license}</div>` : ''}
+  `;
+
+  const contactBlock = `
+    ${phone ? `<div style="line-height:1.55;"><span style="font-weight:700;color:#374151;">${phone}</span></div>` : ''}
+    ${email ? `<div style="line-height:1.55;color:#374151;">${email}</div>` : ''}
+    ${vat ? `<div style="line-height:1.55;color:#374151;">ע.מ ${vat}</div>` : ''}
+  `;
+
+  const shellStart = `<div style="width:100%;box-sizing:border-box;padding:10px 12mm 18px 12mm;font-family:Arial,sans-serif;direction:rtl;background:#ffffff;border-bottom:1px solid #e5e7eb;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`;
+  const shellEnd = `</div>`;
+
+  if (layout === 'B') {
+    return `${shellStart}
+      <table dir="rtl" style="width:100%;border-collapse:collapse;table-layout:fixed;">
+        <tr><td style="text-align:center;padding:0 0 6px 0;"><div style="display:inline-block;">${logoHtml}</div></td></tr>
+        <tr><td style="text-align:center;font-size:10px;color:#374151;white-space:nowrap;overflow:hidden;">
+          ${name ? `<span style="font-size:13px;font-weight:900;color:#111827;">${name}</span>` : ''}
+          ${title ? `<span style="margin:0 7px;color:#6b7280;font-weight:700;">${title}</span>` : ''}
+          ${license ? `<span style="margin:0 7px;color:#374151;font-weight:700;">רישיון: ${license}</span>` : ''}
+          ${phone ? `<span style="margin:0 7px;">${phone}</span>` : ''}
+          ${email ? `<span style="margin:0 7px;">${email}</span>` : ''}
+          ${vat ? `<span style="margin:0 7px;">ע.מ ${vat}</span>` : ''}
+        </td></tr>
+      </table>${shellEnd}`;
+  }
+
+  return `${shellStart}
+    <table dir="rtl" style="width:100%;border-collapse:collapse;table-layout:fixed;">
+      <tr>
+        <td style="width:${Math.round(logoSize * 1.25)}px;vertical-align:middle;text-align:right;padding:0 0 0 12px;">${logoHtml}</td>
+        <td style="vertical-align:middle;text-align:right;padding:0 12px;border-right:2px solid #e5e7eb;">${nameBlock}</td>
+        <td style="width:34%;vertical-align:middle;text-align:left;font-size:10px;color:#6b7280;line-height:1.55;">${contactBlock}</td>
+      </tr>
+    </table>${shellEnd}`;
+}
+
 function buildHtmlPage(bodyHtml, logoUrl, signatureUrl) {
   // Inject logo and signature URLs into the HTML if placeholders exist
   let html = bodyHtml;

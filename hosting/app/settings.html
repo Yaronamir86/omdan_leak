@@ -1109,6 +1109,22 @@ body.ob-lock{overflow:hidden;}
                 </div>
               </div>
 
+              <!-- PDF LOGO MODE -->
+              <div style="border-top:1px solid var(--border);padding-top:12px;">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">הצגת לוגו ב-PDF</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <button type="button" class="pdf-logo-mode-btn active" data-mode="firstPageOnly" onclick="setPdfLogoMode('firstPageOnly', this)"
+                    style="padding:9px 10px;border-radius:8px;border:1.5px solid var(--accent);background:rgba(245,158,11,.1);cursor:pointer;text-align:center;font-family:'Heebo',sans-serif;font-size:12px;font-weight:800;color:var(--text);">
+                    רק בעמוד הראשון
+                  </button>
+                  <button type="button" class="pdf-logo-mode-btn" data-mode="allPages" onclick="setPdfLogoMode('allPages', this)"
+                    style="padding:9px 10px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);cursor:pointer;text-align:center;font-family:'Heebo',sans-serif;font-size:12px;font-weight:800;color:var(--text);">
+                    בראש כל עמוד
+                  </button>
+                </div>
+                <div style="font-size:10px;color:var(--subtle);margin-top:6px;line-height:1.5;">ברירת מחדל: רק בעמוד הראשון. בבחירה “בראש כל עמוד” הלוגו יופיע דרך Puppeteer בכל דפי ה-PDF.</div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -1515,6 +1531,7 @@ let logoImageUrl  = null;       // uploaded image URL
 let logoSizePx    = 70;          // pixels 40-160
 let logoPosition  = 'right';    // kept for compat (layout drives position now)
 let logoLayout    = 'A';        // 'A'|'B'|'C' — header layout template
+let pdfLogoMode  = 'firstPageOnly'; // 'firstPageOnly' | 'allPages'
 let sigDataUrl    = null;       // drawn signature
 let savedSigUrl   = null;       // uploaded signature URL
 let fieldDefaults = [];         // [{key, val}]
@@ -1558,6 +1575,7 @@ function loadProfile(p){
     if(p.logoImageData||p.logoImageUrl) { logoImageUrl=p.logoImageData||p.logoImageUrl; logoMode='upload'; switchLogoTab('upload'); }
     if(p.logoSizePx)  { logoSizePx=p.logoSizePx; const sl=document.getElementById('logoSizeSlider'); if(sl){sl.value=logoSizePx;} document.getElementById('logoSizeLabel')&&(document.getElementById('logoSizeLabel').textContent=logoSizePx+'px'); updateLogoSizePreview(); }
     if(p.logoLayout)  { logoLayout=p.logoLayout; _activateLayoutBtn(p.logoLayout); }
+    if(p.pdfLogoMode) { setPdfLogoMode(p.pdfLogoMode); }
     updateLogoPreview();
   } catch(e) { console.warn('logo load error:', e); }
 
@@ -1627,6 +1645,20 @@ function _activateLayoutBtn(layout){
   });
 }
 function setLogoLayout(val, el){ logoLayout=val; _activateLayoutBtn(val); _updateReportHeaderPreview(); setSaveStatus('unsaved'); }
+function _activatePdfLogoModeBtn(mode){
+  document.querySelectorAll('.pdf-logo-mode-btn').forEach(b=>{
+    const active=b.getAttribute('data-mode')===mode;
+    b.style.borderColor = active ? 'var(--accent)' : 'var(--border2)';
+    b.style.background  = active ? 'rgba(245,158,11,.1)' : 'var(--surface2)';
+    b.classList.toggle('active', active);
+  });
+}
+function setPdfLogoMode(mode, el){
+  pdfLogoMode = mode === 'allPages' ? 'allPages' : 'firstPageOnly';
+  _activatePdfLogoModeBtn(pdfLogoMode);
+  if(el) setSaveStatus('unsaved');
+}
+
 // compat stubs (called from old code paths)
 function setLogoSize(val,el){}
 function setLogoPos(val,el){}
@@ -1938,7 +1970,7 @@ async function _doSaveAll(){
       email:    v('email'),    website: v('website'),
       linkedin: v('linkedin'), social:  v('social'),
       logoMode, logoColor, logoTextColor,
-      logoSizePx, logoLayout,
+      logoSizePx, logoLayout, pdfLogoMode,
       reportTheme: currentReportTheme,
       logoInitials: v('logoInitials') || '',
       fieldDefaults, textSnippets, tools,
