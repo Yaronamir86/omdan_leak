@@ -4,6 +4,30 @@ const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 const { v4: uuidv4 } = require('uuid');
 
+async function logPdfEventToCore(eventType, payload = {}) {
+  try {
+    await fetch('https://us-central1-omda-core.cloudfunctions.net/logSystemEvent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: 'omda-leak',
+        eventType,
+        uid: payload.uid || null,
+        entityId: payload.caseId || null,
+        source: 'cloud_function',
+        page: 'generateLeakPdf',
+        metadata: {
+          caseId: payload.caseId || null,
+          pdfPath: payload.pdfPath || null,
+          error: payload.error ? String(payload.error).slice(0, 500) : null,
+        },
+      }),
+    });
+  } catch (e) {
+    console.warn('CORE pdf monitor log skipped:', e.message);
+  }
+}
+
 // ── generateLeakPdf ──────────────────────────────────────────────────────────
 // HTTP callable: receives report data, renders HTML, produces PDF,
 // uploads to Firebase Storage, returns a signed download URL.
@@ -124,11 +148,13 @@ const signedUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
           .set({ pdfUrl: signedUrl, pdfPath: fileName, pdfGeneratedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
+      await logPdfEventToCore('pdf_generated', { uid, caseId, pdfPath: fileName });
       return { success: true, url: signedUrl, path: fileName };
 
     } catch (err) {
       if (browser) await browser.close().catch(() => {});
       console.error('generateLeakPdf error:', err);
+      await logPdfEventToCore('pdf_generation_failed', { uid, caseId, error: err.message });
       throw new functions.https.HttpsError('internal', err.message);
     }
   });

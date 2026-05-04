@@ -775,11 +775,48 @@ body::before{
 .ob-progress{font-size:12px;color:var(--subtle);font-weight:700;}
 .ob-arrow{position:absolute;width:18px;height:18px;background:rgba(17,24,39,.98);border-left:1px solid rgba(245,158,11,.25);border-top:1px solid rgba(245,158,11,.25);transform:rotate(45deg);}
 .ob-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.24);color:var(--accent);font-size:11px;font-weight:800;margin-bottom:12px;}
-body.ob-lock{overflow:hidden;}
+/* Onboarding must not block typing/editing inside the highlighted settings section. */
+body.ob-lock{overflow:auto;}
+.ob-section-active,
+.ob-section-active *{
+  pointer-events:auto;
+}
+.ob-section-active input,
+.ob-section-active textarea,
+.ob-section-active select,
+.ob-section-active button{
+  position:relative;
+  z-index:244;
+  user-select:text;
+}
 @media(max-width:768px){
-  .ob-card{width:calc(100vw - 24px);padding:18px 16px 16px;}
+  .ob-card{
+    width:calc(100vw - 24px);
+    padding:18px 16px 16px;
+    max-height:34vh;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
   .ob-title{font-size:18px;}
-  .ob-spotlight{ /* 4-strip approach, no box-shadow needed */ }
+  .ob-strip,
+  .ob-frame{display:none !important;}
+  body.ob-lock,
+  body.ob-lock .app,
+  body.ob-lock .main{
+    overflow:visible !important;
+    touch-action:pan-y !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .ob-section-active{
+    z-index:1;
+  }
+  .ob-section-active input,
+  .ob-section-active textarea,
+  .ob-section-active select,
+  .ob-section-active button{
+    z-index:2;
+  }
+  .ob-spotlight{ /* 4-strip approach disabled on mobile */ }
 }
 
 
@@ -1804,6 +1841,7 @@ function saveSignaturePreview(){
   if(wrap){ wrap.classList.add('visible'); }
   document.getElementById('sigStatus').textContent='';
   setSaveStatus('unsaved');
+  scheduleSettingsOnboardingSync();
   // badge מקומי מספיק
 }
 
@@ -2245,6 +2283,43 @@ const settingsOnboardingSteps = [
 ];
 
 let settingsOnboardingIndex = 0;
+let settingsOnboardingScrollSyncTimer = null;
+let settingsOnboardingProgrammaticScrollUntil = 0;
+let settingsOnboardingManualCompletedSteps = new Set();
+
+function getSettingsOnboardingCompletedStorageKey(){
+  return `omdaLeakSettingsOnboardingCompletedSteps:${window._currentUser?.uid || 'guest'}`;
+}
+
+function loadSettingsOnboardingCompletedSteps(){
+  try{
+    const raw = sessionStorage.getItem(getSettingsOnboardingCompletedStorageKey()) || '[]';
+    const arr = JSON.parse(raw);
+    settingsOnboardingManualCompletedSteps = new Set(Array.isArray(arr) ? arr : []);
+  }catch(e){
+    settingsOnboardingManualCompletedSteps = new Set();
+  }
+}
+
+function persistSettingsOnboardingCompletedSteps(){
+  try{
+    sessionStorage.setItem(
+      getSettingsOnboardingCompletedStorageKey(),
+      JSON.stringify([...settingsOnboardingManualCompletedSteps])
+    );
+  }catch(e){}
+}
+
+function markSettingsOnboardingStepComplete(key){
+  if(!key || key === 'save') return;
+  settingsOnboardingManualCompletedSteps.add(key);
+  persistSettingsOnboardingCompletedSteps();
+}
+
+function isSettingsOnboardingStepDone(key){
+  if(!key || key === 'save') return false;
+  return settingsOnboardingManualCompletedSteps.has(key) || isSettingsOnboardingStepComplete(key);
+}
 
 function maybeStartSettingsOnboarding(){
   const url = new URL(window.location.href);
@@ -2254,6 +2329,7 @@ function maybeStartSettingsOnboarding(){
   if(window._settingsOnboarding?.active) return;
 
   window._settingsOnboarding.active = true;
+  loadSettingsOnboardingCompletedSteps();
   document.body.classList.add('ob-lock');
 
   if (forced) {
@@ -2266,7 +2342,8 @@ function maybeStartSettingsOnboarding(){
   if (overlay) overlay.classList.add('show');
   if (card) card.classList.add('show');
 
-  showSettingsOnboardingStep(0);
+  showSettingsOnboardingStep(findNextIncompleteSettingsOnboardingStep(0));
+  startSettingsOnboardingScrollSync();
 }
 
 function updateSpotlightFrame(target){
@@ -2274,8 +2351,25 @@ function updateSpotlightFrame(target){
   const els = {};
   ids.forEach(id => { els[id] = document.getElementById(id); });
 
+  const hideFrame = () => {
+    ids.forEach(id => {
+      if(els[id]){
+        els[id].style.display='none';
+        els[id].classList.remove('show');
+      }
+    });
+  };
+
   if(!target){
-    ids.forEach(id => { if(els[id]){ els[id].style.display='none'; els[id].classList.remove('show'); } });
+    hideFrame();
+    return;
+  }
+
+  // במובייל לא משתמשים ב-frame fixed סביב השדות.
+  // הוא נשאר קבוע במסך בזמן גלילה וגורם לתחושה שהאזור המסומן לא נגלל.
+  // במקום זה נשאר רק סימון ה-section עצמו, שנגלל טבעית עם העמוד.
+  if(window.innerWidth <= 768){
+    hideFrame();
     return;
   }
 
@@ -2342,6 +2436,135 @@ function getSettingsOnboardingTarget(step){
   return null;
 }
 
+function isSettingsOnboardingStepComplete(key){
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  const digits = id => val(id).replace(/\D/g, '');
+  const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+  const hasText = (id, min = 2) => val(id).length >= min;
+  const hasVisibleSavedSignature = () => {
+    const preview = document.getElementById('sigPreview');
+    return !!(sigDataUrl || savedSigUrl || (preview && preview.getAttribute('src')));
+  };
+
+  switch(key){
+    case 'personal':
+      // לא מדלגים על השלב בגלל הקלדה חלקית; רק כשהפרטים הבסיסיים מלאים באמת.
+      return hasText('nameHe', 2) && hasText('title', 2);
+    case 'contact':
+      // טלפון חלקי או אימייל חלקי לא נחשבים כהשלמת שלב.
+      return digits('phone').length >= 9 && isValidEmail(val('email'));
+    case 'logo':
+      return !!((logoMode === 'upload' && logoImageUrl) || hasText('logoInitials', 2));
+    case 'signature':
+      return hasVisibleSavedSignature();
+    case 'declaration':
+      return hasText('declaration', 10);
+    case 'education':
+      return hasText('education', 10);
+    case 'tools':
+      return Array.isArray(tools) && tools.length > 0;
+    default:
+      return false;
+  }
+}
+
+function findNextIncompleteSettingsOnboardingStep(fromIndex){
+  for(let i = Math.max(0, fromIndex); i < settingsOnboardingSteps.length - 1; i++){
+    const step = settingsOnboardingSteps[i];
+    if(!isSettingsOnboardingStepDone(step.key)) return i;
+  }
+  return settingsOnboardingSteps.length - 1; // save step
+}
+
+function findPrevIncompleteSettingsOnboardingStep(fromIndex){
+  for(let i = Math.min(fromIndex, settingsOnboardingSteps.length - 2); i >= 0; i--){
+    const step = settingsOnboardingSteps[i];
+    if(!isSettingsOnboardingStepDone(step.key)) return i;
+  }
+  return -1;
+}
+
+function resolveSettingsOnboardingIndexFromScroll(){
+  const viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
+  if(!viewportH) return settingsOnboardingIndex;
+
+  let best = null;
+  for(let i = 0; i < settingsOnboardingSteps.length - 1; i++){
+    const step = settingsOnboardingSteps[i];
+    const target = getSettingsOnboardingTarget(step);
+    if(!target) continue;
+    const r = target.getBoundingClientRect();
+    const visible = Math.min(r.bottom, viewportH) - Math.max(r.top, 0);
+    if(visible <= 0) continue;
+    const centerDistance = Math.abs((r.top + r.bottom) / 2 - viewportH / 2);
+    const score = visible - centerDistance * 0.15;
+    if(!best || score > best.score){
+      best = { index: i, score };
+    }
+  }
+
+  if(!best) return settingsOnboardingIndex;
+
+  const visibleStep = settingsOnboardingSteps[best.index];
+  if(visibleStep && !isSettingsOnboardingStepDone(visibleStep.key)){
+    return best.index;
+  }
+
+  const next = findNextIncompleteSettingsOnboardingStep(best.index + 1);
+  if(next < settingsOnboardingSteps.length - 1) return next;
+
+  const prev = findPrevIncompleteSettingsOnboardingStep(best.index - 1);
+  if(prev >= 0) return prev;
+
+  return settingsOnboardingSteps.length - 1;
+}
+
+function syncSettingsOnboardingToScroll(){
+  if(!window._settingsOnboarding?.active) return;
+  if(Date.now() < settingsOnboardingProgrammaticScrollUntil) return;
+
+  const nextIndex = resolveSettingsOnboardingIndexFromScroll();
+  if(nextIndex !== settingsOnboardingIndex){
+    showSettingsOnboardingStep(nextIndex, { scrollToTarget:false });
+  }else{
+    const step = settingsOnboardingSteps[settingsOnboardingIndex];
+    const target = getSettingsOnboardingTarget(step);
+    updateSpotlightFrame(target || null);
+    placeSettingsOnboardingCard(target, step?.placement);
+  }
+}
+
+function scheduleSettingsOnboardingScrollSync(){
+  if(!window._settingsOnboarding?.active) return;
+  if(settingsOnboardingScrollSyncTimer) return;
+  settingsOnboardingScrollSyncTimer = setTimeout(() => {
+    settingsOnboardingScrollSyncTimer = null;
+    syncSettingsOnboardingToScroll();
+  }, 120);
+}
+
+function startSettingsOnboardingScrollSync(){
+  window.addEventListener('scroll', scheduleSettingsOnboardingScrollSync, { passive:true });
+  window.addEventListener('touchmove', scheduleSettingsOnboardingScrollSync, { passive:true });
+}
+
+function stopSettingsOnboardingScrollSync(){
+  window.removeEventListener('scroll', scheduleSettingsOnboardingScrollSync);
+  window.removeEventListener('touchmove', scheduleSettingsOnboardingScrollSync);
+  if(settingsOnboardingScrollSyncTimer){
+    clearTimeout(settingsOnboardingScrollSyncTimer);
+    settingsOnboardingScrollSyncTimer = null;
+  }
+}
+
+
+// אין קפיצה אוטומטית בזמן הקלדה.
+// שלבים שמולאו מראש ידולגו רק בכניסה לאונבורדינג או בלחיצה על "מילאתי, המשך".
+// כך טלפון/אימייל/טקסט חלקיים לא מקפיצים את המשתמש לשלב הבא באמצע מילוי.
+function scheduleSettingsOnboardingSync(){
+  scheduleSettingsOnboardingScrollSync();
+}
+
 function placeSettingsOnboardingCard(target, placement){
   const card = document.getElementById('settingsOnboardingCard');
   const arrow = document.getElementById('settingsOnboardingArrow');
@@ -2352,9 +2575,17 @@ function placeSettingsOnboardingCard(target, placement){
   const vW = window.innerWidth, vH = window.innerHeight;
   const gap = 20;
 
-  // מובייל — תחתית המסך
+  // מובייל — תחתית המסך, בלי לחסום את שדות המילוי
   if(vW <= 768){
-    Object.assign(card.style, {top:'auto', bottom:'76px', left:'12px', right:'12px', width:'auto'});
+    Object.assign(card.style, {
+      top:'auto',
+      bottom:'calc(76px + env(safe-area-inset-bottom, 0px))',
+      left:'12px',
+      right:'12px',
+      width:'auto',
+      maxHeight:'34vh',
+      overflow:'auto'
+    });
     return;
   }
 
@@ -2431,10 +2662,11 @@ function placeSettingsOnboardingCard(target, placement){
   Object.assign(card.style, {top:top+'px', left:left+'px', right:'auto', bottom:'auto'});
 }
 
-function showSettingsOnboardingStep(index){
+function showSettingsOnboardingStep(index, options = {}){
   settingsOnboardingIndex = index;
   const step = settingsOnboardingSteps[index];
   if(!step) return;
+  const shouldScrollToTarget = options.scrollToTarget !== false;
 
   clearSettingsOnboardingHighlight();
 
@@ -2477,9 +2709,13 @@ function showSettingsOnboardingStep(index){
   const list = document.getElementById('settingsOnboardingList');
   if(list) list.innerHTML = (step.bullets || []).map((item, i) => `<li><span>${i+1}</span><span>${item}</span></li>`).join('');
 
-  // Pulse על הסקשן הממוקד
+  // Pulse על הסקשן הממוקד + השארת השדות פעילים לעריכה
   if(target && getComputedStyle(target).position !== 'fixed'){
     target.classList.add('ob-section-active');
+    target.querySelectorAll('input, textarea, select, button').forEach(el => {
+      el.disabled = false;
+      el.style.pointerEvents = 'auto';
+    });
   }
 
   card.classList.add('show');
@@ -2488,8 +2724,10 @@ function showSettingsOnboardingStep(index){
   // delay קצר לכולם — מבטיח layout יציב לפני spotlight
   const needsDelay = false;
   setTimeout(() => {
-    if(target && getComputedStyle(target).position !== 'fixed'){
-      target.scrollIntoView({ behavior:'instant', block:'center' });
+    if(shouldScrollToTarget && target && getComputedStyle(target).position !== 'fixed'){
+      settingsOnboardingProgrammaticScrollUntil = Date.now() + 450;
+      const blockMode = (step.key === 'personal' || step.key === 'contact') ? 'start' : 'center';
+      target.scrollIntoView({ behavior:'instant', block:blockMode });
     }
     requestAnimationFrame(() => requestAnimationFrame(() => {
       updateSpotlightFrame(target || null);
@@ -2533,12 +2771,18 @@ async function nextSettingsOnboardingStep(){
     closeSettingsOnboarding();
     return;
   }
-  showSettingsOnboardingStep(settingsOnboardingIndex + 1);
+
+  // לחיצה פיזית על "מילאתי, המשך" מסמנת את השלב כסגור,
+  // ולכן גלילה חזרה לאזור הזה לא תחזיר אליו את הספוטלייט.
+  markSettingsOnboardingStepComplete(current?.key);
+  const nextIndex = findNextIncompleteSettingsOnboardingStep(settingsOnboardingIndex + 1);
+  showSettingsOnboardingStep(nextIndex);
 }
 
 function prevSettingsOnboardingStep(){
   if(settingsOnboardingIndex > 0){
-    showSettingsOnboardingStep(settingsOnboardingIndex - 1);
+    const prev = findPrevIncompleteSettingsOnboardingStep(settingsOnboardingIndex - 1);
+    if(prev >= 0) showSettingsOnboardingStep(prev);
   }
 }
 
@@ -2558,9 +2802,11 @@ function closeSkipConfirm() {
 
 async function doSkipStep() {
   closeSkipConfirm();
-  // דלג על השלב הנוכחי — עבור לבא
+  // דילוג ידני סוגר את השלב הנוכחי כדי שלא יחזור בגלילה.
+  const current = settingsOnboardingSteps[settingsOnboardingIndex];
+  markSettingsOnboardingStepComplete(current?.key);
   if(settingsOnboardingIndex < settingsOnboardingSteps.length - 1){
-    showSettingsOnboardingStep(settingsOnboardingIndex + 1);
+    showSettingsOnboardingStep(findNextIncompleteSettingsOnboardingStep(settingsOnboardingIndex + 1));
   } else {
     await skipSettingsOnboarding();
   }
@@ -2589,6 +2835,7 @@ async function skipSettingsOnboarding() {
 }
 
 function closeSettingsOnboarding(){
+  stopSettingsOnboardingScrollSync();
   clearSettingsOnboardingHighlight(); // also hides spotlightFrame
   document.body.classList.remove('ob-lock');
 
@@ -2678,6 +2925,7 @@ async function saveTool(){
     tools.push({name, model, icon});
   }
   renderToolsList();
+  scheduleSettingsOnboardingSync();
   closeToolModal();
   setSaveStatus('unsaved');
   try{
@@ -3016,11 +3264,263 @@ document.addEventListener('keydown', e=>{
 <!--
   ════════════════════════════════════════════
   OMDA איתור — כפתור WhatsApp צף
-  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  הוסף את ה-CSS וה-HTML לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> בכל דף
   ════════════════════════════════════════════
 -->
 
-<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<!-- CSS — הוסף ב-<head> או לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> -->
 <style>
   #waFloat {
     position: fixed;
@@ -3076,6 +3576,10 @@ document.addEventListener('keydown', e=>{
     height: 28px;
     fill: #fff;
   }
+  /* Hide floating WhatsApp while onboarding is active */
+  body.ob-lock #waFloat {
+    display: none !important;
+  }
   /* בדסקטופ — מימין למטה */
   @media (min-width: 769px) {
     #waFloat {
@@ -3087,7 +3591,133 @@ document.addEventListener('keydown', e=>{
   }
 </style>
 
-<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<!-- HTML — הוסף לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> (לפני Mobile Bottom Nav) -->
 <div id="waFloat">
   <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
   <a
@@ -3120,5 +3750,131 @@ document.addEventListener('keydown', e=>{
     }, 3000);
   })();
 </script>
+<script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
 </body>
 </html>

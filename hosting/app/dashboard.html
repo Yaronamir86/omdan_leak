@@ -1451,73 +1451,123 @@
           setTimeout(() => splash.remove(), 500);
         }, 300);
       }
+// ── OMDA CORE CONFIG ──
+const OMDA_CORE_URL = "https://checkproductaccess-n2jxrjvusa-uc.a.run.app";
+const PRODUCT_ID    = "omdan-leak";
 
-      auth.onAuthStateChanged(async (u) => {
-        if (!u) {
-          window.location.href =
-            "/index.html?redirect=" +
-            encodeURIComponent(location.pathname + location.search);
-          return;
-        }
-        if (splashBar) splashBar.style.width = '70%';
-        const now = new Date();
-        let billingToken = null;
-        try {
-          const billingDoc = await db.collection("billing").doc(u.uid).get();
-          billingToken = billingDoc.exists ? billingDoc.data() : null;
-        } catch (e) {
-          console.warn("[Dashboard] billing fetch error:", e.message);
-        }
+// בודק גישה דרך OMDA CORE
+async function checkCoreAccess(uid) {
+  try {
+    const res = await fetch(`${OMDA_CORE_URL}?uid=${uid}&productId=${PRODUCT_ID}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn("[CORE] checkProductAccess failed:", e.message);
+    return null;
+  }
+}
 
-        if (!billingToken) {
-          const trialEnd = new Date();
-          trialEnd.setDate(trialEnd.getDate() + 14);
-          billingToken = {
-            uid: u.uid,
-            email: u.email,
-            plan: "trial",
-            products: ["omdan-leak"],
-            trialEnd: trialEnd.toISOString(),
-            subscriptionEnd: null,
-            status: null,
-            reportsThisMonth: 0,
-            createdAt: new Date().toISOString(),
-          };
-          try {
-            await db.collection("billing").doc(u.uid).set(billingToken);
-          } catch (e) {
-            console.warn("trial create failed:", e);
-          }
-        }
+auth.onAuthStateChanged(async (u) => {
+  if (!u) {
+    window.location.href =
+      "/index.html?redirect=" +
+      encodeURIComponent(location.pathname + location.search);
+    return;
+  }
+  if (splashBar) splashBar.style.width = '70%';
+  const now = new Date();
+  let billingToken = null;
 
-        const _toDate = (v) =>
-          v?.toDate ? v.toDate() : v ? new Date(v) : null;
-        let hasAccess = false;
-        const paidPlans = ["leak", "starter", "pro", "bundle", "bundle-starter-leak"];
-        if (billingToken.plan === "free") {
-          hasAccess = true;
-        } else if (billingToken.plan === "trial") {
-          const trialEnd = _toDate(billingToken.trialEnd);
-          hasAccess = !!trialEnd && now < trialEnd;
-        } else if (paidPlans.includes(billingToken.plan) && billingToken.status === "active") {
-          const subEnd = _toDate(billingToken.subscriptionEnd);
-          hasAccess = !!subEnd && now < subEnd;
-        } else if (billingToken.plans?.["omdan-leak"]?.status === "active") {
-          const subEnd = _toDate(
-            billingToken.plans["omdan-leak"].subscriptionEnd,
-          );
-          hasAccess = !!subEnd && now < subEnd;
-        }
+  // ── שלב 1: בדוק OMDA CORE קודם ──
+  const coreAccess = await checkCoreAccess(u.uid);
 
-        if (!hasAccess) {
-          const reason =
-            billingToken.plan === "trial"
-              ? "trial_expired"
-              : "subscription_expired";
-          window.location.href = `/billing-gate.html?reason=${reason}`;
-          return;
-        }
+  if (coreAccess && coreAccess.allowed) {
+    // יש גישה דרך CORE – בנה billingToken מהתשובה
+    billingToken = {
+      uid: u.uid,
+      email: u.email,
+      plan: coreAccess.plan || "pro",
+      status: coreAccess.subscriptionStatus || "active",
+      products: [PRODUCT_ID],
+      source: coreAccess.source,
+      bundleId: coreAccess.bundleId || null,
+      subscriptionEnd: coreAccess.subscriptionEnd
+        ? new Date(coreAccess.subscriptionEnd)
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // שנה קדימה אם אין תאריך
+      reportsThisMonth: 0,
+      _fromCore: true,
+    };
+    console.log("[CORE] Access granted via OMDA CORE:", coreAccess.source);
+  } else {
+    // ── שלב 2: fallback לבילינג המקומי (לא לשבור משתמשים קיימים) ──
+    try {
+      const billingDoc = await db.collection("billing").doc(u.uid).get();
+      billingToken = billingDoc.exists ? billingDoc.data() : null;
+    } catch (e) {
+      console.warn("[Dashboard] billing fetch error:", e.message);
+    }
 
+    if (!billingToken) {
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 14);
+      billingToken = {
+        uid: u.uid,
+        email: u.email,
+        plan: "trial",
+        products: ["omdan-leak"],
+        trialEnd: trialEnd.toISOString(),
+        subscriptionEnd: null,
+        status: null,
+        reportsThisMonth: 0,
+        createdAt: new Date().toISOString(),
+      };
+      try {
+        await db.collection("billing").doc(u.uid).set(billingToken);
+      } catch (e) {
+        console.warn("trial create failed:", e);
+      }
+    }
+  }
+
+  // ── שלב 3: בדוק גישה (אותו לוגיקה קיימת) ──
+  const _toDate = (v) =>
+    v?.toDate ? v.toDate() : v ? new Date(v) : null;
+  let hasAccess = false;
+
+  // אם הגיע מ-CORE עם allowed:true – גישה מיידית
+  if (billingToken._fromCore) {
+    hasAccess = true;
+  } else {
+    const paidPlans = ["leak", "starter", "pro", "bundle", "bundle-starter-leak"];
+    if (billingToken.plan === "free") {
+      hasAccess = true;
+    } else if (billingToken.plan === "trial") {
+      const trialEnd = _toDate(billingToken.trialEnd);
+      hasAccess = !!trialEnd && now < trialEnd;
+    } else if (paidPlans.includes(billingToken.plan) && billingToken.status === "active") {
+      const subEnd = _toDate(billingToken.subscriptionEnd);
+      hasAccess = !!subEnd && now < subEnd;
+    } else if (billingToken.plans?.["omdan-leak"]?.status === "active") {
+      const subEnd = _toDate(billingToken.plans["omdan-leak"].subscriptionEnd);
+      hasAccess = !!subEnd && now < subEnd;
+    }
+  }
+
+  if (!hasAccess) {
+    const reason =
+      billingToken.plan === "trial"
+        ? "trial_expired"
+        : "subscription_expired";
+    window.location.href = `/billing-gate.html?reason=${reason}`;
+    return;
+  }
+
+  // ── המשך הקוד הקיים ללא שינוי ──
+  currentUser = u;
+  document.getElementById("navUser").textContent =
+    u.displayName || u.email;
+const sbEl = document.getElementById("sidebarUser");
+if (sbEl) sbEl.textContent = u.displayName || u.email;
         currentUser = u;
         document.getElementById("navUser").textContent =
           u.displayName || u.email;
@@ -2627,11 +2677,263 @@
     <!--
   ════════════════════════════════════════════
   OMDA איתור — כפתור WhatsApp צף
-  הוסף את ה-CSS וה-HTML לפני </body> בכל דף
+  הוסף את ה-CSS וה-HTML לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> בכל דף
   ════════════════════════════════════════════
 -->
 
-<!-- CSS — הוסף ב-<head> או לפני </body> -->
+<!-- CSS — הוסף ב-<head> או לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> -->
 <style>
   #waFloat {
     position: fixed;
@@ -2698,7 +3000,133 @@
   }
 </style>
 
-<!-- HTML — הוסף לפני </body> (לפני Mobile Bottom Nav) -->
+<!-- HTML — הוסף לפני <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body> (לפני Mobile Bottom Nav) -->
 <div id="waFloat">
   <div id="waFloatTooltip">💬 צריך עזרה? נשמח לעזור</div>
   <a
@@ -2731,5 +3159,131 @@
     }, 3000);
   })();
 </script>
-  </body>
+  <script>
+(function(){
+  if (window.__OMDA_CORE_MONITOR_INSTALLED__) return;
+  window.__OMDA_CORE_MONITOR_INSTALLED__ = true;
+
+  const PRODUCT_ID = "omda-leak";
+  const EVENT_URL = "https://us-central1-omda-core.cloudfunctions.net/logSystemEvent";
+  const ERROR_URL = "https://us-central1-omda-core.cloudfunctions.net/logError";
+  const MAX_META_TEXT = 500;
+
+  function text(v, max = MAX_META_TEXT) {
+    return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  }
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem("omda_monitor_session");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem("omda_monitor_session", id);
+      }
+      return id;
+    } catch (_) { return null; }
+  }
+  function getUid() {
+    try {
+      return window.currentUser?.uid || window._currentUser?.uid || firebase?.auth?.()?.currentUser?.uid || null;
+    } catch (_) { return null; }
+  }
+  function caseIdFromLocation() {
+    try { return new URLSearchParams(location.search).get("id") || new URLSearchParams(location.search).get("case") || null; }
+    catch (_) { return null; }
+  }
+  function cleanMeta(obj) {
+    const out = { sessionId: getSessionId(), href: location.pathname + location.search };
+    for (const [k, v] of Object.entries(obj || {}).slice(0, 25)) {
+      if (v == null) out[k] = null;
+      else if (["string", "number", "boolean"].includes(typeof v)) out[k] = typeof v === "string" ? text(v, 800) : v;
+      else out[k] = text(JSON.stringify(v), 1000);
+    }
+    return out;
+  }
+  async function post(url, payload) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("OMDA CORE monitor failed", err);
+    }
+  }
+  function log(eventType, metadata = {}, options = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      eventType: text(eventType, 120),
+      uid: getUid(),
+      entityId: options.entityId || metadata.caseId || caseIdFromLocation(),
+      page: document.title || location.pathname,
+      path: location.pathname,
+      source: "frontend",
+      metadata: cleanMeta(metadata),
+    };
+    return post(EVENT_URL, payload);
+  }
+  function logError(errorType, message, metadata = {}) {
+    const payload = {
+      productId: PRODUCT_ID,
+      errorType: text(errorType, 120) || "frontend_error",
+      message: text(message, 1000) || "Unknown frontend error",
+      userId: getUid(),
+      metadata: cleanMeta(metadata),
+    };
+    post(ERROR_URL, payload);
+    return log("frontend_error", { errorType, message, ...metadata });
+  }
+  function wrapGlobal(fnName, eventType, metaFactory) {
+    const original = window[fnName];
+    if (typeof original !== "function" || original.__omdaMonitored) return false;
+    const wrapped = async function(...args) {
+      try {
+        const result = await original.apply(this, args);
+        const meta = typeof metaFactory === "function" ? metaFactory(args, result) : {};
+        log(eventType, { functionName: fnName, ...meta });
+        return result;
+      } catch (err) {
+        logError("function_error", err?.message || String(err), { functionName: fnName, eventType });
+        throw err;
+      }
+    };
+    wrapped.__omdaMonitored = true;
+    window[fnName] = wrapped;
+    return true;
+  }
+  function installWrappers() {
+    wrapGlobal("saveCase", "case_saved", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("saveAll", "settings_saved");
+    wrapGlobal("saveTemplate", "settings_template_saved");
+    wrapGlobal("savePdf", "pdf_generate_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("shareReport", "pdf_share_requested", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionOpen", "pdf_downloaded", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionShare", "pdf_shared", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("_pdfActionCopy", "pdf_link_copied", () => ({ caseId: caseIdFromLocation() }));
+    wrapGlobal("downloadPDF", "pdf_downloaded", (args) => ({ caseId: args?.[0] || null }));
+    wrapGlobal("openReport", "report_opened", (args) => ({ caseId: args?.[0] || null }));
+  }
+
+  window.omdaCoreMonitor = { log, logError, installWrappers };
+  window.logToCore = log;
+
+  window.addEventListener("error", (e) => {
+    logError("frontend_error", e.message, { source: e.filename, line: e.lineno, col: e.colno });
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    logError("unhandled_rejection", e.reason?.message || String(e.reason || "Unhandled rejection"));
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => log("page_view", { referrer: document.referrer || null }), 600);
+    setTimeout(installWrappers, 1200);
+    setTimeout(installWrappers, 3500);
+  });
+})();
+</script>
+
+</body>
 </html>
