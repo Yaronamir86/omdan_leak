@@ -4627,7 +4627,15 @@
               const billingToken = billingSnap.exists
                 ? billingSnap.data()
                 : null;
-              const limitCheck = BillingCore.checkReportLimit(billingToken);
+              const limitCheck =
+                window.BillingCore &&
+                typeof window.BillingCore.checkReportLimit === "function"
+                  ? window.BillingCore.checkReportLimit(billingToken)
+                  : { allowed: true, skipped: true, reason: "billing_core_not_loaded" };
+
+              if (limitCheck.skipped) {
+                console.info("checkReportLimit skipped: BillingCore not loaded");
+              }
 
               if (!limitCheck.allowed) {
                 setSaveStatus("unsaved");
@@ -4822,7 +4830,8 @@
             }
           }
         } catch (e) {
-          console.warn("syncClientRecord:", e.message);
+          // Client sync is non-blocking. Do not interrupt case save if the client index cannot be updated.
+          console.warn("syncClientRecord skipped:", e.message);
         }
       }
 

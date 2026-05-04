@@ -304,7 +304,7 @@
         <p id="fSub">הזן את פרטיך כדי להמשיך</p>
         <div class="error-box" id="errBox"></div>
 
-        <div id="loginForm">
+        <form id="loginForm" onsubmit="event.preventDefault(); loginEmail();">
           <div class="field">
             <label>אימייל</label
             ><input type="email" id="email" placeholder="you@example.com" />
@@ -315,15 +315,15 @@
           </div>
           <div class="forgot"><a onclick="forgotPw()">שכחתי סיסמה</a></div>
           <button
+            type="submit"
             class="btn btn-primary"
             id="loginBtn"
-            onclick="loginEmail()"
             data-lbl="כניסה"
           >
             כניסה
           </button>
           <div class="divider">או</div>
-          <button class="btn btn-google" onclick="loginGoogle()">
+          <button type="button" class="btn btn-google" onclick="loginGoogle()">
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
@@ -347,7 +347,7 @@
           <div class="toggle-link">
             אין לך חשבון? <a href="/register.html">הרשמה</a>
           </div>
-        </div>
+        </form>
       </div>
       <div
         style="
